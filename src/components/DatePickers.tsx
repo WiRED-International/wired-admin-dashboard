@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+
 import { globalStyles } from "../globalStyles";
 import { FilterFormInterface } from "../interfaces/FilterFormInterface";
 
