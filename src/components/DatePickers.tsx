@@ -1,4 +1,3 @@
-
 import { globalStyles } from "../globalStyles";
 import { FilterFormInterface } from "../interfaces/FilterFormInterface";
 
