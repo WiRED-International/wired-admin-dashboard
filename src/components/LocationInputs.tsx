@@ -58,13 +58,26 @@ const LocationInputs = ({
     }
   };
 
+  const handletoggleLocationInputs = (): void => {
+    if (loactionInputsShown) {
+      setFormData({
+        ...formData,
+        latitude: '',
+        longitude: '',
+        distance: '',
+      });
+    }
+    setLocationInputsShown(!loactionInputsShown);
+
+  }
+
   return (
     <>
-      <label style={globalStyles.label}>Search by Location</label>
+      <label style={globalStyles.label}>Search by Latitude/Longitude</label>
       <input
         type="checkbox"
         checked={loactionInputsShown}
-        onChange={() => setLocationInputsShown(!loactionInputsShown)}
+        onChange={handletoggleLocationInputs}
         style={{ marginRight: "5px" }}
       />
       <hr style={globalStyles.hr}/>
@@ -82,9 +95,9 @@ const LocationInputs = ({
             max={90}
             step={0.000001}
           />
-          {latitudeError && <p style={styles.smallError}>{latitudeError}</p>}
+          {latitudeError && <p style={globalStyles.smallError}>{latitudeError}</p>}
 
-          <label style={styles.label}>Longitude</label>
+          <label style={globalStyles.label}>Longitude</label>
           <input
             type="number"
             name="longitude"
@@ -96,8 +109,8 @@ const LocationInputs = ({
             max={180}
             step={0.000001}
           />
-          {longitudeError && <p style={styles.smallError}>{longitudeError}</p>}
-          <label style={globalStyles.label}>Distance (miles)</label>
+          {longitudeError && <p style={globalStyles.smallError}>{longitudeError}</p>}
+          <label style={globalStyles.label}>Distance Radius(miles)</label>
           <input
             type="number"
             name="distance"
@@ -108,7 +121,7 @@ const LocationInputs = ({
             min={0}
             step={0.1}
           />
-          {distanceError && <p style={styles.smallError}>{distanceError}</p>}
+          {distanceError && <p style={globalStyles.smallError}>{distanceError}</p>}
         </>
       )}
     </>
@@ -117,10 +130,3 @@ const LocationInputs = ({
 
 export default LocationInputs;
 
-const styles: { [key: string]: React.CSSProperties } = {
-  smallError: {
-    fontSize: "12px",
-    color: globalStyles.colors.error,
-    marginTop: "0px",
-  },
-};

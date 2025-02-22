@@ -6,6 +6,7 @@ import { buildDownloadsQueryString } from '../utils/helperFunctions';
 import SearchDropdown from './SearchDropdown';
 import DatePickers from './DatePickers';
 import TimeframeSelect from './TimeframeSelect';
+import CountryFilter from './CountryFilter';
 
 interface FilterPopoverProps {
   setQueryString: (queryString: string) => void,
@@ -24,6 +25,8 @@ const FilterPopover = ({ setQueryString, onClose, moduleAndPackageInfo, formData
   const [distanceError, setDistanceError] = useState<string>('');
   const [timeframe, setTimeframe] = useState<Timeframe>('');
   const [datePickersShown, setDatePickersShown] = useState<boolean>(false);
+  const [countryInputShown, setCountryInputShown] = useState<boolean>(false);
+  const [selectedCountryCode, setSelectedCountryCode] = useState<string>("");
 
   type Timeframe = 'hour' | 'day' | 'week' | '30 days' | 'year' | '';
 
@@ -32,12 +35,16 @@ const FilterPopover = ({ setQueryString, onClose, moduleAndPackageInfo, formData
     if (savedFormData) {
       const parsedFormData = JSON.parse(savedFormData);
       setFormData(parsedFormData);
-      if(parsedFormData.latitude || parsedFormData.longitude || parsedFormData.distance){
+      if (parsedFormData.latitude || parsedFormData.longitude || parsedFormData.distance){
         setLocationInputsShown(true);
       }
       if (parsedFormData.startDate || parsedFormData.endDate) {
         setDatePickersShown(true);
-    }
+      }
+      if (parsedFormData.country_code) {
+        setCountryInputShown(true);
+        setSelectedCountryCode(parsedFormData.country_code);
+      }
     }
   }, []);
 
@@ -79,6 +86,7 @@ const FilterPopover = ({ setQueryString, onClose, moduleAndPackageInfo, formData
       latitude: '',
       longitude: '',
       distance: '',
+      country_code: '',
     });
     setLocationInputsShown(false)
     setError('');
@@ -86,6 +94,7 @@ const FilterPopover = ({ setQueryString, onClose, moduleAndPackageInfo, formData
     setLongitudeError('');
     setDistanceError('');
     setTimeframe('');
+    setCountryInputShown(false);
   }
 
   //I add comments like this because i have an extension that highlights certain comments so they can be easily found in the scrollbar
@@ -123,6 +132,15 @@ const FilterPopover = ({ setQueryString, onClose, moduleAndPackageInfo, formData
           setDatePickersShown={setDatePickersShown}
           />
         {/* Latitude & Longitude Inputs (Only show when checkbox is checked) */}
+        {/* FILTER BY COUNTRY */}
+        <CountryFilter 
+          formData={formData} 
+          setFormData={setFormData} 
+          countryInputShown={countryInputShown}
+          setCountryInputShown={setCountryInputShown}
+          selectedCountryCode={selectedCountryCode}
+          setSelectedCountryCode={setSelectedCountryCode}
+        />
         <LocationInputs
           loactionInputsShown={locationInputShown}
           setLocationInputsShown={setLocationInputsShown}
@@ -168,7 +186,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     maxWidth: '500px',
     textAlign: 'center',
     zIndex: 1001, // Ensure popover appears above the overlay
-    maxHeight: '80vh',
+    maxHeight: '700px',// Allow for scrolling
     overflow: 'auto',
 
   },

@@ -109,7 +109,7 @@ const AdminDashboard = () => {
       {loading && <LoadingSpinner />}
       {hasQueriedDownloads && downloads.length === 0 && <div style={{...styles.error, position: 'absolute'}}>No downloads match the provided search criteria.</div>}
 
-      <GoogleMapsComponent downloads={downloads} />
+      <GoogleMapsComponent downloads={downloads} handleViewAllDownloads={handleViewAllDownloads}/>
     </div>
   );
 };

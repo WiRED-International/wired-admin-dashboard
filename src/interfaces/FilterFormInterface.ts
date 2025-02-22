@@ -10,4 +10,5 @@ export interface FilterFormInterface {
     //in case we want to use the ids instead of the names
     module_id?: number;
     package_id?: number;
+    country_code?: string;
   }

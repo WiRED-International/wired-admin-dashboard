@@ -13,11 +13,12 @@ const mapContainerStyle = {
 };
 interface GoogleMapsComponentProps {
     downloads: ModuleDownloadInterface[];
+    handleViewAllDownloads: () => void;
 }
 
 const defaultCenter = { lat: 37.7749, lng: -122.4194 }; // Default to San Francisco
 
-const GoogleMapsComponent = ({ downloads }: GoogleMapsComponentProps) => {
+const GoogleMapsComponent = ({ downloads, handleViewAllDownloads }: GoogleMapsComponentProps) => {
 
     const { isLoaded, loadError } = useLoadScript({
         googleMapsApiKey: import.meta.env.VITE_GOOGLE_API_KEY, // Replace with your API Key
@@ -30,6 +31,7 @@ const GoogleMapsComponent = ({ downloads }: GoogleMapsComponentProps) => {
     // Save reference to the map on load
     const onLoad = (map: google.maps.Map) => {
         mapRef.current = map;
+        handleViewAllDownloads();
     };
 
     // Fit map to bounds of all queried downloads

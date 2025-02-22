@@ -4,7 +4,7 @@ const lightGray = '#f9f9f9';
 const whiteTheme = '#fff';
 const headerColor = '#508432';
 const success = '#5cb85c';
-const error = '#D9534F';
+const errorColor = '#D9534F';
 const pageBackgroundMain =  '#e0c6a8'
 
 export const globalStyles = {
@@ -14,7 +14,7 @@ export const globalStyles = {
         darkButtonTheme: '#5a382d',
         darkText: darkText,
         pageBackgroundMain: '#e0c6a8',
-        error: error,
+        error: errorColor,
         lightGray: lightGray,
         whiteOverlay: 'rgba(255, 255, 255, 0.4)',
         success: success,
@@ -104,8 +104,13 @@ export const globalStyles = {
         fontSize: '14px',
     },
     authError: {
-        color: error,
+        color: errorColor,
         fontSize: '14px',
+    },
+    smallError: {
+        fontSize: "12px",
+        color: errorColor,
+        marginTop: "0px",
     },
     footer: {
         backgroundColor: headerColor,
@@ -118,6 +123,27 @@ export const globalStyles = {
     },
     hr: {
         border: '1px solid black',
-    }
+    },
+    dropdownUL: {
+        listStyleType: "none",
+        padding: 0,
+        margin: 0,
+        backgroundColor: "white",
+        border: "1px solid #ccc",
+        borderRadius: "5px",
+        position: "absolute" as const,
+        width: "100%",
+        maxWidth: "inherit",
+        zIndex: 1,
+        maxHeight: "200px", // to make the dropdown scrollable
+        overflowY: "scroll" as const,  // Enable vertical scrolling
+      },
+      dropdownLI: {
+        padding: "8px",
+        cursor: "pointer",
+      },
+      dropDownLISelected: {
+        backgroundColor: "#add8e6",
+      }
 
 }

@@ -5,10 +5,10 @@ import { globalStyles } from "../globalStyles";
 interface SearchableDropdownProps {
   formData: FilterFormInterface
   setFormData: (formData: FilterFormInterface) => void,
-  moduleAndPackageInfo: {modules: {id: number, name: string}[], packages: {id: number, name: string}[]}
+  moduleAndPackageInfo: { modules: { id: number, name: string }[], packages: { id: number, name: string }[] }
 }
 
-export default function SearchableDropdown({formData, moduleAndPackageInfo, setFormData}: SearchableDropdownProps) {
+export default function SearchableDropdown({ formData, moduleAndPackageInfo, setFormData }: SearchableDropdownProps) {
 
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -18,13 +18,11 @@ export default function SearchableDropdown({formData, moduleAndPackageInfo, setF
   const [options, setOptions] = useState<string[]>([]);
   const [filteredOptions, setFilteredOptions] = useState(options);
 
-
-
   useEffect(() => {
     if (formData.searchBy && formData.searchQuery) {
       setQuery(formData.searchQuery);
     }
-    if(!formData.searchQuery){
+    if (!formData.searchQuery) {
       setQuery('');
     }
     let newOptions: string[] = [];
@@ -35,21 +33,19 @@ export default function SearchableDropdown({formData, moduleAndPackageInfo, setF
     } else {
       setQuery('');
     }
-  
     setOptions(newOptions);
   }, [formData]);
 
-
   useEffect(() => {
-    setFormData({...formData, searchQuery: query});
-  }, [query])
+    setFormData({ ...formData, searchQuery: query });
+  }, [query]);
 
   // Clear filtered options when user changes search category
   useEffect(() => {
-    if(query === ''){
+    if (query === '') {
       setFilteredOptions([]);
     }
-  }, [options])
+  }, [options]);
 
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,6 +69,17 @@ export default function SearchableDropdown({formData, moduleAndPackageInfo, setF
       setShowDropdown(false);
     }
   };
+
+  // Scroll to the selected option only if it is changed by keyboard or mouse
+  useEffect(() => {
+    if (selectedIndex >= 0 && dropdownRef.current) {
+      const selectedOption = dropdownRef.current.children[selectedIndex] as HTMLElement;
+      selectedOption?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
+    }
+  }, [selectedIndex]);
 
   // Handle clicks outside
   useEffect(() => {
@@ -105,15 +112,14 @@ export default function SearchableDropdown({formData, moduleAndPackageInfo, setF
         style={globalStyles.input}
       />
       {showDropdown && filteredOptions.length > 0 && (
-        <ul 
-          ref={dropdownRef} 
-          style={styles.dropdownUL}
+        <ul
+          ref={dropdownRef}
+          style={globalStyles.dropdownUL}
         >
           {filteredOptions.map((option, index) => (
             <li
-              style={{...styles.dropdownLI, ...(index === selectedIndex ? styles.dropDownLISelected : {})}}
+              style={{ ...globalStyles.dropdownLI, ...(index === selectedIndex ? globalStyles.dropDownLISelected : {}) }}
               key={option}
-  
               onMouseEnter={() => setSelectedIndex(index)}
               onClick={() => {
                 setQuery(option);
@@ -134,23 +140,4 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: "relative",
     width: "100%",
   },
-  dropdownUL: {
-    listStyleType: "none",
-    padding: 0,
-    margin: 0,
-    backgroundColor: "white",
-    border: "1px solid #ccc",
-    borderRadius: "5px",
-    position: "absolute",
-    width: "100%",
-    maxWidth: "inherit",
-    zIndex: 1,
-  },
-  dropdownLI: {
-    padding: "8px",
-    cursor: "pointer",
-  },
-  dropDownLISelected: {
-    backgroundColor: "#add8e6",
-  }
-}
+};
