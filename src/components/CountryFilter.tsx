@@ -43,14 +43,9 @@ export default function CountryFilter({
         if(formData.country_code){
             setCountryInputShown(true);
             setQuery(countryData.find((country) => country.code === formData.country_code)?.name || "");
-        }
-    }, [formData.country_code]);
-
-    useEffect(() => {
-        if (formData.country_code) {
             setSelectedCountryCode(formData.country_code);
         }
-    }, [formData]);
+    }, [formData.country_code]);
 
     useEffect(() => {
         setFormData({ ...formData, country_code: selectedCountryCode });
@@ -89,7 +84,7 @@ export default function CountryFilter({
         }
     };
 
-    const handletoggleLocationInputs = (): void => {
+    const handleToggleLocationInputs = (): void => {
         if (countryInputShown) {
             setFormData({
                 ...formData,
@@ -135,7 +130,7 @@ export default function CountryFilter({
             <input
                 type="checkbox"
                 checked={countryInputShown}
-                onChange={handletoggleLocationInputs}
+                onChange={handleToggleLocationInputs}
                 style={{ marginRight: "5px" }}
             />
             {countryInputShown && 
