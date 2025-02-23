@@ -17,13 +17,27 @@ const DatePickers = ({ formData, setFormData, datePickersShown, setDatePickersSh
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
     };
 
+    const handleToggleDatePickers = () => {
+        if(datePickersShown){
+            setDatePickersShown(false);
+            setFormData({
+                ...formData,
+                startDate: null,
+                endDate: null,
+            });
+        }
+        else{
+            setDatePickersShown(true);
+        }
+    }
+
     return (
         <>
             <label style={globalStyles.label}>Filter with custom start/end dates</label>
             <input
                 type="checkbox"
                 checked={datePickersShown}
-                onChange={() => setDatePickersShown(!datePickersShown)}
+                onChange={handleToggleDatePickers}
                 style={{ marginRight: "5px" }}
             />
             {datePickersShown && (
