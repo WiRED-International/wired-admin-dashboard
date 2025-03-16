@@ -34,7 +34,6 @@ const AdminDashboard = () => {
   });
 
   const handleViewAllDownloads = async () => {
-    setHasQueriedDownloads(true);
     setLoading(true);
     setErrorMessage('');
     try {
@@ -48,6 +47,7 @@ const AdminDashboard = () => {
       }
     }finally{
       setLoading(false);
+      setHasQueriedDownloads(true);
     }
   }
 
@@ -105,9 +105,9 @@ const AdminDashboard = () => {
         </button>
       </div>
 
-      {errorMessage && <div style={styles.error}>{errorMessage}</div>}
-      {loading && <LoadingSpinner />}
-      {hasQueriedDownloads && downloads.length === 0 && <div style={{...styles.error, position: 'absolute'}}>No downloads match the provided search criteria.</div>}
+      {/* {errorMessage && <div style={styles.error}>{errorMessage}</div>} */}
+      {loading && <LoadingSpinner />} 
+      {hasQueriedDownloads && downloads.length === 0 && <div style={{...styles.error, position: 'absolute'}}>{errorMessage ? errorMessage : 'No downloads match the provided search criteria.'}</div>}
 
       <GoogleMapsComponent downloads={downloads} handleViewAllDownloads={handleViewAllDownloads}/>
     </div>
@@ -162,7 +162,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: 'center',
     fontSize: '14px',
     maxWidth: '80%',
-    width: '100%',
   },
 };
 
