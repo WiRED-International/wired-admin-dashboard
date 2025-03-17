@@ -4,11 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --base=/ ",
     "build": "tsc && vite build",
+    "build:local": "tsc && vite build --base=/",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "sync": "npm run build && rsync -av --delete dist/ ../wired_modules_api/client-build"
+    "sync": "npm run build && rsync -av --delete dist/ ../wired_modules_api/client-build",
+    "sync:local": "npm run build:local && rsync -av --delete dist/ ../wired_modules_api/client-build"
   },
   "dependencies": {
     "@googlemaps/markerclusterer": "^2.5.3",
