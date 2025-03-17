@@ -14,14 +14,15 @@ const mapContainerStyle = {
 interface GoogleMapsComponentProps {
     downloads: ModuleDownloadInterface[];
     handleViewAllDownloads: () => void;
+    googleAPIKey: string;
 }
 
 const defaultCenter = { lat: 37.7749, lng: -122.4194 }; // Default to San Francisco
 
-const GoogleMapsComponent = ({ downloads, handleViewAllDownloads }: GoogleMapsComponentProps) => {
+const GoogleMapsComponent = ({ downloads, handleViewAllDownloads, googleAPIKey }: GoogleMapsComponentProps) => {
 
     const { isLoaded, loadError } = useLoadScript({
-        googleMapsApiKey: import.meta.env.VITE_GOOGLE_API_KEY, // Replace with your API Key
+        googleMapsApiKey: googleAPIKey
     });
 
     const [selectedDownload, setSelectedDownload] = useState<ModuleDownloadInterface | null>(null);
