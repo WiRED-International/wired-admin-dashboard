@@ -11,7 +11,7 @@ import { buildDownloadsQueryString } from '../utils/helperFunctions';
 import GoogleMapsComponent from '../components/GoogleMap';
 import { IdsAndNamesInterface } from '../interfaces/IdsAndNamesInterface';
 import { FilterFormInterface } from '../interfaces/FilterFormInterface';
-import { fetchGoogeAPIKey } from '../api/googleAPIKey';
+import { fetchGoogleAPIKey } from '../api/googleAPIKey';
 
 const AdminDashboard = () => {
 
@@ -78,7 +78,7 @@ const AdminDashboard = () => {
       const parsedFormData = JSON.parse(savedFormData);
       buildDownloadsQueryString({formData: parsedFormData, setQueryString});
     }
-    fetchGoogeAPIKey()
+    fetchGoogleAPIKey()
       .then((data) => {
         setGoogleAPIKey(data);
       })

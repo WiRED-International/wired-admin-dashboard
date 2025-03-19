@@ -1,6 +1,6 @@
 import Auth from "../utils/auth";
 
-export const fetchGoogeAPIKey = async (): Promise<string> => {
+export const fetchGoogleAPIKey = async (): Promise<string> => {
     try {
         const response = await fetch('/api/googleAPIKey', {
             headers: {
@@ -8,7 +8,7 @@ export const fetchGoogeAPIKey = async (): Promise<string> => {
             }
         });
         const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json") || response.status >= 500) {
+        if (!contentType || !contentType.includes("application/json") || !response.ok) {
             throw new Error("Failed to fetch Google API Key");
         }
         const data = await response.json();

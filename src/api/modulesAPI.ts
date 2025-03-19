@@ -11,7 +11,7 @@ export const fetchModuleAndPackageInfo = async (): Promise<IdsAndNamesInterface>
             }
         });
         const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json") || response.status >= 500) {
+        if (!contentType || !contentType.includes("application/json") || !response.ok) {
             throw new Error("Failed to fetch module names");
         }
         const moduleData = await response.json();
