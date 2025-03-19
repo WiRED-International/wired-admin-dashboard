@@ -11,6 +11,7 @@ import { buildDownloadsQueryString } from '../utils/helperFunctions';
 import GoogleMapsComponent from '../components/GoogleMap';
 import { IdsAndNamesInterface } from '../interfaces/IdsAndNamesInterface';
 import { FilterFormInterface } from '../interfaces/FilterFormInterface';
+import { fetchGoogleAPIKey } from '../api/googleAPIKey';
 
 const AdminDashboard = () => {
 
@@ -32,6 +33,7 @@ const AdminDashboard = () => {
     longitude: '',
     distance: '',
   });
+  const [googleAPIKey, setGoogleAPIKey] = useState<string>('');
 
   const handleViewAllDownloads = async () => {
     setLoading(true);
@@ -76,6 +78,13 @@ const AdminDashboard = () => {
       const parsedFormData = JSON.parse(savedFormData);
       buildDownloadsQueryString({formData: parsedFormData, setQueryString});
     }
+    fetchGoogleAPIKey()
+      .then((data) => {
+        setGoogleAPIKey(data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   }, [])
 
   useEffect(() => {
@@ -109,7 +118,7 @@ const AdminDashboard = () => {
       {loading && <LoadingSpinner />} 
       {hasQueriedDownloads && downloads.length === 0 && <div style={{...styles.error, position: 'absolute'}}>{errorMessage ? errorMessage : 'No downloads match the provided search criteria.'}</div>}
 
-      <GoogleMapsComponent downloads={downloads} handleViewAllDownloads={handleViewAllDownloads}/>
+      {googleAPIKey && <GoogleMapsComponent downloads={downloads} handleViewAllDownloads={handleViewAllDownloads} googleAPIKey={googleAPIKey}/>}
     </div>
   );
 };

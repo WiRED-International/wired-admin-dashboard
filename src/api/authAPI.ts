@@ -14,7 +14,7 @@ export const login = async (userInfo: UserLoginInterface) => {
     });
     //check if response is json, if not, throw a user-readable error
     const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json") || response.status >= 500) {
+    if (!contentType || !contentType.includes("application/json") || !response.ok) {
         throw new Error("server error");
     }
     const data = await response.json();
@@ -39,7 +39,7 @@ export const sendPasswordResetEmail = async (email: string) => {
       body: JSON.stringify({email})
     });
     const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json") || response.status >= 500) {
+    if (!contentType || !contentType.includes("application/json") || !response.ok) {
         throw new Error("server error");
     }
     const data = await response.json();
@@ -62,7 +62,7 @@ export const resetPassword = async (token: string, password: string) => {
       body: JSON.stringify({password, token})
     });
     const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json") || response.status >= 500) {
+    if (!contentType || !contentType.includes("application/json") || !response.ok) {
         throw new Error("server error");
     }
     const data = await response.json();

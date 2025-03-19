@@ -17,7 +17,7 @@ export const fetchDownloads = async (queries?: string): Promise<ModuleDownloadIn
         });
         //check if response is json, if not, throw a user-readable error
         const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json") || response.status >= 500) {
+        if (!contentType || !contentType.includes("application/json") || !response.ok) {
             throw new Error("Failed to fetch downloads");
         }
         const data = await response.json();
