@@ -50,7 +50,9 @@ const router = createBrowserRouter([
       }
     ],
   },
-]);
+], {
+  basename: import.meta.env.VITE_MODE === 'dev' ? '/' : '/apiv2/',
+});
 
 
 const rootElement = document.getElementById('root');

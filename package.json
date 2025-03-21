@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --base=/ ",
+    "dev": "VITE_MODE=dev vite --base=/ ",
     "build": "tsc && vite build",
-    "build:local": "tsc && vite build --base=/",
+    "build:local": "tsc && VITE_MODE=dev vite build --base=/",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "sync": "npm run build && rsync -av --delete dist/ ../wired_modules_api/client-build",
