@@ -1,0 +1,1 @@
+export const apiPrefix = import.meta.env.VITE_MODE === 'dev' ? '/' : '/apiv2/'
