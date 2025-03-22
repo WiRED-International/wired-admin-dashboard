@@ -1,11 +1,12 @@
 //make fetch request to /modules/name
 import Auth from "../utils/auth";
 import { IdsAndNamesInterface } from "../interfaces/IdsAndNamesInterface";
+import { apiPrefix } from "../utils/globalVariables";
 
 
 export const fetchModuleAndPackageInfo = async (): Promise<IdsAndNamesInterface> => {
     try {
-        const response = await fetch('/modules/names', {
+        const response = await fetch(`${apiPrefix}modules/names`, {
             headers: {
                 Authorization: `Bearer ${Auth.getToken()}`,
             }
@@ -18,7 +19,7 @@ export const fetchModuleAndPackageInfo = async (): Promise<IdsAndNamesInterface>
         if(!response.ok) {
             throw new Error(moduleData.message || 'Failed to fetch module names');
         }
-        const packageFetchResponse = await fetch('/packages/names', {
+        const packageFetchResponse = await fetch(`${apiPrefix}packages/names`, {
             headers: {
                 Authorization: `Bearer ${Auth.getToken()}`,
             }

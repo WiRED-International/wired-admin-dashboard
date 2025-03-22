@@ -2,10 +2,10 @@ import { UserLoginInterface } from "../interfaces/UserLoginInterface";
 
 //bring in env variable for api url using vite specific import.meta
 
-
+import { apiPrefix } from "../utils/globalVariables";
 export const login = async (userInfo: UserLoginInterface) => {
   try {
-    const response = await fetch(`/auth/login`, {
+    const response = await fetch(`${apiPrefix}auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -31,7 +31,7 @@ export const login = async (userInfo: UserLoginInterface) => {
 
 export const sendPasswordResetEmail = async (email: string) => {
   try {
-    const response = await fetch(`/auth/forgot-password`, {
+    const response = await fetch(`${apiPrefix}auth/forgot-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -54,7 +54,7 @@ export const sendPasswordResetEmail = async (email: string) => {
 
 export const resetPassword = async (token: string, password: string) => {
   try {
-    const response = await fetch(`/auth/reset-password`, {
+    const response = await fetch(`${apiPrefix}auth/reset-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
