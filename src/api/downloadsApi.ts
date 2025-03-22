@@ -8,7 +8,7 @@ import { apiPrefix } from "../utils/globalVariables";
 //fetch data from /downloads endpoint
 export const fetchDownloads = async (queries?: string): Promise<ModuleDownloadInterface[]> => {
     try {
-        const fetchURL = queries ? `${apiPrefix}api/downloads?${queries}` : `${apiPrefix}/api/downloads`;
+        const fetchURL = queries ? `${apiPrefix}api/downloads?${queries}` : `${apiPrefix}api/downloads`;
 
         const response = await fetch(fetchURL, {
             
