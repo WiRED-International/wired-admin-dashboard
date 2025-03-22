@@ -35,6 +35,12 @@ const AdminDashboard = () => {
   });
   const [googleAPIKey, setGoogleAPIKey] = useState<string>('');
 
+  useEffect(() => {
+    if(googleAPIKey){
+      console.log('google api key: ', googleAPIKey)
+    }
+  }, [googleAPIKey])
+
   const handleViewAllDownloads = async () => {
     setLoading(true);
     setErrorMessage('');
