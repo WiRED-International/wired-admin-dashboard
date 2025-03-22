@@ -13,6 +13,10 @@ jobs:
       - name: Checkout frontend repo
         uses: actions/checkout@v4
 
+      - name: Create .env.production file with API Key
+        run: |
+          echo "VITE_GOOGLE_MAPS_API_KEY=${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}" > .env.production
+
       - name: Install dependencies and build
         run: |
           npm install
