@@ -144,6 +144,18 @@ export const globalStyles = {
       },
       dropDownLISelected: {
         backgroundColor: "#add8e6",
-      }
+      },
+      overlay: {
+        position: 'fixed' as const,
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Dark overlay
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000,
+      },
 
 }

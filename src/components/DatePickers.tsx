@@ -6,9 +6,10 @@ interface DatePickersProps {
     setFormData: (formData: FilterFormInterface) => void;
     datePickersShown: boolean;
     setDatePickersShown: (value: boolean) => void;
+    setTimeFrame: (value: 'hour' | 'day' | 'week' | '30 days' | 'year' | '') => void;
 }
 
-const DatePickers = ({ formData, setFormData, datePickersShown, setDatePickersShown }: DatePickersProps) => {
+const DatePickers = ({ formData, setFormData, datePickersShown, setDatePickersShown, setTimeFrame }: DatePickersProps) => {
 
     // Function to convert Unix timestamp to YYYY-MM-DD format in local time
     const formatDateLocal = (timestamp: number | null) => {
@@ -31,6 +32,15 @@ const DatePickers = ({ formData, setFormData, datePickersShown, setDatePickersSh
         }
     }
 
+    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>, dateType: 'startDate' | 'endDate') => {
+        const dateValue = e.target.value ? Math.floor(new Date(e.target.value).getTime() / 1000) : null;
+        setFormData({
+            ...formData,
+            [dateType]: dateValue,
+        });
+        setTimeFrame('')
+    }
+
     return (
         <>
             <label style={globalStyles.label}>Filter with custom start/end dates</label>
@@ -46,12 +56,7 @@ const DatePickers = ({ formData, setFormData, datePickersShown, setDatePickersSh
                     <input
                         type="date"
                         value={formatDateLocal(formData.startDate)}
-                        onChange={(e) =>
-                            setFormData({
-                                ...formData,
-                                startDate: e.target.value ? Math.floor(new Date(e.target.value).getTime() / 1000) : null,
-                            })
-                        }
+                        onChange={(e) => handleDateChange(e, 'startDate')}
                         style={globalStyles.input}
                     />
 
@@ -59,12 +64,7 @@ const DatePickers = ({ formData, setFormData, datePickersShown, setDatePickersSh
                     <input
                         type="date"
                         value={formatDateLocal(formData.endDate)}
-                        onChange={(e) =>
-                            setFormData({
-                                ...formData,
-                                endDate: e.target.value ? Math.floor(new Date(e.target.value).getTime() / 1000) : null,
-                            })
-                        }
+                        onChange={(e) => handleDateChange(e, 'endDate')}
                         style={globalStyles.input}
                     />
                 </div>

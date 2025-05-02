@@ -108,6 +108,7 @@ const AdminDashboard = () => {
         moduleAndPackageInfo={moduleAndPackageInfo}
         formData={formData}
         setFormData={setFormData}
+        queryString={queryString}
       />}
 
       <div style={styles.buttonContainer}>
