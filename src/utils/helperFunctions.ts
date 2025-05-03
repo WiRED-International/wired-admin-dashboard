@@ -1,5 +1,6 @@
 
 import { FilterFormInterface } from "../interfaces/FilterFormInterface";
+import auth from "./auth";
 
 interface BuildQueryStringInterface {
     formData: FilterFormInterface;
@@ -52,5 +53,35 @@ export const buildDownloadsQueryString = ({formData, setQueryString}: BuildQuery
     }
     setQueryString(params.toString());
   };
+
+  export const handleDownloadCSV = async (queryString: string) => {
+    try {
+      const token = auth.getToken();
+  
+      const response = await fetch(`/api/downloads?${queryString}&output=csv`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+  
+      if (!response.ok) throw new Error('Failed to fetch CSV');
+  
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+  
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'wired_download_data.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert('There was a problem downloading the CSV.');
+    }
+  };
+  
 
   

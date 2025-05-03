@@ -7,6 +7,8 @@ import SearchDropdown from './SearchDropdown';
 import DatePickers from './DatePickers';
 import TimeframeSelect from './TimeframeSelect';
 import CountryFilter from './CountryFilter';
+import SaveSearchPrompt from './SaveSearchPrompt';
+import { handleDownloadCSV } from '../utils/helperFunctions';
 
 interface FilterPopoverProps {
   setQueryString: (queryString: string) => void,
@@ -14,9 +16,10 @@ interface FilterPopoverProps {
   moduleAndPackageInfo: { modules: { id: number, name: string }[], packages: { id: number, name: string }[] }
   formData: FilterFormInterface,
   setFormData: (formData: FilterFormInterface) => void
+  queryString: string
 }
 
-const FilterPopover = ({ setQueryString, onClose, moduleAndPackageInfo, formData, setFormData }: FilterPopoverProps) => {
+const FilterPopover = ({ setQueryString, queryString, onClose, moduleAndPackageInfo, formData, setFormData }: FilterPopoverProps) => {
 
   const [locationInputShown, setLocationInputsShown] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
@@ -27,6 +30,9 @@ const FilterPopover = ({ setQueryString, onClose, moduleAndPackageInfo, formData
   const [datePickersShown, setDatePickersShown] = useState<boolean>(false);
   const [countryInputShown, setCountryInputShown] = useState<boolean>(false);
   const [selectedCountryCode, setSelectedCountryCode] = useState<string>("");
+  const [saveSearchPromptOpen, setSaveSearchPromptOpen] = useState<boolean>(false);
+  const [saveSearchName, setSaveSearchName] = useState<string>('');
+  const [saveSearchError, setSaveSearchError] = useState<string>('');
 
   type Timeframe = 'hour' | 'day' | 'week' | '30 days' | 'year' | '';
 
@@ -100,7 +106,7 @@ const FilterPopover = ({ setQueryString, onClose, moduleAndPackageInfo, formData
   //I add comments like this because i have an extension that highlights certain comments so they can be easily found in the scrollbar
   //RETURN:
   return (
-    <div style={styles.overlay} onClick={() => onClose(formData)}>
+    <div style={globalStyles.overlay} onClick={() => onClose(formData)}>
       <div style={styles.popover} onClick={(e) => e.stopPropagation()}>
         <h4 style={styles.title}>Filter Search Results</h4>
         <label style={globalStyles.label}>Search By: </label>
@@ -120,22 +126,22 @@ const FilterPopover = ({ setQueryString, onClose, moduleAndPackageInfo, formData
           setFormData={setFormData}
           moduleAndPackageInfo={moduleAndPackageInfo}
         />
-  
         {/* TIMEFRAME SELECT */}
         <TimeframeSelect formData={formData} setFormData={setFormData} timeframe={timeframe} setTimeframe={setTimeframe}/>
         <p>Or...</p>
         {/* DATE PICKERS */}
-        <DatePickers 
-          formData={formData} 
-          setFormData={setFormData} 
+        <DatePickers
+          formData={formData}
+          setFormData={setFormData}
           datePickersShown={datePickersShown}
           setDatePickersShown={setDatePickersShown}
-          />
+          setTimeFrame={setTimeframe}
+        />
         {/* Latitude & Longitude Inputs (Only show when checkbox is checked) */}
         {/* FILTER BY COUNTRY */}
-        <CountryFilter 
-          formData={formData} 
-          setFormData={setFormData} 
+        <CountryFilter
+          formData={formData}
+          setFormData={setFormData}
           countryInputShown={countryInputShown}
           setCountryInputShown={setCountryInputShown}
           selectedCountryCode={selectedCountryCode}
@@ -158,24 +164,38 @@ const FilterPopover = ({ setQueryString, onClose, moduleAndPackageInfo, formData
           <button style={styles.applyButton} onClick={handleApply}>Apply</button>
           <button style={styles.cancelButton} onClick={() => onClose(formData)}>Cancel</button>
         </div>
+        <div style={{...styles.buttonContainer, justifyContent: 'center'}}>
+        {/* SAVE SEARCH BUTTON */}
+          {/* <button
+            style={{...styles.applyButton, backgroundColor: globalStyles.colors.headerColor}}
+            onClick={() => {
+              setSaveSearchPromptOpen(true);
+            }}
+          >Save Search</button> */}
+          <button 
+            style={{...styles.applyButton, backgroundColor: 'blue'}}
+            onClick={() => {
+              handleApply();
+              handleDownloadCSV(queryString);
+            }}>
+            Save as CSV
+          </button>
+        </div>
+
+        {saveSearchPromptOpen && <SaveSearchPrompt
+          onSave={() => {setSaveSearchError('there was a problem saving your search');}}
+          onCancel={() => setSaveSearchPromptOpen(false)}
+          saveSearchName={saveSearchName}
+          setSaveSearchName={setSaveSearchName}
+          saveSearchError={saveSearchError}
+          setSaveSearchError={setSaveSearchError}
+        />}
       </div>
     </div>
   );
 };
 //STYLES:
 const styles: { [key: string]: React.CSSProperties } = {
-  overlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100vw',
-    height: '100vh',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Dark overlay
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
-  },
   popover: {
     backgroundColor: globalStyles.colors.pageBackgroundMain,
     paddingInline: '60px',
@@ -239,6 +259,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'background-color 0.3s ease',
     margin: '10px',
   },
+  saveSearchButton: {
+    fontSize: '14px',
+    padding: '8px',
+  }
 };
 
 export default FilterPopover;
