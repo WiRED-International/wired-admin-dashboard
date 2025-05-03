@@ -22,7 +22,7 @@ const SaveSearchPrompt = ({ onSave, onCancel, saveSearchName, setSaveSearchName,
           placeholder="Enter a name for this search"
           value={saveSearchName}
           onChange={(e) => {
-            setSaveSearchName(e.target.value);7898790
+            setSaveSearchName(e.target.value);
             if (saveSearchError) setSaveSearchError('');
           }}
           style={styles.input}
