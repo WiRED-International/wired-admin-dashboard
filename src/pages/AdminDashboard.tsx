@@ -9,6 +9,7 @@ import { globalStyles } from '../globalStyles';
 import FilterPopover from '../components/FilterPopover';
 import { buildDownloadsQueryString } from '../utils/helperFunctions';
 import GoogleMapsComponent from '../components/GoogleMap';
+import TableView from '../components/TableView';
 import { IdsAndNamesInterface } from '../interfaces/IdsAndNamesInterface';
 import { FilterFormInterface } from '../interfaces/FilterFormInterface';
 import { fetchGoogleAPIKey } from '../api/googleAPIKey';
@@ -34,6 +35,11 @@ const AdminDashboard = () => {
     distance: '',
   });
   const [googleAPIKey, setGoogleAPIKey] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'map' | 'table'>('map');
+
+
+  //TODO: delete this useEffect when done testing
+
 
   useEffect(() => {
     if(googleAPIKey){
@@ -117,7 +123,13 @@ const AdminDashboard = () => {
           style={{ ...styles.button, ...styles.filterButton }} 
           onClick={() => setFilterPopoverOpen(!filterPopoverOpen)}
         >
-          Filter Search Results
+          Filter/Search/Save Results
+        </button>
+        <button 
+          style={{ ...styles.button, ...styles.filterButton, backgroundColor: 'blue' }} 
+          onClick={() => setViewMode(viewMode === 'map' ? 'table' : 'map')}
+        >
+          {viewMode === 'map' ? 'Table View' : 'Map View'}
         </button>
       </div>
 
@@ -125,7 +137,8 @@ const AdminDashboard = () => {
       {loading && <LoadingSpinner />} 
       {hasQueriedDownloads && downloads.length === 0 && <div style={{...styles.error, position: 'absolute'}}>{errorMessage ? errorMessage : 'No downloads match the provided search criteria.'}</div>}
 
-      {googleAPIKey && <GoogleMapsComponent downloads={downloads} handleViewAllDownloads={handleViewAllDownloads} googleAPIKey={googleAPIKey}/>}
+      {googleAPIKey &&  viewMode === 'map' && <GoogleMapsComponent downloads={downloads} handleViewAllDownloads={handleViewAllDownloads} googleAPIKey={googleAPIKey}/>}
+      {viewMode === 'table' && <TableView downloads={downloads} handleViewAllDownloads={handleViewAllDownloads} setDownloads={setDownloads} />}
     </div>
   );
 };
@@ -148,6 +161,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '20px',
     position: 'absolute',
     top: '130px',
+    width: '100%',
     zIndex: 1,
   },
   button: {
@@ -161,11 +175,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'background 0.3s ease',
     marginTop: '20px',
     maxWidth: '200px',  // Ensures it doesn't get too wide
-    width: '100%', // Allows it to shrink on smaller screens
+    // width: '100%', // Allows it to shrink on smaller screens
     textAlign: 'center',
     minHeight: '60px', 
+    flex: 1
   },
   filterButton: {
+    maxWidth: '170px',  // Ensures it doesn't get too wide
+    width: '100%', // Allows it to shrink on smaller screens
     backgroundColor: globalStyles.colors.headerColor, // Different color for Filter/Sort button
     borderRadius: '8px',
   },

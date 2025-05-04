@@ -118,7 +118,7 @@ export const globalStyles = {
         padding: '10px',
         textAlign: 'center' as const,
         marginTop: 'auto',
-        borderTop: `3px solid ${whiteTheme}`,
+        // borderTop: `3px solid ${whiteTheme}`,
         fontFamily: 'Arial, sans-serif',
     },
     hr: {
