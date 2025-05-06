@@ -7,7 +7,7 @@ import { ModuleDownloadInterface } from '../interfaces/ModuleDownloadInterface';
 import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner';
 import { globalStyles } from '../globalStyles';
 import FilterPopover from '../components/FilterPopover';
-import { buildDownloadsQueryString } from '../utils/helperFunctions';
+import { buildDownloadsQueryString, handleDownloadCSV } from '../utils/helperFunctions';
 import GoogleMapsComponent from '../components/GoogleMap';
 import TableView from '../components/TableView';
 import { IdsAndNamesInterface } from '../interfaces/IdsAndNamesInterface';
@@ -49,7 +49,7 @@ const AdminDashboard = () => {
       } else {
         setErrorMessage('An unknown error occurred. Please try again later.');
       }
-    }finally{
+    } finally {
       setLoading(false);
       setHasQueriedDownloads(true);
     }
@@ -63,7 +63,7 @@ const AdminDashboard = () => {
     setLoading(true);
     //getting list of of names and ids for modules and packages for filter dropdowns if not already queried
     //it would be nice to implement caching for this or some means of not querying this every time the page is loaded
-    if(!hasQueriedModuleAndPackageInfo){
+    if (!hasQueriedModuleAndPackageInfo) {
       fetchModuleAndPackageInfo()
         .then((data) => {
           setModuleAndPackageInfo(data);
@@ -78,7 +78,7 @@ const AdminDashboard = () => {
     const savedFormData = localStorage.getItem('formData');
     if (savedFormData) {
       const parsedFormData = JSON.parse(savedFormData);
-      buildDownloadsQueryString({formData: parsedFormData, setQueryString});
+      buildDownloadsQueryString({ formData: parsedFormData, setQueryString });
     }
     fetchGoogleAPIKey()
       .then((data) => {
@@ -95,41 +95,49 @@ const AdminDashboard = () => {
 
   return (
     <div style={globalStyles.pageContainer}>
-      <DashboardHeader/>
+      <DashboardHeader />
 
-      {filterPopoverOpen && 
-      <FilterPopover 
-        setQueryString={setQueryString} 
-        onClose={handlePopoverClose} 
-        moduleAndPackageInfo={moduleAndPackageInfo}
-        formData={formData}
-        setFormData={setFormData}
-        queryString={queryString}
-      />}
+      {filterPopoverOpen &&
+        <FilterPopover
+          setQueryString={setQueryString}
+          onClose={handlePopoverClose}
+          moduleAndPackageInfo={moduleAndPackageInfo}
+          formData={formData}
+          setFormData={setFormData}
+          queryString={queryString}
+        />}
 
       <div style={styles.buttonContainer}>
         {/* <button style={styles.button} onClick={handleViewAllDownloads}>View All Downloads</button> */}
-        <button 
-          style={{ ...styles.button, ...styles.filterButton }} 
+        <button
+          style={{ ...styles.button, ...styles.filterButton }}
           onClick={() => setFilterPopoverOpen(!filterPopoverOpen)}
         >
           Filter/Search/Save Results
         </button>
-        <button 
-          style={{ ...styles.button, ...styles.filterButton, backgroundColor: 'blue' }} 
+        <button
+          style={{ ...styles.button, ...styles.filterButton, backgroundColor: globalStyles.colors.darkButtonTheme }}
           onClick={() => setViewMode(viewMode === 'map' ? 'table' : 'map')}
         >
           {viewMode === 'map' ? 'Table View' : 'Map View'}
         </button>
+        {viewMode === 'table' && <button
+          style={{ ...styles.button, ...styles.filterButton, backgroundColor: 'blue' }}
+          onClick={() => {
+            handleDownloadCSV(queryString); 
+          }}
+        >
+          Download CSV
+        </button>}
       </div>
 
       {/* {errorMessage && <div style={styles.error}>{errorMessage}</div>} */}
-      {loading && <LoadingSpinner />} 
-      {hasQueriedDownloads && downloads.length === 0 && <div style={{...styles.error, position: 'absolute'}}>{errorMessage ? errorMessage : 'No downloads match the provided search criteria.'}</div>}
+      {loading && <LoadingSpinner />}
+      {hasQueriedDownloads && downloads.length === 0 && <div style={{ ...styles.error, position: 'absolute' }}>{errorMessage ? errorMessage : 'No downloads match the provided search criteria.'}</div>}
 
-      {googleAPIKey &&  viewMode === 'map' && <GoogleMapsComponent downloads={downloads} handleViewAllDownloads={handleViewAllDownloads} googleAPIKey={googleAPIKey}/>}
-      
-      {viewMode === 'table' && <TableView setQueryString={setQueryString}  downloads={downloads} formData={formData} setFormData={setFormData}/>}
+      {googleAPIKey && viewMode === 'map' && <GoogleMapsComponent downloads={downloads} handleViewAllDownloads={handleViewAllDownloads} googleAPIKey={googleAPIKey} />}
+
+      {viewMode === 'table' && <TableView setQueryString={setQueryString} downloads={downloads} formData={formData} setFormData={setFormData} />}
     </div>
   );
 };
@@ -137,11 +145,11 @@ const AdminDashboard = () => {
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     fontFamily: 'Arial, sans-serif',
-    backgroundColor: globalStyles.colors.pageBackgroundMain, 
+    backgroundColor: globalStyles.colors.pageBackgroundMain,
     height: '100vh',
     display: 'flex',
     flexDirection: 'column',
-    color: globalStyles.colors.darkText, 
+    color: globalStyles.colors.darkText,
     alignItems: 'center',
     overflow: 'hidden',
   },
@@ -156,7 +164,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     zIndex: 1,
   },
   button: {
-    backgroundColor: globalStyles.colors.darkButtonTheme, 
+    backgroundColor: globalStyles.colors.darkButtonTheme,
     color: globalStyles.colors.whiteTheme,
     fontSize: '16px',
     padding: '12px 24px',
@@ -168,7 +176,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     maxWidth: '200px',  // Ensures it doesn't get too wide
     // width: '100%', // Allows it to shrink on smaller screens
     textAlign: 'center',
-    minHeight: '60px', 
+    minHeight: '60px',
     flex: 1
   },
   filterButton: {
