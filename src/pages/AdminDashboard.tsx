@@ -37,12 +37,6 @@ const AdminDashboard = () => {
   const [googleAPIKey, setGoogleAPIKey] = useState<string>('');
   const [viewMode, setViewMode] = useState<'map' | 'table'>('map');
 
-
-  //TODO: delete
-  useEffect(() => {
-    console.log('dopwnloads', downloads);
-  }, [downloads]);
-
   const handleViewAllDownloads = async () => {
     setLoading(true);
     setErrorMessage('');
@@ -96,8 +90,6 @@ const AdminDashboard = () => {
   }, [])
 
   useEffect(() => {
-    TODO:
-    console.log('queryString changed', queryString);
     handleViewAllDownloads();
   }, [queryString]);
 

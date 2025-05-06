@@ -2,7 +2,7 @@ import { ModuleDownloadInterface } from '../interfaces/ModuleDownloadInterface';
 import { useEffect, useState } from "react";
 import { globalStyles } from '../globalStyles';
 import sortIcon from '/icons/sort-solid.svg';
-import { buildDownloadsQueryString } from '../utils/helperFunctions';
+import { buildDownloadsQueryString, formatDate } from '../utils/helperFunctions';
 import { FilterFormInterface } from '../interfaces/FilterFormInterface';
 
 interface TableViewProps {
@@ -21,7 +21,7 @@ interface ColumnConfig {
 const columns: ColumnConfig[] = [
     { label: 'Module Name', sortField: 'module', render: (row) => row.module?.name },
     { label: 'Package Name', sortField: 'package', render: (row) => row.package?.name },
-    { label: 'Download Date', sortField: 'date', render: (row) => row.download_date },
+    { label: 'Download Date', sortField: 'date', render: (row) => formatDate(row.download_date) },
     { label: 'Country', sortField: 'country', render: (row) => row.country?.name },
 ];
 
@@ -42,8 +42,6 @@ const TableView = ({setQueryString, downloads, formData, setFormData }: TableVie
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
     const handleSort = (field: SortField) => {
-        //TODO:
-        console.log('jhere')
         const newDirection =
           field === sortField ? (sortDirection === 'asc' ? 'desc' : 'asc') : 'asc';
       
@@ -112,10 +110,11 @@ const TableView = ({setQueryString, downloads, formData, setFormData }: TableVie
                         <tbody>
                             {downloads.map((download) => (
                                 <tr key={download.id} style={{ textAlign: 'center' }}>
-                                    <td style={styles.td}>{download?.module?.name}</td>
-                                    <td style={styles.td}>{download?.package?.name}</td>
-                                    <td style={styles.td}>{download?.download_date}</td>
-                                    <td style={styles.td}>{download?.country?.name}</td>
+                                    {columns.map((column) => (
+                                        <td key={column.label} style={styles.td}>
+                                            {column.render(download)}
+                                        </td>
+                                    ))}
                                 </tr>
                             ))}
                         </tbody>

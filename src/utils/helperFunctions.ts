@@ -10,8 +10,6 @@ interface BuildQueryStringInterface {
 export const buildDownloadsQueryString = ({ formData, setQueryString }: BuildQueryStringInterface): void => {
   //validate form data
   //create query string
-  //TODO:
-  console.log('formData', formData);
   const params = new URLSearchParams();
   if (formData.searchBy && formData.searchQuery) {
     params.append(formData.searchBy, formData.searchQuery);
@@ -22,7 +20,9 @@ export const buildDownloadsQueryString = ({ formData, setQueryString }: BuildQue
     module_asc: { sort_by: 'module', sort_dir: 'ASC' },
     module_desc: { sort_by: 'module', sort_dir: 'DESC' },
     package_asc: { sort_by: 'package', sort_dir: 'ASC' },
-    package_desc: { sort_by: 'package', sort_dir: 'DESC' }
+    package_desc: { sort_by: 'package', sort_dir: 'DESC' },
+    country_asc: { sort_by: 'country', sort_dir: 'ASC' },  
+    country_desc: { sort_by: 'country', sort_dir: 'DESC' },
   };
 
   if (formData.sort in sortMapping) {
@@ -53,8 +53,6 @@ export const buildDownloadsQueryString = ({ formData, setQueryString }: BuildQue
   if (formData.country_code) {
     params.append('country_code', formData.country_code);
   }
-  TODO:
-  console.log('params', params.toString());
   setQueryString(params.toString());
 };
 
@@ -85,6 +83,14 @@ export const handleDownloadCSV = async (queryString: string) => {
     console.error(err);
     alert('There was a problem downloading the CSV.');
   }
+};
+
+export const formatDate = (timestamp: number) => {
+  const date = new Date(timestamp * 1000);
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed, so add 1
+  const day = String(date.getDate()).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${month}/${day}/${year}`;
 };
 
 
