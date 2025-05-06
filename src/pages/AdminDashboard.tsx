@@ -38,14 +38,10 @@ const AdminDashboard = () => {
   const [viewMode, setViewMode] = useState<'map' | 'table'>('map');
 
 
-  //TODO: delete this useEffect when done testing
-
-
+  //TODO: delete
   useEffect(() => {
-    if(googleAPIKey){
-      console.log('google api key: ', googleAPIKey)
-    }
-  }, [googleAPIKey])
+    console.log('dopwnloads', downloads);
+  }, [downloads]);
 
   const handleViewAllDownloads = async () => {
     setLoading(true);
@@ -100,6 +96,8 @@ const AdminDashboard = () => {
   }, [])
 
   useEffect(() => {
+    TODO:
+    console.log('queryString changed', queryString);
     handleViewAllDownloads();
   }, [queryString]);
 
@@ -138,7 +136,8 @@ const AdminDashboard = () => {
       {hasQueriedDownloads && downloads.length === 0 && <div style={{...styles.error, position: 'absolute'}}>{errorMessage ? errorMessage : 'No downloads match the provided search criteria.'}</div>}
 
       {googleAPIKey &&  viewMode === 'map' && <GoogleMapsComponent downloads={downloads} handleViewAllDownloads={handleViewAllDownloads} googleAPIKey={googleAPIKey}/>}
-      {viewMode === 'table' && <TableView downloads={downloads} handleViewAllDownloads={handleViewAllDownloads} setDownloads={setDownloads} />}
+      
+      {viewMode === 'table' && <TableView setQueryString={setQueryString}  downloads={downloads} formData={formData} setFormData={setFormData}/>}
     </div>
   );
 };

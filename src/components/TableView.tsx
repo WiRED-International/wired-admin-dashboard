@@ -1,46 +1,168 @@
 import { ModuleDownloadInterface } from '../interfaces/ModuleDownloadInterface';
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
+import { globalStyles } from '../globalStyles';
+import sortIcon from '/icons/sort-solid.svg';
+import { buildDownloadsQueryString } from '../utils/helperFunctions';
+import { FilterFormInterface } from '../interfaces/FilterFormInterface';
 
 interface TableViewProps {
+    setQueryString: (queryString: string) => void;
     downloads: ModuleDownloadInterface[];
-    setDownloads: (downloads: ModuleDownloadInterface[]) => void;
-    handleViewAllDownloads: () => void;
+    formData: FilterFormInterface;
+    setFormData: (formData: FilterFormInterface) => void;
 }
 
-const TableView = ({downloads, setDownloads}: TableViewProps) => {
-    // const [downloads, setDownloads] = useState<ModuleDownloadInterface[]>([]);
+interface ColumnConfig {
+    label: string;
+    sortField: SortField;
+    render: (row: ModuleDownloadInterface) => React.ReactNode;
+}
 
-    useEffect(() => {
-        fetch('http://localhost:8080/api/modules')
-            .then(response => response.json())
-            .then(data => setDownloads(data))
-            .catch(error => console.error('Error fetching data:', error));
-    }, []);
+const columns: ColumnConfig[] = [
+    { label: 'Module Name', sortField: 'module', render: (row) => row.module?.name },
+    { label: 'Package Name', sortField: 'package', render: (row) => row.package?.name },
+    { label: 'Download Date', sortField: 'date', render: (row) => row.download_date },
+    { label: 'Country', sortField: 'country', render: (row) => row.country?.name },
+];
+
+type SortField = 'module' | 'package' | 'date' | 'country';
+
+type SortOptions =
+  | 'date_asc'
+  | 'date_desc'
+  | 'module_asc'
+  | 'module_desc'
+  | 'package_asc'
+  | 'package_desc';
+
+
+const TableView = ({setQueryString, downloads, formData, setFormData }: TableViewProps) => {
+
+    const [sortField, setSortField] = useState<SortField>('date');
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
+    const handleSort = (field: SortField) => {
+        //TODO:
+        console.log('jhere')
+        const newDirection =
+          field === sortField ? (sortDirection === 'asc' ? 'desc' : 'asc') : 'asc';
+      
+        setSortField(field);
+        setSortDirection(newDirection);
+      
+        const newSort = `${field}_${newDirection}` as SortOptions;
+      
+        // Build new form data with updated sort
+        const updatedFormData = {
+          ...formData,
+          sort: newSort,
+        };
+      
+        buildDownloadsQueryString({ formData: updatedFormData, setQueryString });
+      };
+      
+
+      
+
 
     return (
-        <div>
-            <h1>Module List</h1>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Module Name</th>
-                        <th>Package Name</th>
-                        <th>Download Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {downloads.map((module) => (
-                        <tr key={module.id}>
-                            <td>{module?.module?.name}</td>
-                            <td>{module?.package?.name}</td>
-                            <td>{module.download_date}</td>
-    
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+        <div style={{
+            ...globalStyles.pageContainer,
+            paddingTop: '80px', // space for absolute buttons
+            width: '100%',
+        }}>
+            {/* You can position absolute buttons here */}
+
+
+            <h1 style={{
+                color: globalStyles.colors.headerColor,
+                padding: '10px',
+                marginBottom: '20px'
+            }}>
+                Downloads List
+            </h1>
+
+            <div style={{
+                backgroundColor: globalStyles.colors.whiteTheme,
+                borderRadius: '8px',
+                padding: '20px',
+                width: '90%',
+                maxWidth: '1000px',
+                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+                overflowX: 'auto',
+            }}>
+                <div>
+                    <table style={styles.table}>
+                        <thead style={styles.thead}>
+                            <tr style={styles.tr}>
+                                {columns.map((column) => (
+                                    <th 
+                                        key={column.label} 
+                                        style={styles.th}
+                                        onClick={() => handleSort(column.sortField)}
+                                        >
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <img src={sortIcon} style={styles.sortIcon} />
+                                            <span>{column.label}</span>
+                                        </div>
+                                    </th>
+                                ))}                    
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {downloads.map((download) => (
+                                <tr key={download.id} style={{ textAlign: 'center' }}>
+                                    <td style={styles.td}>{download?.module?.name}</td>
+                                    <td style={styles.td}>{download?.package?.name}</td>
+                                    <td style={styles.td}>{download?.download_date}</td>
+                                    <td style={styles.td}>{download?.country?.name}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     );
 }
+
+const styles = {
+    table: {
+        width: '100%' as const,
+        tableLayout: 'fixed' as const,  // Add this
+        borderCollapse: 'collapse' as const,
+    },
+    
+    thead: {
+        backgroundColor: globalStyles.colors.lightGray,
+    },
+    tr: {
+
+
+    },
+    th: {
+        width: '25%' as const,
+        cursor: 'pointer' as const,
+        padding: '12px',
+        borderBottom: '2px solid #ccc',
+        fontWeight: 'bold',
+        color: '#333'
+
+    },
+    td: {
+        width: '25%' as const,
+        padding: '10px',
+        borderBottom: '1px solid #ddd',
+        color: '#555',
+        textAlign: 'center' as const,
+    },
+    sortIcon: {
+        display: 'inline',
+        width: '16px',
+        height: '16px',
+        objectFit: 'contain' as const,
+    }
+}
+
 
 export default TableView;

@@ -12,5 +12,7 @@ export interface ModuleDownloadInterface {
     longitude: string; 
     module?: ModuleInterface, 
     package?: PackageInterface
-
+    country?: {code: string, name: string, id: number};
+    city?: string;
+    state?: string;
 }
