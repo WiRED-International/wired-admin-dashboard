@@ -7,11 +7,17 @@ import { ModuleDownloadInterface } from '../interfaces/ModuleDownloadInterface';
 import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner';
 import { globalStyles } from '../globalStyles';
 import FilterPopover from '../components/FilterPopover';
-import { buildDownloadsQueryString } from '../utils/helperFunctions';
+import { buildDownloadsQueryString, handleDownloadCSV } from '../utils/helperFunctions';
 import GoogleMapsComponent from '../components/GoogleMap';
+import TableView from '../components/TableView';
 import { IdsAndNamesInterface } from '../interfaces/IdsAndNamesInterface';
 import { FilterFormInterface } from '../interfaces/FilterFormInterface';
 import { fetchGoogleAPIKey } from '../api/googleAPIKey';
+
+enum ViewMode {
+  Map = 'map',
+  Table = 'table',
+}
 
 const AdminDashboard = () => {
 
@@ -26,7 +32,8 @@ const AdminDashboard = () => {
   const [formData, setFormData] = useState<FilterFormInterface>({
     searchQuery: '',
     searchBy: '',
-    sort: '',
+    sort_by: '',
+    sort_dir: '',
     startDate: null,
     endDate: null,
     latitude: '',
@@ -34,12 +41,7 @@ const AdminDashboard = () => {
     distance: '',
   });
   const [googleAPIKey, setGoogleAPIKey] = useState<string>('');
-
-  useEffect(() => {
-    if(googleAPIKey){
-      console.log('google api key: ', googleAPIKey)
-    }
-  }, [googleAPIKey])
+  const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Map);
 
   const handleViewAllDownloads = async () => {
     setLoading(true);
@@ -53,7 +55,7 @@ const AdminDashboard = () => {
       } else {
         setErrorMessage('An unknown error occurred. Please try again later.');
       }
-    }finally{
+    } finally {
       setLoading(false);
       setHasQueriedDownloads(true);
     }
@@ -67,7 +69,7 @@ const AdminDashboard = () => {
     setLoading(true);
     //getting list of of names and ids for modules and packages for filter dropdowns if not already queried
     //it would be nice to implement caching for this or some means of not querying this every time the page is loaded
-    if(!hasQueriedModuleAndPackageInfo){
+    if (!hasQueriedModuleAndPackageInfo) {
       fetchModuleAndPackageInfo()
         .then((data) => {
           setModuleAndPackageInfo(data);
@@ -82,7 +84,7 @@ const AdminDashboard = () => {
     const savedFormData = localStorage.getItem('formData');
     if (savedFormData) {
       const parsedFormData = JSON.parse(savedFormData);
-      buildDownloadsQueryString({formData: parsedFormData, setQueryString});
+      buildDownloadsQueryString({ formData: parsedFormData, setQueryString });
     }
     fetchGoogleAPIKey()
       .then((data) => {
@@ -99,33 +101,49 @@ const AdminDashboard = () => {
 
   return (
     <div style={globalStyles.pageContainer}>
-      <DashboardHeader/>
+      <DashboardHeader />
 
-      {filterPopoverOpen && 
-      <FilterPopover 
-        setQueryString={setQueryString} 
-        onClose={handlePopoverClose} 
-        moduleAndPackageInfo={moduleAndPackageInfo}
-        formData={formData}
-        setFormData={setFormData}
-        queryString={queryString}
-      />}
+      {filterPopoverOpen &&
+        <FilterPopover
+          setQueryString={setQueryString}
+          onClose={handlePopoverClose}
+          moduleAndPackageInfo={moduleAndPackageInfo}
+          formData={formData}
+          setFormData={setFormData}
+          queryString={queryString}
+        />}
 
       <div style={styles.buttonContainer}>
         {/* <button style={styles.button} onClick={handleViewAllDownloads}>View All Downloads</button> */}
-        <button 
-          style={{ ...styles.button, ...styles.filterButton }} 
+        <button
+          style={{ ...styles.button, ...styles.filterButton }}
           onClick={() => setFilterPopoverOpen(!filterPopoverOpen)}
         >
-          Filter Search Results
+          Filter/Search/Save Results
         </button>
+        <button
+          style={{ ...styles.button, ...styles.filterButton, backgroundColor: globalStyles.colors.darkButtonTheme }}
+          onClick={() => setViewMode(viewMode === ViewMode.Map ? ViewMode.Table: ViewMode.Map)}
+        >
+          {viewMode === 'map' ? 'Table View' : 'Map View'}
+        </button>
+        {viewMode === 'table' && <button
+          style={{ ...styles.button, ...styles.filterButton, backgroundColor: 'blue' }}
+          onClick={() => {
+            handleDownloadCSV(queryString); 
+          }}
+        >
+          Download CSV
+        </button>}
       </div>
 
       {/* {errorMessage && <div style={styles.error}>{errorMessage}</div>} */}
-      {loading && <LoadingSpinner />} 
-      {hasQueriedDownloads && downloads.length === 0 && <div style={{...styles.error, position: 'absolute'}}>{errorMessage ? errorMessage : 'No downloads match the provided search criteria.'}</div>}
+      {loading && <LoadingSpinner />}
+      {hasQueriedDownloads && downloads.length === 0 && <div style={{ ...styles.error, position: 'absolute' }}>{errorMessage ? errorMessage : 'No downloads match the provided search criteria.'}</div>}
 
-      {googleAPIKey && <GoogleMapsComponent downloads={downloads} handleViewAllDownloads={handleViewAllDownloads} googleAPIKey={googleAPIKey}/>}
+      {googleAPIKey && viewMode === 'map' && <GoogleMapsComponent downloads={downloads} handleViewAllDownloads={handleViewAllDownloads} googleAPIKey={googleAPIKey} />}
+
+      {viewMode === 'table' && <TableView setQueryString={setQueryString} downloads={downloads} formData={formData} setFormData={setFormData} />}
     </div>
   );
 };
@@ -133,11 +151,11 @@ const AdminDashboard = () => {
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     fontFamily: 'Arial, sans-serif',
-    backgroundColor: globalStyles.colors.pageBackgroundMain, 
+    backgroundColor: globalStyles.colors.pageBackgroundMain,
     height: '100vh',
     display: 'flex',
     flexDirection: 'column',
-    color: globalStyles.colors.darkText, 
+    color: globalStyles.colors.darkText,
     alignItems: 'center',
     overflow: 'hidden',
   },
@@ -148,10 +166,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '20px',
     position: 'absolute',
     top: '130px',
+    width: '100%',
     zIndex: 1,
   },
   button: {
-    backgroundColor: globalStyles.colors.darkButtonTheme, 
+    backgroundColor: globalStyles.colors.darkButtonTheme,
     color: globalStyles.colors.whiteTheme,
     fontSize: '16px',
     padding: '12px 24px',
@@ -161,11 +180,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'background 0.3s ease',
     marginTop: '20px',
     maxWidth: '200px',  // Ensures it doesn't get too wide
-    width: '100%', // Allows it to shrink on smaller screens
+    // width: '100%', // Allows it to shrink on smaller screens
     textAlign: 'center',
-    minHeight: '60px', 
+    minHeight: '60px',
+    flex: 1
   },
   filterButton: {
+    maxWidth: '170px',  // Ensures it doesn't get too wide
+    width: '100%', // Allows it to shrink on smaller screens
     backgroundColor: globalStyles.colors.headerColor, // Different color for Filter/Sort button
     borderRadius: '8px',
   },
