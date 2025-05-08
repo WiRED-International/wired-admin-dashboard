@@ -86,7 +86,8 @@ const FilterPopover = ({ setQueryString, queryString, onClose, moduleAndPackageI
     setFormData({
       searchQuery: '',
       searchBy: '',
-      sort: '',
+      sort_by: '',
+      sort_dir: '',
       startDate: null,
       endDate: null,
       latitude: '',

@@ -14,6 +14,11 @@ import { IdsAndNamesInterface } from '../interfaces/IdsAndNamesInterface';
 import { FilterFormInterface } from '../interfaces/FilterFormInterface';
 import { fetchGoogleAPIKey } from '../api/googleAPIKey';
 
+enum ViewMode {
+  Map = 'map',
+  Table = 'table',
+}
+
 const AdminDashboard = () => {
 
   const [downloads, setDownloads] = useState<ModuleDownloadInterface[]>([]);
@@ -27,7 +32,8 @@ const AdminDashboard = () => {
   const [formData, setFormData] = useState<FilterFormInterface>({
     searchQuery: '',
     searchBy: '',
-    sort: '',
+    sort_by: '',
+    sort_dir: '',
     startDate: null,
     endDate: null,
     latitude: '',
@@ -35,7 +41,7 @@ const AdminDashboard = () => {
     distance: '',
   });
   const [googleAPIKey, setGoogleAPIKey] = useState<string>('');
-  const [viewMode, setViewMode] = useState<'map' | 'table'>('map');
+  const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Map);
 
   const handleViewAllDownloads = async () => {
     setLoading(true);
@@ -117,7 +123,7 @@ const AdminDashboard = () => {
         </button>
         <button
           style={{ ...styles.button, ...styles.filterButton, backgroundColor: globalStyles.colors.darkButtonTheme }}
-          onClick={() => setViewMode(viewMode === 'map' ? 'table' : 'map')}
+          onClick={() => setViewMode(viewMode === ViewMode.Map ? ViewMode.Table: ViewMode.Map)}
         >
           {viewMode === 'map' ? 'Table View' : 'Map View'}
         </button>

@@ -1,5 +1,5 @@
 import { ModuleDownloadInterface } from '../interfaces/ModuleDownloadInterface';
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { globalStyles } from '../globalStyles';
 import sortIcon from '/icons/sort-solid.svg';
 import { buildDownloadsQueryString, formatDate } from '../utils/helperFunctions';
@@ -28,39 +28,43 @@ const columns: ColumnConfig[] = [
 type SortField = 'module' | 'package' | 'date' | 'country';
 
 type SortOptions =
-  | 'date_asc'
-  | 'date_desc'
-  | 'module_asc'
-  | 'module_desc'
-  | 'package_asc'
-  | 'package_desc';
+    | 'date_asc'
+    | 'date_desc'
+    | 'module_asc'
+    | 'module_desc'
+    | 'package_asc'
+    | 'package_desc';
 
 
-const TableView = ({setQueryString, downloads, formData, setFormData }: TableViewProps) => {
+const TableView = ({ setQueryString, downloads, formData, setFormData }: TableViewProps) => {
+
+    const SORT_ASC = 'asc';
+    const SORT_DESC = 'desc';
 
     const [sortField, setSortField] = useState<SortField>('date');
-    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(SORT_DESC);
 
     const handleSort = (field: SortField) => {
         const newDirection =
-          field === sortField ? (sortDirection === 'asc' ? 'desc' : 'asc') : 'asc';
-      
+            field === sortField ? (sortDirection === SORT_ASC ? SORT_DESC : SORT_ASC) : SORT_ASC;
+
         setSortField(field);
         setSortDirection(newDirection);
-      
-        const newSort = `${field}_${newDirection}` as SortOptions;
-      
+
+
+
         // Build new form data with updated sort
         const updatedFormData = {
-          ...formData,
-          sort: newSort,
+            ...formData,
+            sort_by: field,
+            sort_dir: newDirection,
         };
-      
-        buildDownloadsQueryString({ formData: updatedFormData, setQueryString });
-      };
-      
 
-      
+        buildDownloadsQueryString({ formData: updatedFormData, setQueryString });
+    };
+
+
+
 
 
     return (
@@ -94,17 +98,17 @@ const TableView = ({setQueryString, downloads, formData, setFormData }: TableVie
                         <thead style={styles.thead}>
                             <tr style={styles.tr}>
                                 {columns.map((column) => (
-                                    <th 
-                                        key={column.label} 
+                                    <th
+                                        key={column.label}
                                         style={styles.th}
                                         onClick={() => handleSort(column.sortField)}
-                                        >
+                                    >
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                             <img src={sortIcon} style={styles.sortIcon} />
                                             <span>{column.label}</span>
                                         </div>
                                     </th>
-                                ))}                    
+                                ))}
                             </tr>
                         </thead>
                         <tbody>
@@ -131,7 +135,7 @@ const styles = {
         tableLayout: 'fixed' as const,  // Add this
         borderCollapse: 'collapse' as const,
     },
-    
+
     thead: {
         backgroundColor: globalStyles.colors.lightGray,
     },

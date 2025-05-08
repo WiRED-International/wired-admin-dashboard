@@ -1,7 +1,8 @@
 export interface FilterFormInterface {
     searchBy: string;
     searchQuery: string;
-    sort: string;
+    sort_by?: string;
+    sort_dir?: string;
     startDate: number | null;
     endDate: number | null;
     latitude?: number | '' ;

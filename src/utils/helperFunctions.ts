@@ -14,21 +14,12 @@ export const buildDownloadsQueryString = ({ formData, setQueryString }: BuildQue
   if (formData.searchBy && formData.searchQuery) {
     params.append(formData.searchBy, formData.searchQuery);
   }
-  const sortMapping: Record<string, { sort_by: string; sort_dir: 'ASC' | 'DESC' }> = {
-    date_asc: { sort_by: 'date', sort_dir: 'ASC' },
-    date_desc: { sort_by: 'date', sort_dir: 'DESC' },
-    module_asc: { sort_by: 'module', sort_dir: 'ASC' },
-    module_desc: { sort_by: 'module', sort_dir: 'DESC' },
-    package_asc: { sort_by: 'package', sort_dir: 'ASC' },
-    package_desc: { sort_by: 'package', sort_dir: 'DESC' },
-    country_asc: { sort_by: 'country', sort_dir: 'ASC' },  
-    country_desc: { sort_by: 'country', sort_dir: 'DESC' },
-  };
 
-  if (formData.sort in sortMapping) {
-    const { sort_by, sort_dir } = sortMapping[formData.sort as keyof typeof sortMapping];
-    params.append('sort_by', sort_by);
-    params.append('sort_dir', sort_dir);
+
+  if (formData.sort_by && formData.sort_dir) {
+
+    params.append('sort_by', formData.sort_by);
+    params.append('sort_dir', formData.sort_dir);
   }
   //if module_id is provided in parms
   if (formData.module_id) params.append('module_id', formData.module_id.toString());
