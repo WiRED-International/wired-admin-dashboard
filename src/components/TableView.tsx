@@ -27,13 +27,6 @@ const columns: ColumnConfig[] = [
 
 type SortField = 'module' | 'package' | 'date' | 'country';
 
-type SortOptions =
-    | 'date_asc'
-    | 'date_desc'
-    | 'module_asc'
-    | 'module_desc'
-    | 'package_asc'
-    | 'package_desc';
 
 
 const TableView = ({ setQueryString, downloads, formData, setFormData }: TableViewProps) => {
@@ -59,6 +52,8 @@ const TableView = ({ setQueryString, downloads, formData, setFormData }: TableVi
             sort_by: field,
             sort_dir: newDirection,
         };
+
+        setFormData(updatedFormData);
 
         buildDownloadsQueryString({ formData: updatedFormData, setQueryString });
     };
