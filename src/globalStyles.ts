@@ -28,6 +28,7 @@ export const globalStyles = {
         color: darkText, 
         alignItems: 'center' as const,
         overflow: 'auto',
+        width: '100%',
       },
     header: {
         backgroundColor: headerColor,
