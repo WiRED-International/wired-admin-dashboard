@@ -15,9 +15,9 @@ export interface UserDataInterface {
   firstName: string;
   lastName: string;
   email: string;
-  CME_Credits: number;
-  remainingCredits: number;
-  specializations: string[];
+  CME_Credits?: number;
+  remainingCredits?: number;
+  specializations: {name: string}[];
   role: "SuperAdmin" | "Admin" | "User";
   country: string;
   city: string;

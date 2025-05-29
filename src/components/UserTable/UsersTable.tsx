@@ -1,11 +1,14 @@
 import React from "react";
-import { UserDataInterface } from "../interfaces/UserDataInterface";
+import { UserDataInterface } from "../../interfaces/UserDataInterface";
+import cssStyles from "./UsersTable.module.css";
+import UserTableActions from "./UserTableActions";
 
 type UsersTableProps = {
     users: UserDataInterface[];
 };
 
 const columns = [
+    { key: 'actions', label: 'Actions' },
     { key: "firstName", label: "First Name" },
     { key: "lastName", label: "Last Name" },
     { key: "email", label: "Email" },
@@ -28,6 +31,7 @@ const UsersTable: React.FC<UsersTableProps> = ({ users }: UsersTableProps) => {
                         <th
                             key={column.key}
                             style={styles.tableHead}
+                            className={cssStyles.user_table_head}
                         >
                             {column.label}
                         </th>
@@ -47,9 +51,16 @@ const UsersTable: React.FC<UsersTableProps> = ({ users }: UsersTableProps) => {
                                 return (
                                     <td
                                         key={column.key}
-                                        style={{...styles.tableCell, backgroundColor: isFirstName?  isEven ? evenGreen : oddGreen : ''}}
+                                        style={{ ...styles.tableCell, backgroundColor: isFirstName ? isEven ? evenGreen : oddGreen : '' }}
+
                                     >
-                                        {Array.isArray((user as any)[column.key])
+                                        {column.key === "actions" ? (
+                                            <UserTableActions />
+                                        ) : column.key === "specializations" ? (
+                                            (user as any)[column.key].length > 0
+                                                ? (user as any)[column.key].join(", ")
+                                                : "None"
+                                        ) : Array.isArray((user as any)[column.key])
                                             ? (user as any)[column.key].join(", ")
                                             : (user as any)[column.key]}
                                     </td>
@@ -80,11 +91,11 @@ const styles: { [key: string]: React.CSSProperties } = {
         border: tableborder,
     },
     tableHead: {
-        background: "#E4E4E4",
         textAlign: "left",
         textWrap: "nowrap",
         border: tableborder,
         padding: "10px",
+        // couldnt get shadow to show below the bottom edge even with css
     },
     tableCell: {
         border: tableborder,
@@ -92,6 +103,6 @@ const styles: { [key: string]: React.CSSProperties } = {
         textWrap: "nowrap",
         overflowX: "scroll",
         minWidth: "150px",
-        maxWidth: "200px",
+        maxWidth: "275px",
     },
 }

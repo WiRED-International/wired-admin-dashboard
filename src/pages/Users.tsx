@@ -1,8 +1,10 @@
 import DashboardHeader from "../components/DashboardHeader";
 import UserSearchControls from "../components/UserSearchControls";
-import UsersTable from "../components/UsersTable";
+import UsersTable from "../components/UserTable/UsersTable";
 import { globalStyles } from "../globalStyles";
 import { UserDataInterface } from "../interfaces/UserDataInterface";
+import { fetchUsers } from "../api/usersAPI";
+import { useEffect } from "react";
 
 const dummyUsers: UserDataInterface[]  = [
   {
@@ -11,7 +13,7 @@ const dummyUsers: UserDataInterface[]  = [
     email: "alice.smith@example.com",
     CME_Credits: 12,
     remainingCredits: 4,
-    specializations: ["Pediatrics", "Oncology"],
+    specializations: [{name: "Pediatrics"}, {name: "Oncology"}],
     role: "User",
     country: "Canada",
     city: "Toronto",
@@ -23,7 +25,7 @@ const dummyUsers: UserDataInterface[]  = [
     email: "bob.johnson@example.com",
     CME_Credits: 20,
     remainingCredits: 20,
-    specializations: ["Orthopedics"],
+    specializations: [{name: "Orthopedics"}],
     role: "Admin",
     country: "USA",
     city: "Chicago",
@@ -35,7 +37,7 @@ const dummyUsers: UserDataInterface[]  = [
     email: "clara.zhou@example.com",
     CME_Credits: 8,
     remainingCredits: 3,
-    specializations: ["Dermatology"],
+    specializations: [{name: "Dermatology"}],
     role: "User",
     country: "UK",
     city: "London",
@@ -47,7 +49,7 @@ const dummyUsers: UserDataInterface[]  = [
     email: "david.nguyen@example.com",
     CME_Credits: 15,
     remainingCredits: 7,
-    specializations: ["Radiology", "Pathology"],
+    specializations: [{name: "Radiology"}, {name: "Pathology"}],
     role: "SuperAdmin",
     country: "USA",
     city: "San Francisco",
@@ -59,7 +61,7 @@ const dummyUsers: UserDataInterface[]  = [
     email: "elena.garcia@example.com",
     CME_Credits: 10,
     remainingCredits: 10,
-    specializations: ["Obstetrics", "Gynecology"],
+    specializations: [{name: "Obstetrics"}, {name: "Gynecology"}],
     role: "User",
     country: "Spain",
     city: "Madrid",
@@ -71,7 +73,7 @@ const dummyUsers: UserDataInterface[]  = [
     email: "frank.oneil@example.com",
     CME_Credits: 18,
     remainingCredits: 6,
-    specializations: ["Emergency Medicine"],
+    specializations: [{name: "Emergency Medicine"}],
     role: "Admin",
     country: "Ireland",
     city: "Dublin",
@@ -83,7 +85,7 @@ const dummyUsers: UserDataInterface[]  = [
     email: "grace.tanaka@example.com",
     CME_Credits: 25,
     remainingCredits: 20,
-    specializations: ["Internal Medicine", "Endocrinology, Endocrinology"],
+    specializations: [{name: "Internal Medicine"}, {name: "Endocrinology, Endocrinology"}],
 
     role: "SuperAdmin",
     country: "Japan",
@@ -96,7 +98,7 @@ const dummyUsers: UserDataInterface[]  = [
     email: "henry.lee@example.com",
     CME_Credits: 14,
     remainingCredits: 8,
-    specializations: ["Psychiatry"],
+    specializations: [{name: "Psychiatry"}],
     role: "User",
     country: "USA",
     city: "Seattle",
@@ -108,7 +110,7 @@ const dummyUsers: UserDataInterface[]  = [
     email: "isabella.rossi@example.com",
     CME_Credits: 16,
     remainingCredits: 5,
-    specializations: ["Urology", "Nephrology"],
+    specializations: [{name: "Urology"}, {name: "Nephrology"}],
     role: "Admin",
     country: "Italy",
     city: "Milan",
@@ -120,7 +122,7 @@ const dummyUsers: UserDataInterface[]  = [
     email: "jack.williams@example.com",
     CME_Credits: 9,
     remainingCredits: 1,
-    specializations: ["Anesthesiology"],
+    specializations: [{name: "Anesthesiology"}],
     role: "User",
     country: "Australia",
     city: "Sydney",
@@ -130,6 +132,7 @@ const dummyUsers: UserDataInterface[]  = [
 
 
 const UsersPage = () => {
+  
   return (
     <div style={globalStyles.pageContainer}>
       <DashboardHeader />
