@@ -49,6 +49,7 @@ const UsersPage = () => {
           setRowsPerPage={setRowsPerPage}
           totalPages={totalPages}
           setTotalPages={setTotalPages}
+          setUsers={setUsers}
         />
         <UsersTable
           users={users}

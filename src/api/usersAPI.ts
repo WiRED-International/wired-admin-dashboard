@@ -31,3 +31,51 @@ export const fetchUsers = async (queries?: string): Promise<UserDataInterface[]>
         throw err;
     }
 }
+
+//search users by first name, last name, email, using one search query
+export const searchUsers = async (searchQuery: string): Promise<UserDataInterface[]> => {
+    const query = encodeURIComponent(searchQuery);
+    const url = `/api/admin/users/search?first_name=${query}&last_name=${query}&email=${query}`;
+
+    try {
+        const response = await fetch(url, {
+            headers: {
+                Authorization: `Bearer ${Auth.getToken()}`,
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to search users');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error searching users:', error);
+        throw error;
+    }
+}
+
+//search users by first name, last name, email, using one broad search query
+export const searchUsersBroad = async (searchQuery: string): Promise<UserDataInterface[]> => {
+    const query = encodeURIComponent(searchQuery);
+    const url = `/users/search/broad?query=${query}`;
+
+    try {
+        const response = await fetch(url, {
+            headers: {
+                Authorization: `Bearer ${Auth.getToken()}`,
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to search users');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error searching users:', error);
+        throw error;
+    }
+}

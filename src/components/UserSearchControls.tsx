@@ -1,6 +1,8 @@
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import React, { useEffect, ChangeEvent } from 'react';
 
 import { UserDataInterface } from "../interfaces/UserDataInterface";
+import { searchUsersBroad } from '../api/usersAPI';
+import { fetchUsers } from '../api/usersAPI';
 
 interface UserSearchControlsProps {
     users: UserDataInterface[];
@@ -10,9 +12,14 @@ interface UserSearchControlsProps {
     setCurrentPage: (page: string) => void;
     setRowsPerPage: (rows: string) => void;
     setTotalPages: (total: number) => void;
+    setUsers: (users: UserDataInterface[]) => void;
 }
 
-const UserSearchControls: React.FC<UserSearchControlsProps> = ({ users, currentPage, rowsPerPage, totalPages, setCurrentPage, setRowsPerPage, setTotalPages }) => {
+const UserSearchControls: React.FC<UserSearchControlsProps> = ({ users, currentPage, rowsPerPage, totalPages, setCurrentPage, setRowsPerPage, setTotalPages, setUsers }) => {
+
+    //calculate what the final page number is based on the users and rows per page
+
+
 
     useEffect(() => {
         const total = Math.ceil(users.length / Number(rowsPerPage));
@@ -36,11 +43,51 @@ const UserSearchControls: React.FC<UserSearchControlsProps> = ({ users, currentP
         }
     };
 
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setCurrentPage("1"); // Reset to first page on search
+        const searchInput = (e.target as HTMLFormElement).elements.namedItem('search') as HTMLInputElement;
+        const searchQuery = searchInput.value.trim();
+        if (searchQuery) {
+            searchUsersBroad(searchQuery)
+                .then((results) => {
+                    // Assuming you want to update the users state with the search results
+                    setUsers(results); // Uncomment this if you have setUsers in props
+                    console.log('Search results:', results);
+                })
+                .catch((error) => {
+                    console.error('Error searching users:', error);
+                });
+        }
+        else{
+            // If search query is empty, reset to original users
+
+            fetchUsers()
+                .then((fetchedUsers) => {
+                    setUsers(fetchedUsers);
+                })
+                .catch((error) => {
+                    console.error('Error fetching users:', error);
+                });
+            setUsers(users); // Reset to original users if search is empty
+        }
+
+    };
+
     return (
         <div style={styles.searchContainer}>
             <div style={styles.pageControls}>
-                <button style={styles.pageButton} type="button">{`<<`}</button>
-                <button style={styles.pageButton} type="button">{`<`}</button>
+                <button
+                    style={styles.pageButton} type="button"
+                    onClick={() => setCurrentPage("1")}
+                    disabled={currentPage === "1"}
+                >{`<<`}
+                </button>
+                <button
+                    style={styles.pageButton} type="button"
+                    onClick={() => setCurrentPage((parseInt(currentPage, 10) - 1).toString())}
+                    disabled={currentPage === "1"}
+                >{`<`}</button>
                 <input
                     type="number"
                     value={currentPage}
@@ -49,15 +96,23 @@ const UserSearchControls: React.FC<UserSearchControlsProps> = ({ users, currentP
                     min={1}
                     max={totalPages}
                 />
-                <button style={styles.pageButton} type="button">{`>`}</button>
-                <button style={styles.pageButton} type="button">{`>>`}</button>
+                <button
+                    style={styles.pageButton} type="button"
+                    onClick={() => setCurrentPage((parseInt(currentPage, 10) + 1).toString())}
+                    disabled={currentPage === totalPages.toString()}
+                >{`>`}</button>
+                <button
+                    style={styles.pageButton} type="button"
+                    onClick={() => setCurrentPage(totalPages.toString())}
+                    disabled={currentPage === totalPages.toString()}
+                >{`>>`}</button>
             </div>
             <div style={styles.pageControls}>
                 <h3 style={styles.label}>Rows per page:</h3>
                 <select
-                  style={styles.pageInput}
-                  value={rowsPerPage}
-                  onChange={e => setRowsPerPage(e.target.value)}
+                    style={styles.pageInput}
+                    value={rowsPerPage}
+                    onChange={e => setRowsPerPage(e.target.value)}
                 >
                     <option value={10}>10</option>
                     <option value={25}>25</option>
@@ -67,8 +122,19 @@ const UserSearchControls: React.FC<UserSearchControlsProps> = ({ users, currentP
                 </select>
             </div>
             <div style={styles.pageControls}>
-                <h3 style={styles.label}>Search:</h3>
-                <input type="text" placeholder="Search by name or email" style={{ ...styles.pageInput, ...styles.searchInput }} />
+                <form
+                    onSubmit={handleSearchSubmit}
+                    style={{ display: 'flex', alignItems: 'center' }}
+                >
+                    <h3 style={styles.label}>Search:</h3>
+                    <input 
+                        type="text" 
+                        placeholder="Search by name or email" 
+                        style={{ ...styles.pageInput, ...styles.searchInput }} 
+                        name="search"
+                    />
+                    <button type="submit" style={styles.searchButton}>Search</button>
+                </form>
             </div>
         </div>
     );
@@ -112,5 +178,11 @@ const styles: { [key: string]: React.CSSProperties } = {
         fontFamily: 'inter',
         marginInline: "10px",
         marginBlock: "0px",
+    },
+    searchButton: {
+        height: "30px",
+        fontFamily: 'inter',
+        marginInline: "10px",
+        cursor: "pointer",
     }
 };
