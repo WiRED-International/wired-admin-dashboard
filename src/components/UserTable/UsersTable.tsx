@@ -2,15 +2,18 @@ import React from "react";
 import { UserDataInterface } from "../../interfaces/UserDataInterface";
 import cssStyles from "./UsersTable.module.css";
 import UserTableActions from "./UserTableActions";
+import { globalStyles } from "../../globalStyles";
 
 type UsersTableProps = {
     users: UserDataInterface[];
+    currentPage: string;
+    rowsPerPage: string;
 };
 
 const columns = [
     { key: 'actions', label: 'Actions' },
-    { key: "firstName", label: "First Name" },
-    { key: "lastName", label: "Last Name" },
+    { key: "first_name", label: "First Name" },
+    { key: "last_name", label: "Last Name" },
     { key: "email", label: "Email" },
     { key: "CME_Credits", label: "CME Credits" },
     { key: "remainingCredits", label: "Remaining Credits" },
@@ -22,7 +25,14 @@ const columns = [
 ];
 
 
-const UsersTable: React.FC<UsersTableProps> = ({ users }: UsersTableProps) => {
+const UsersTable: React.FC<UsersTableProps> = ({ users, currentPage, rowsPerPage }: UsersTableProps) => {
+    const page = parseInt(currentPage, 10) || 1;
+    const rows = parseInt(rowsPerPage, 10) || users.length;
+
+    const startIndex = (page - 1) * rows;
+    const endIndex = startIndex + rows;
+
+    const displayedUsers = users.slice(startIndex, endIndex);
     return (
         <table style={styles.table}>
             <thead>
@@ -39,30 +49,35 @@ const UsersTable: React.FC<UsersTableProps> = ({ users }: UsersTableProps) => {
                 </tr>
             </thead>
             <tbody>
-                {users.map((user, index) => {
+                {displayedUsers.map((user, index) => {
                     const isEven = index % 2 === 0;
                     return (
 
                         <tr key={index} style={{
                             backgroundColor: isEven ? evenGray : oddGray,
+                            
                         }}>
                             {columns.map((column) => {
-                                const isFirstName = column.key === "firstName";
+                                const isFirstName = column.key === "first_name";
                                 return (
+                                    // my apoligies for the confusing code below
                                     <td
                                         key={column.key}
                                         style={{ ...styles.tableCell, backgroundColor: isFirstName ? isEven ? evenGreen : oddGreen : '' }}
 
                                     >
+
                                         {column.key === "actions" ? (
-                                            <UserTableActions />
+                                            <UserTableActions user={user} />
                                         ) : column.key === "specializations" ? (
                                             (user as any)[column.key].length > 0
-                                                ? (user as any)[column.key].join(", ")
+                                                ? (user as any)[column.key].map((spec: { name: string }) => spec.name).join(", ")
                                                 : "None"
                                         ) : Array.isArray((user as any)[column.key])
                                             ? (user as any)[column.key].join(", ")
-                                            : (user as any)[column.key]}
+                                            : typeof (user as any)[column.key] === "object" && (user as any)[column.key] !== null
+                                                ? (user as any)[column.key].name || JSON.stringify((user as any)[column.key])
+                                                : (user as any)[column.key]}
                                     </td>
                                 )
                             })}
@@ -79,7 +94,7 @@ export default UsersTable;
 const tableborder = "1px solid #A9A9A9";
 const evenGray = '#FFFEFE'
 const oddGray = '#F5F5F5'
-const evenGreen = '#96C98B'
+const evenGreen = globalStyles.colors.singleUserViewHeader
 const oddGreen = '#E3FFDE'
 
 const styles: { [key: string]: React.CSSProperties } = {
@@ -97,11 +112,12 @@ const styles: { [key: string]: React.CSSProperties } = {
         padding: "10px",
         // couldnt get shadow to show below the bottom edge even with css
     },
+
     tableCell: {
         border: tableborder,
         padding: "10px",
         textWrap: "nowrap",
-        overflowX: "scroll",
+        overflowX: "auto",
         minWidth: "150px",
         maxWidth: "275px",
     },

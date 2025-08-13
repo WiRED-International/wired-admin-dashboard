@@ -1,3 +1,5 @@
+import SingleUserView from "./components/UserTable/SingleUserView";
+
 //color variables
 const darkText = '#333';
 const lightGray = '#f9f9f9';
@@ -18,6 +20,9 @@ export const globalStyles = {
         lightGray: lightGray,
         whiteOverlay: 'rgba(255, 255, 255, 0.4)',
         success: success,
+        singleUserViewBackground: '#D9D9D9',
+        singleUserViewHeader: '#96C98B',
+        
     },
     pageContainer: {
         fontFamily: 'Arial, sans-serif',

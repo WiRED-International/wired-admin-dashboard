@@ -50,7 +50,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: '/users',
+        path: '/userview',
         element: (
           <ProtectedRoute redirectTo='/login'>
             <UsersPage />

@@ -12,14 +12,14 @@
 // ];
 
 export interface UserDataInterface {
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   email: string;
   CME_Credits?: number;
   remainingCredits?: number;
-  specializations: {name: string}[];
-  role: "SuperAdmin" | "Admin" | "User";
-  country: string;
-  city: string;
-  organization: string;
+  specializations: {name: string, id: number}[];
+  role: {name: "SuperAdmin" | "Admin" | "User", id: number};
+  country: { name: string, id: number };
+  city: {name: string, id: number};
+  organization: {name: string,  id: number};
 }

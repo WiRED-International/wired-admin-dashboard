@@ -6,7 +6,7 @@ import { apiPrefix } from "../utils/globalVariables";
 // Fetch users from /users endpoint
 export const fetchUsers = async (queries?: string): Promise<UserDataInterface[]> => {
     try {
-        const fetchURL = queries ? `${apiPrefix}/users?${queries}` : `${apiPrefix}api/users`;
+        const fetchURL = queries ? `${apiPrefix}users?${queries}` : `${apiPrefix}users`;
 
         const response = await fetch(fetchURL, {
             headers: {
