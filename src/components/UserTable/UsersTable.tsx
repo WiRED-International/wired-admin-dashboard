@@ -3,6 +3,7 @@ import { UserDataInterface } from "../../interfaces/UserDataInterface";
 import cssStyles from "./UsersTable.module.css";
 import UserTableActions from "./UserTableActions";
 import { globalStyles } from "../../globalStyles";
+import UserTableHeader from "../SortButton/UserTableHeader";
 
 type UsersTableProps = {
     users: UserDataInterface[];
@@ -32,18 +33,34 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, currentPage, rowsPerPage
     const startIndex = (page - 1) * rows;
     const endIndex = startIndex + rows;
 
+    const sortButtonOnClick = (actionKey: string) => {
+        if (!actionKey || actionKey === 'actions') return;
+        //TODO: Implement sorting logic
+        console.log(`Sorting by ${actionKey}`);
+    };
+
     const displayedUsers = users.slice(startIndex, endIndex);
     return (
         <table style={styles.table}>
-            <thead>
-                <tr>
+            <thead >
+                <tr className={cssStyles.top_user_table_head}>
                     {columns.map((column) => (
                         <th
                             key={column.key}
                             style={styles.tableHead}
                             className={cssStyles.user_table_head}
+                            onClick={() => sortButtonOnClick(column.key)}
                         >
-                            {column.label}
+                            <div className={cssStyles.user_table_head_text}>
+                                {column.label}
+                                {column.key !== 'actions' && (
+                                    <UserTableHeader
+                                        actionKey={column.key}
+                                    
+                                        columnKey={column.key}
+                                    />
+                                )}
+                            </div>
                         </th>
                     ))}
                 </tr>
@@ -55,7 +72,7 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, currentPage, rowsPerPage
 
                         <tr key={index} style={{
                             backgroundColor: isEven ? evenGray : oddGray,
-                            
+
                         }}>
                             {columns.map((column) => {
                                 const isFirstName = column.key === "first_name";
@@ -121,4 +138,5 @@ const styles: { [key: string]: React.CSSProperties } = {
         minWidth: "150px",
         maxWidth: "275px",
     },
+
 }

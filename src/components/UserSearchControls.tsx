@@ -51,9 +51,7 @@ const UserSearchControls: React.FC<UserSearchControlsProps> = ({ users, currentP
         if (searchQuery) {
             searchUsersBroad(searchQuery)
                 .then((results) => {
-                    // Assuming you want to update the users state with the search results
-                    setUsers(results); // Uncomment this if you have setUsers in props
-                    console.log('Search results:', results);
+                    setUsers(results); 
                 })
                 .catch((error) => {
                     console.error('Error searching users:', error);

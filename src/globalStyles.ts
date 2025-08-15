@@ -1,4 +1,4 @@
-import SingleUserView from "./components/UserTable/SingleUserView";
+
 
 //color variables
 const darkText = '#333';

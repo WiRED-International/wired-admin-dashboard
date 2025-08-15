@@ -1,0 +1,27 @@
+.container{
+  cursor: pointer;
+}
+
+
+.user_table_head_text{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+.sort_triangle_container{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.sort_triangle{
+  fill: #898989;
+  margin: 3px;
+}
+
+.sort_triangle_desc{
+  transform: rotate(180deg);
+}

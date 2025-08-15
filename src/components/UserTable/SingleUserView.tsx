@@ -23,6 +23,10 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
         organization: user.organization.id,
     });
 
+    //TODO: this is just to get rid of the warning about viewMode not being used
+    if(false){
+        setViewMode('view');
+    }
     const dummySpecializations: SpecializationsInterface[] = [
         { id: 1, name: "Cardiology" },
         { id: 2, name: "Neurology" },
@@ -108,7 +112,6 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
             </div>
 
             <button style={styles.button} onClick={() => setIsSingleUserViewOpen(false)}>Close</button>
-            {/* Additional content for the single user view can be added here */}
         </div>
     );
 }
