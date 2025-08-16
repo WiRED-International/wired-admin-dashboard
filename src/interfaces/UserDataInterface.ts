@@ -23,3 +23,10 @@ export interface UserDataInterface {
   city: {name: string, id: number};
   organization: {name: string,  id: number};
 }
+
+export interface UserSearchBroadResponse {
+  users: UserDataInterface[];
+  totalCount: number;
+  totalPages: number;
+  pageCount: number;
+}

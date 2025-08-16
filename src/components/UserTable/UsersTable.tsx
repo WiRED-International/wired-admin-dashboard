@@ -1,20 +1,18 @@
-import React from "react";
+import React, {useState } from "react";
 import { UserDataInterface } from "../../interfaces/UserDataInterface";
 import cssStyles from "./UsersTable.module.css";
 import UserTableActions from "./UserTableActions";
 import { globalStyles } from "../../globalStyles";
-import UserTableHeader from "../SortButton/UserTableHeader";
+import SortButtons from "../SortButton/SortButtons";
 
 type UsersTableProps = {
     users: UserDataInterface[];
-    currentPage: string;
-    rowsPerPage: string;
 };
 
 const columns = [
     { key: 'actions', label: 'Actions' },
-    { key: "first_name", label: "First Name" },
     { key: "last_name", label: "Last Name" },
+    { key: "first_name", label: "First Name" },
     { key: "email", label: "Email" },
     { key: "CME_Credits", label: "CME Credits" },
     { key: "remainingCredits", label: "Remaining Credits" },
@@ -25,21 +23,26 @@ const columns = [
     { key: "organization", label: "Organization" },
 ];
 
+const nonSortableColumns = ['actions', 'specializations', 'CME_Credits', 'remainingCredits'];
 
-const UsersTable: React.FC<UsersTableProps> = ({ users, currentPage, rowsPerPage }: UsersTableProps) => {
-    const page = parseInt(currentPage, 10) || 1;
-    const rows = parseInt(rowsPerPage, 10) || users.length;
 
-    const startIndex = (page - 1) * rows;
-    const endIndex = startIndex + rows;
+const UsersTable: React.FC<UsersTableProps> = ({ users }: UsersTableProps) => {
+    
+    const [sortBy, setSortBy] = useState<string | null>(null);
+    const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
 
-    const sortButtonOnClick = (actionKey: string) => {
-        if (!actionKey || actionKey === 'actions') return;
-        //TODO: Implement sorting logic
-        console.log(`Sorting by ${actionKey}`);
+    const sortButtonOnClick = (columnKey: string) => {
+        if (!columnKey || nonSortableColumns.includes(columnKey)) return;
+
+        if (sortBy === columnKey) {
+            setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC');
+        } else {
+            setSortBy(columnKey);
+            setSortOrder('ASC');
+        }
+    
     };
 
-    const displayedUsers = users.slice(startIndex, endIndex);
     return (
         <table style={styles.table}>
             <thead >
@@ -53,11 +56,11 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, currentPage, rowsPerPage
                         >
                             <div className={cssStyles.user_table_head_text}>
                                 {column.label}
-                                {column.key !== 'actions' && (
-                                    <UserTableHeader
-                                        actionKey={column.key}
-                                    
+                                {!nonSortableColumns.includes(column.key) && (
+                                    <SortButtons 
                                         columnKey={column.key}
+                                        sortBy={sortBy}
+                                        sortOrder={sortOrder}
                                     />
                                 )}
                             </div>
@@ -66,7 +69,7 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, currentPage, rowsPerPage
                 </tr>
             </thead>
             <tbody>
-                {displayedUsers.map((user, index) => {
+                {users.map((user, index) => {
                     const isEven = index % 2 === 0;
                     return (
 

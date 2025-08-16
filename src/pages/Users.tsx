@@ -2,8 +2,8 @@ import DashboardHeader from "../components/DashboardHeader";
 import UserSearchControls from "../components/UserSearchControls";
 import UsersTable from "../components/UserTable/UsersTable";
 import { globalStyles } from "../globalStyles";
-import { UserDataInterface } from "../interfaces/UserDataInterface";
-import { fetchUsers } from "../api/usersAPI";
+import { UserDataInterface, UserSearchBroadResponse } from "../interfaces/UserDataInterface";
+import { searchUsersBroad } from "../api/usersAPI";
 import { useEffect, useState } from "react";
 import LoadingSpinner from "../components/LoadingSpinner/LoadingSpinner";
 
@@ -20,8 +20,11 @@ const UsersPage = () => {
     setLoading(true);
     const fetchAllUsers = async () => {
       try {
-        const fetchedUsers = await fetchUsers();
-        setUsers(fetchedUsers);
+        const fetchedUsers: UserSearchBroadResponse = await searchUsersBroad('', 1, Number(rowsPerPage));
+        console.log('Fetched users: ', fetchedUsers);
+        setUsers(fetchedUsers.users || []);
+        setTotalPages(fetchedUsers.pageCount || 0);
+        
       } catch (error) {
         console.error("Error fetching users:", error);
       } finally {
@@ -42,7 +45,6 @@ const UsersPage = () => {
       <div style={styles.usersContainer}>
         <h1 style={styles.userHeader}>Registered Users</h1>
         <UserSearchControls
-          users={users}
           currentPage={currentPage}
           rowsPerPage={rowsPerPage}
           setCurrentPage={setCurrentPage}
@@ -53,8 +55,6 @@ const UsersPage = () => {
         />
         <UsersTable
           users={users}
-          currentPage={currentPage}
-          rowsPerPage={rowsPerPage}
         />
       </div>
     </div>

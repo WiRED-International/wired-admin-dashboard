@@ -1,5 +1,5 @@
 //fetch users from /users
-import { UserDataInterface } from "../interfaces/UserDataInterface";
+import { UserDataInterface, UserSearchBroadResponse } from "../interfaces/UserDataInterface";
 import Auth from "../utils/auth";
 import { apiPrefix } from "../utils/globalVariables";
 
@@ -57,9 +57,19 @@ export const searchUsers = async (searchQuery: string): Promise<UserDataInterfac
 }
 
 //search users by first name, last name, email, using one broad search query
-export const searchUsersBroad = async (searchQuery: string): Promise<UserDataInterface[]> => {
+export const searchUsersBroad = async (searchQuery: string, page: number, rowsPerPage: number): Promise<UserSearchBroadResponse> => {
+    if(!searchQuery) {
+        searchQuery = '';
+    }
+    if (typeof page !== 'number' || typeof rowsPerPage !== 'number') {
+        page = 1; // Default to first page
+        rowsPerPage = 10; // Default to 10 rows per page
+    }
+    if (page < 1) page = 1; // Ensure page is at least 1
+    if (rowsPerPage < 1) rowsPerPage = 10; // Default
+
     const query = encodeURIComponent(searchQuery);
-    const url = `/users/search/broad?query=${query}`;
+    const url = `/users/search/broad?query=${query}&pageNumber=${page}&rowsPerPage=${rowsPerPage}`;
 
     try {
         const response = await fetch(url, {

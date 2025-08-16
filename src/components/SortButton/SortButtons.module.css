@@ -25,3 +25,6 @@
 .sort_triangle_desc{
   transform: rotate(180deg);
 }
+.sort_triangle_active{
+  fill: #84C276;
+}
