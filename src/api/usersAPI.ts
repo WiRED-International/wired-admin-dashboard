@@ -57,7 +57,7 @@ export const searchUsers = async (searchQuery: string): Promise<UserDataInterfac
 }
 
 //search users by first name, last name, email, using one broad search query
-export const searchUsersBroad = async (searchQuery: string, page: number, rowsPerPage: number): Promise<UserSearchBroadResponse> => {
+export const searchUsersBroad = async (searchQuery: string, page: number, rowsPerPage: number, sortBy: string | null = null, sortOrder: 'ASC' | 'DESC' = 'ASC'): Promise<UserSearchBroadResponse> => {
     if(!searchQuery) {
         searchQuery = '';
     }
@@ -69,7 +69,9 @@ export const searchUsersBroad = async (searchQuery: string, page: number, rowsPe
     if (rowsPerPage < 1) rowsPerPage = 10; // Default
 
     const query = encodeURIComponent(searchQuery);
-    const url = `/users/search/broad?query=${query}&pageNumber=${page}&rowsPerPage=${rowsPerPage}`;
+    const sortQuery = sortBy ? `&sortBy=${encodeURIComponent(sortBy)}&sortOrder=${sortOrder}` : '';
+    // const sortQuery = ''
+    const url = `${apiPrefix}users/search/broad?query=${query}&pageNumber=${page}&rowsPerPage=${rowsPerPage}${sortQuery}&_=${Date.now()}`;
 
     try {
         const response = await fetch(url, {

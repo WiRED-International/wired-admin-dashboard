@@ -1,12 +1,18 @@
-import React, {useState } from "react";
+import React, { useState, useEffect } from "react";
 import { UserDataInterface } from "../../interfaces/UserDataInterface";
 import cssStyles from "./UsersTable.module.css";
 import UserTableActions from "./UserTableActions";
 import { globalStyles } from "../../globalStyles";
 import SortButtons from "../SortButton/SortButtons";
+import { searchUsersBroad } from "../../api/usersAPI";
 
 type UsersTableProps = {
     users: UserDataInterface[];
+    sortBy: string | null;
+    sortOrder: 'ASC' | 'DESC';
+    setSortBy: (sortBy: string | null) => void;
+    setSortOrder: (sortOrder: 'ASC' | 'DESC') => void;
+    setCurrentPage: (currentPage: string) => void;
 };
 
 const columns = [
@@ -26,22 +32,39 @@ const columns = [
 const nonSortableColumns = ['actions', 'specializations', 'CME_Credits', 'remainingCredits'];
 
 
-const UsersTable: React.FC<UsersTableProps> = ({ users }: UsersTableProps) => {
-    
-    const [sortBy, setSortBy] = useState<string | null>(null);
-    const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
+const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSortBy, setSortOrder, setCurrentPage }: UsersTableProps) => {
+
 
     const sortButtonOnClick = (columnKey: string) => {
         if (!columnKey || nonSortableColumns.includes(columnKey)) return;
 
         if (sortBy === columnKey) {
             setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC');
+            setCurrentPage("1");
         } else {
             setSortBy(columnKey);
             setSortOrder('ASC');
+            setCurrentPage("1");
         }
     
     };
+
+    // useEffect(() => {
+    //     const fetchSortedUsers = async () => {
+    //         try {
+    //             const fetchedUsers = await searchUsersBroad('', 1, 10, sortBy, sortOrder);
+    //             console.log('Fetched sorted users: ', fetchedUsers);
+    //             // Assuming fetchedUsers.users is the array of users
+    //             if (fetchedUsers.users) {
+    //                 users = fetchedUsers.users;
+    //             }
+    //         } catch (error) {
+    //             console.error("Error fetching sorted users:", error);
+    //         }
+    //     };
+
+    //     fetchSortedUsers();
+    // }, [sortBy, sortOrder]);
 
     return (
         <table style={styles.table}>

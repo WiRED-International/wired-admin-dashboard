@@ -11,11 +11,16 @@ interface UserSearchControlsProps {
     setRowsPerPage: (rows: string) => void;
     setTotalPages: (total: number) => void;
     setUsers: (users: UserDataInterface[]) => void;
+    searchQuery: string;
+    setSearchQuery: (query: string) => void;
 }
 
-const UserSearchControls: React.FC<UserSearchControlsProps> = ({ currentPage, rowsPerPage, totalPages, setCurrentPage, setRowsPerPage, setTotalPages, setUsers }) => {
+const UserSearchControls: React.FC<UserSearchControlsProps> = ({ currentPage, rowsPerPage, totalPages, setCurrentPage, setRowsPerPage, setTotalPages, setUsers, searchQuery, setSearchQuery }) => {
 
-    const [searchQuery, setSearchQuery] = useState<string>("");
+    const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(e.target.value);
+    };
+
 
     //calculate what the final page number is based on the users and rows per page
 
@@ -35,6 +40,7 @@ const UserSearchControls: React.FC<UserSearchControlsProps> = ({ currentPage, ro
         const num = Number(val);
         if (Number.isNaN(num)) return;
         if (num < 1) {
+            console.log('here')
             setCurrentPage("1");
         } else if (num > totalPages) {
             setCurrentPage(totalPages.toString());
@@ -42,14 +48,14 @@ const UserSearchControls: React.FC<UserSearchControlsProps> = ({ currentPage, ro
             setCurrentPage(val);
         }
         //refetch users based on the new page
-        searchUsersBroad(searchQuery, num, Number(rowsPerPage))
-            .then((results) => {
-                setUsers(results.users || []);
-                setTotalPages(results.pageCount || 0);
-            })
-            .catch((error) => {
-                console.error('Error searching users:', error);
-            });
+        // searchUsersBroad(searchQuery, num, Number(rowsPerPage))
+        //     .then((results) => {
+        //         setUsers(results.users || []);
+        //         setTotalPages(results.pageCount || 0);
+        //     })
+        //     .catch((error) => {
+        //         console.error('Error searching users:', error);
+        //     });
     };
 
     const handleSearchSubmit = (e: React.FormEvent) => {
@@ -145,7 +151,7 @@ const UserSearchControls: React.FC<UserSearchControlsProps> = ({ currentPage, ro
                         type="text" 
                         placeholder="Search by name or email" 
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={handleSearchChange}
                         style={{ ...styles.pageInput, ...styles.searchInput }} 
                         name="search"
                     />

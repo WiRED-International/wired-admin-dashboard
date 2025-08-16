@@ -15,12 +15,15 @@ const UsersPage = () => {
   const [currentPage, setCurrentPage] = useState<string>("1");
   const [rowsPerPage, setRowsPerPage] = useState<string>("10");
   const [totalPages, setTotalPages] = useState<number>(0);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [sortBy, setSortBy] = useState<string | null>('last_name');
+  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
 
   useEffect(() => {
     setLoading(true);
     const fetchAllUsers = async () => {
       try {
-        const fetchedUsers: UserSearchBroadResponse = await searchUsersBroad('', 1, Number(rowsPerPage));
+        const fetchedUsers: UserSearchBroadResponse = await searchUsersBroad(searchQuery, Number(currentPage), Number(rowsPerPage), sortBy, sortOrder);
         console.log('Fetched users: ', fetchedUsers);
         setUsers(fetchedUsers.users || []);
         setTotalPages(fetchedUsers.pageCount || 0);
@@ -33,9 +36,15 @@ const UsersPage = () => {
     };
 
     fetchAllUsers();
-  }, []);
+  }, [ sortBy, sortOrder, currentPage]);
 
-
+  //TODO: delete this useEffect when the search is working
+  useEffect(() => {
+    console.log('Users:', users);
+    console.log('Current Page:', currentPage);
+    console.log('sortor:', sortOrder);
+    console.log('sortBy:', sortBy);
+  }, [users, currentPage]);
   
   return (
   
@@ -52,9 +61,16 @@ const UsersPage = () => {
           totalPages={totalPages}
           setTotalPages={setTotalPages}
           setUsers={setUsers}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
         />
         <UsersTable
           users={users}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          setSortBy={setSortBy}
+          setSortOrder={setSortOrder}
+          setCurrentPage={setCurrentPage}
         />
       </div>
     </div>
