@@ -1,14 +1,14 @@
-import React, { useState, ChangeEvent } from 'react';
+import React, { ChangeEvent } from 'react';
 
 import { UserDataInterface } from "../interfaces/UserDataInterface";
 import { searchUsersBroad } from '../api/usersAPI';
 
 interface UserSearchControlsProps {
-    currentPage: string;
-    rowsPerPage: string;
+    currentPage: number;
+    rowsPerPage: number;
     totalPages: number;
-    setCurrentPage: (page: string) => void;
-    setRowsPerPage: (rows: string) => void;
+    setCurrentPage: (page: number) => void;
+    setRowsPerPage: (rows: number) => void;
     setTotalPages: (total: number) => void;
     setUsers: (users: UserDataInterface[]) => void;
     searchQuery: string;
@@ -22,51 +22,15 @@ const UserSearchControls: React.FC<UserSearchControlsProps> = ({ currentPage, ro
     };
 
 
-    //calculate what the final page number is based on the users and rows per page
-
-
-
-    // useEffect(() => {
-    //     const total = Math.ceil(users.length / Number(rowsPerPage));
-    //     setTotalPages(total);
-    // }, [users, rowsPerPage]);
-
-    const handlePageChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const val = e.currentTarget.value;
-        if (val === "") {
-            setCurrentPage("");
-            return;
-        }
-        const num = Number(val);
-        if (Number.isNaN(num)) return;
-        if (num < 1) {
-            console.log('here')
-            setCurrentPage("1");
-        } else if (num > totalPages) {
-            setCurrentPage(totalPages.toString());
-        } else {
-            setCurrentPage(val);
-        }
-        //refetch users based on the new page
-        // searchUsersBroad(searchQuery, num, Number(rowsPerPage))
-        //     .then((results) => {
-        //         setUsers(results.users || []);
-        //         setTotalPages(results.pageCount || 0);
-        //     })
-        //     .catch((error) => {
-        //         console.error('Error searching users:', error);
-        //     });
-    };
-
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setCurrentPage("1"); // Reset to first page on search
+        setCurrentPage(1); // Reset to first page on search
         const searchInput = (e.target as HTMLFormElement).elements.namedItem('search') as HTMLInputElement;
         const searchQuery = searchInput.value.trim();
         {
             searchUsersBroad(searchQuery, 1, Number(rowsPerPage))
                 .then((results) => {
-                    setUsers(results.users || []); 
+                    setUsers(results.users || []);
                     setTotalPages(results.pageCount || 0);
                 })
                 .catch((error) => {
@@ -75,53 +39,64 @@ const UserSearchControls: React.FC<UserSearchControlsProps> = ({ currentPage, ro
         }
     };
 
-    const handleRowsPerPageChange = (e: ChangeEvent<HTMLSelectElement>) => {
-        const newRowsPerPage = e.target.value;
-        setRowsPerPage(newRowsPerPage);
-        setCurrentPage("1"); // Reset to first page on rows per page change
-        searchUsersBroad(searchQuery, 1, Number(newRowsPerPage))
+    const handlePaginationChange = (
+        newPage?: number,
+        newRowsPerPage?: number
+    ) => {
+        const page = newPage ?? currentPage;
+        const rows = newRowsPerPage ?? rowsPerPage;
+
+
+        const clampedPage = Math.max(1, Math.min(page, totalPages));
+        const clampedRows = Math.max(1, rows);
+
+        setCurrentPage(clampedPage);
+        setRowsPerPage(clampedRows);
+
+        searchUsersBroad(searchQuery, clampedPage, clampedRows)
             .then((results) => {
                 setUsers(results.users || []);
                 setTotalPages(results.pageCount || 0);
             })
             .catch((error) => {
-                console.error('Error searching users:', error);
+                console.error("Error searching users:", error);
             });
     };
+
 
     return (
         <div style={styles.searchContainer}>
             <div style={styles.pageControls}>
                 <button
                     style={styles.pageButton} type="button"
-                    onClick={() => handlePageChange({ currentTarget: { value: "1" } } as ChangeEvent<HTMLInputElement>)}
-                    disabled={currentPage === "1"}
+                    onClick={() => handlePaginationChange(1)}
+                    disabled={currentPage === 1}
                 >{`<<`}
                 </button>
                 <button
                     style={styles.pageButton} type="button"
-                    onClick={() => handlePageChange({ currentTarget: { value: (parseInt(currentPage, 10) - 1).toString() } } as ChangeEvent<HTMLInputElement>)}
-                    disabled={currentPage === "1"}
+                    onClick={() => handlePaginationChange(currentPage - 1)}
+                    disabled={currentPage === 1}
                 >{`<`}</button>
                 <input
                     type="number"
                     value={currentPage}
-                    onChange={handlePageChange}
+                    onChange={(e) => handlePaginationChange(Number(e.target.value))}
                     style={styles.pageInput}
                     min={1}
                     max={totalPages}
                 />
                 <button
                     style={styles.pageButton} type="button"
-                    onClick={() => handlePageChange({ currentTarget: { value: (parseInt(currentPage, 10) + 1).toString() } } as ChangeEvent<HTMLInputElement>)}
-                    disabled={currentPage === totalPages.toString()}
+                    onClick={() => handlePaginationChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
                 >{`>`}</button>
                 <button
                     style={styles.pageButton} type="button"
-                    onClick={() => handlePageChange({ currentTarget: { value: totalPages.toString() } } as ChangeEvent<HTMLInputElement>)}
-                    disabled={currentPage === totalPages.toString()}
+                    onClick={() => handlePaginationChange(totalPages)}
+                    disabled={currentPage === totalPages}
                 >{`>>`}</button>
-                { totalPages > 0 && (
+                {totalPages > 0 && (
                     <span style={{ marginLeft: '10px' }}>
                         Page {currentPage} of {totalPages}
                     </span>
@@ -132,7 +107,7 @@ const UserSearchControls: React.FC<UserSearchControlsProps> = ({ currentPage, ro
                 <select
                     style={styles.pageInput}
                     value={rowsPerPage}
-                    onChange={handleRowsPerPageChange}
+                    onChange={(e) => handlePaginationChange(1, Number(e.target.value))}
                 >
                     <option value={10}>10</option>
                     <option value={25}>25</option>
@@ -147,12 +122,12 @@ const UserSearchControls: React.FC<UserSearchControlsProps> = ({ currentPage, ro
                     style={{ display: 'flex', alignItems: 'center' }}
                 >
                     <h3 style={styles.label}>Search:</h3>
-                    <input 
-                        type="text" 
-                        placeholder="Search by name or email" 
+                    <input
+                        type="text"
+                        placeholder="Search by name or email"
                         value={searchQuery}
                         onChange={handleSearchChange}
-                        style={{ ...styles.pageInput, ...styles.searchInput }} 
+                        style={{ ...styles.pageInput, ...styles.searchInput }}
                         name="search"
                     />
                     <button type="submit" style={styles.searchButton}>Search</button>

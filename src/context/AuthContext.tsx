@@ -3,8 +3,8 @@ import Auth from '../utils/auth';
 
 // Define the shape of the authentication context
 interface AuthContextType {
-  isAuthenticated: boolean | null;
-  setIsAuthenticated: (value: boolean | null) => void;
+  isAuthenticated: boolean;
+  setIsAuthenticated: (value: boolean) => void;
 }
 
 // Create the context with an initial default value
@@ -19,7 +19,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
     useEffect(() => {
       // Check if user is already logged in

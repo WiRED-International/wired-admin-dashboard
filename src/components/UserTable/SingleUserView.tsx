@@ -10,7 +10,7 @@ interface SingleUserViewProps {
     setViewMode: (mode: 'view' | 'edit') => void;
 }
 
-const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }: SingleUserViewProps) => {
+const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode }: SingleUserViewProps) => {
 
     const [formState, setFormState] = useState({
         first_name: user.first_name,
@@ -23,10 +23,7 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
         organization: user.organization.id,
     });
 
-    //TODO: this is just to get rid of the warning about viewMode not being used
-    if(false){
-        setViewMode('view');
-    }
+
     const dummySpecializations: SpecializationsInterface[] = [
         { id: 1, name: "Cardiology" },
         { id: 2, name: "Neurology" },

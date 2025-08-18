@@ -11,7 +11,7 @@ type UsersTableProps = {
     sortOrder: 'ASC' | 'DESC';
     setSortBy: (sortBy: string | null) => void;
     setSortOrder: (sortOrder: 'ASC' | 'DESC') => void;
-    setCurrentPage: (currentPage: string) => void;
+    setCurrentPage: (currentPage: number) => void;
 };
 
 const columns = [
@@ -39,31 +39,41 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSo
 
         if (sortBy === columnKey) {
             setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC');
-            setCurrentPage("1");
+            setCurrentPage(1);
         } else {
             setSortBy(columnKey);
             setSortOrder('ASC');
-            setCurrentPage("1");
+            setCurrentPage(1);
         }
     
     };
+    const renderCellValue = (columnKey: string, user: UserDataInterface) => {
+      const value = (user as any)[columnKey];
 
-    // useEffect(() => {
-    //     const fetchSortedUsers = async () => {
-    //         try {
-    //             const fetchedUsers = await searchUsersBroad('', 1, 10, sortBy, sortOrder);
-    //             console.log('Fetched sorted users: ', fetchedUsers);
-    //             // Assuming fetchedUsers.users is the array of users
-    //             if (fetchedUsers.users) {
-    //                 users = fetchedUsers.users;
-    //             }
-    //         } catch (error) {
-    //             console.error("Error fetching sorted users:", error);
-    //         }
-    //     };
+      if (columnKey === "actions") {
+        return <UserTableActions user={user} />;
+      }
 
-    //     fetchSortedUsers();
-    // }, [sortBy, sortOrder]);
+      if (columnKey === "specializations") {
+        if (Array.isArray(value) && value.length > 0) {
+          return value.map((spec: { name: string }) => spec.name).join(", ");
+        }
+        return "None";
+      }
+
+      if (Array.isArray(value)) {
+        return value.join(", ");
+      }
+      //this is to handle objects like role, country, city, organization
+      if (value && typeof value === "object") {
+        return value.name || JSON.stringify(value);
+      }
+
+      return value ?? "";
+    };
+      
+      
+
 
     return (
         <table style={styles.table}>
@@ -101,27 +111,23 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSo
                         }}>
                             {columns.map((column) => {
                                 const isFirstName = column.key === "first_name";
+                                let backgroundColor = "";
+                                if (isFirstName) {
+                                  backgroundColor = isEven
+                                    ? evenGreen
+                                    : oddGreen;
+                                }
                                 return (
-                                    // my apoligies for the confusing code below
-                                    <td
-                                        key={column.key}
-                                        style={{ ...styles.tableCell, backgroundColor: isFirstName ? isEven ? evenGreen : oddGreen : '' }}
-
-                                    >
-
-                                        {column.key === "actions" ? (
-                                            <UserTableActions user={user} />
-                                        ) : column.key === "specializations" ? (
-                                            (user as any)[column.key].length > 0
-                                                ? (user as any)[column.key].map((spec: { name: string }) => spec.name).join(", ")
-                                                : "None"
-                                        ) : Array.isArray((user as any)[column.key])
-                                            ? (user as any)[column.key].join(", ")
-                                            : typeof (user as any)[column.key] === "object" && (user as any)[column.key] !== null
-                                                ? (user as any)[column.key].name || JSON.stringify((user as any)[column.key])
-                                                : (user as any)[column.key]}
-                                    </td>
-                                )
+                                  <td
+                                    key={column.key}
+                                    style={{
+                                      ...styles.tableCell,
+                                      backgroundColor,
+                                    }}
+                                  >
+                                    {renderCellValue(column.key, user)}
+                                  </td>
+                                );
                             })}
                         </tr>
                     )

@@ -12,8 +12,8 @@ import LoadingSpinner from "../components/LoadingSpinner/LoadingSpinner";
 const UsersPage = () => {
   const [users, setUsers] = useState<UserDataInterface[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [currentPage, setCurrentPage] = useState<string>("1");
-  const [rowsPerPage, setRowsPerPage] = useState<string>("10");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<string | null>('last_name');
@@ -24,7 +24,6 @@ const UsersPage = () => {
     const fetchAllUsers = async () => {
       try {
         const fetchedUsers: UserSearchBroadResponse = await searchUsersBroad(searchQuery, Number(currentPage), Number(rowsPerPage), sortBy, sortOrder);
-        console.log('Fetched users: ', fetchedUsers);
         setUsers(fetchedUsers.users || []);
         setTotalPages(fetchedUsers.pageCount || 0);
         
@@ -38,13 +37,6 @@ const UsersPage = () => {
     fetchAllUsers();
   }, [ sortBy, sortOrder, currentPage]);
 
-  //TODO: delete this useEffect when the search is working
-  useEffect(() => {
-    console.log('Users:', users);
-    console.log('Current Page:', currentPage);
-    console.log('sortor:', sortOrder);
-    console.log('sortBy:', sortBy);
-  }, [users, currentPage]);
   
   return (
   
