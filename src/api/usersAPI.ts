@@ -61,10 +61,14 @@ export const searchUsersBroad = async (searchQuery: string, page: number, rowsPe
     if(!searchQuery) {
         searchQuery = '';
     }
-    if (typeof page !== 'number' || typeof rowsPerPage !== 'number') {
-        page = 1; // Default to first page
-        rowsPerPage = 10; // Default to 10 rows per page
+    if (typeof page !== "number") {
+      page = 1; // Default to first page
     }
+
+    if (typeof rowsPerPage !== "number") {
+      rowsPerPage = 10; // Default to 10 rows per page
+    }
+    
     if (page < 1) page = 1; // Ensure page is at least 1
     if (rowsPerPage < 1) rowsPerPage = 10; // Default
 

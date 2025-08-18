@@ -4,7 +4,6 @@ import cssStyles from "./UsersTable.module.css";
 import UserTableActions from "./UserTableActions";
 import { globalStyles } from "../../globalStyles";
 import SortButtons from "../SortButton/SortButtons";
-import { searchUsersBroad } from "../../api/usersAPI";
 
 type UsersTableProps = {
     users: UserDataInterface[];
