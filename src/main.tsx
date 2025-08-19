@@ -9,6 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute.tsx';
 import AdminDashboard from './pages/AdminDashboard.tsx';
 import ForgotPasswordPage from './pages/ForgotPasswordPage.tsx';
 import PasswordResetPage from './pages/PasswordResetPage.tsx';
+import UsersPage from './pages/Users.tsx';
 
 const router = createBrowserRouter([
   {
@@ -46,6 +47,14 @@ const router = createBrowserRouter([
           <LoginRedirectWrapper>
             <PasswordResetPage />
           </LoginRedirectWrapper>
+        ),
+      },
+      {
+        path: '/userview',
+        element: (
+          <ProtectedRoute redirectTo='/login'>
+            <UsersPage />
+          </ProtectedRoute>
         ),
       }
     ],

@@ -19,7 +19,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
     useEffect(() => {
       // Check if user is already logged in
@@ -30,6 +30,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     }, []);
 
+  
   return (
     <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated }}>
       {children}
