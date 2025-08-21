@@ -55,6 +55,8 @@ const UsersPage = () => {
           setUsers={setUsers}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
         />
         <UsersTable
           users={users}

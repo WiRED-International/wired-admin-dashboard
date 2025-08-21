@@ -13,9 +13,11 @@ interface UserSearchControlsProps {
     setUsers: (users: UserDataInterface[]) => void;
     searchQuery: string;
     setSearchQuery: (query: string) => void;
+    sortBy: string | null;
+    sortOrder: 'ASC' | 'DESC';
 }
 
-const UserSearchControls: React.FC<UserSearchControlsProps> = ({ currentPage, rowsPerPage, totalPages, setCurrentPage, setRowsPerPage, setTotalPages, setUsers, searchQuery, setSearchQuery }) => {
+const UserSearchControls: React.FC<UserSearchControlsProps> = ({ currentPage, rowsPerPage, totalPages, setCurrentPage, setRowsPerPage, setTotalPages, setUsers, searchQuery, setSearchQuery, sortBy, sortOrder }) => {
 
     const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value);
@@ -28,7 +30,7 @@ const UserSearchControls: React.FC<UserSearchControlsProps> = ({ currentPage, ro
         const searchInput = (e.target as HTMLFormElement).elements.namedItem('search') as HTMLInputElement;
         const searchQuery = searchInput.value.trim();
         {
-            searchUsersBroad(searchQuery, 1, Number(rowsPerPage))
+            searchUsersBroad(searchQuery, 1, Number(rowsPerPage), sortBy, sortOrder)
                 .then((results) => {
                     setUsers(results.users || []);
                     setTotalPages(results.pageCount || 0);
