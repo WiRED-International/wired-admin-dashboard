@@ -22,6 +22,7 @@ const UsersPage = () => {
   useEffect(() => {
     setLoading(true);
     const fetchAllUsers = async () => {
+
       try {
         const fetchedUsers: UserSearchBroadResponse = await searchUsersBroad(searchQuery, Number(currentPage), Number(rowsPerPage), sortBy, sortOrder);
         setUsers(fetchedUsers.users || []);

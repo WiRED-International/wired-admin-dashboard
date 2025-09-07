@@ -10,6 +10,7 @@ import AdminDashboard from './pages/AdminDashboard.tsx';
 import ForgotPasswordPage from './pages/ForgotPasswordPage.tsx';
 import PasswordResetPage from './pages/PasswordResetPage.tsx';
 import UsersPage from './pages/Users.tsx';
+import { UserOptionsProvider } from './context/UserOptionsContext.tsx';
 
 const router = createBrowserRouter([
   {
@@ -69,7 +70,9 @@ const rootElement = document.getElementById('root');
 if (rootElement) {
   ReactDOM.createRoot(rootElement).render(
     <AuthProvider>
-      <RouterProvider router={router} />
+      <UserOptionsProvider>
+        <RouterProvider router={router} />
+      </UserOptionsProvider>
     </AuthProvider>
   );
 }

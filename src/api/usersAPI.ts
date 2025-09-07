@@ -95,3 +95,24 @@ export const searchUsersBroad = async (searchQuery: string, page: number, rowsPe
         throw error;
     }
 }
+
+//fetch user by ID
+export const fetchUserById = async (userId: number): Promise<UserDataInterface> => {
+    try {
+        const response = await fetch(`${apiPrefix}users/${userId}`, {
+            headers: {
+                Authorization: `Bearer ${Auth.getToken()}`,
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch user by ID');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching user by ID:', error);
+        throw error;
+    }
+}
