@@ -11,7 +11,7 @@ interface SearchableDropdownProps {
   placeholder?: string;
   value?: string; // controlled value
   onChange?: (value: string) => void; // fires on input change
-  onSelect?: (value: string) => void; // fires on selecting an option
+  onSelect?: (opt: NamedItem) => void; // fires on selecting an option
   disabled?: boolean;
 }
 
@@ -41,10 +41,10 @@ export default function SearchableDropdownReusable({
   // Filter options whenever query changes
   useEffect(() => {
     if (query.trim() === "") {
-      setFilteredOptions([]);
+      setFilteredOptions(options);
     } else {
       setFilteredOptions(
-        options.filter((opt) => opt.name.toLowerCase().includes(query.toLowerCase()))
+        options.filter((opt) => opt.name.toLowerCase().includes(query.toLowerCase())).sort((a, b) => a.name.localeCompare(b.name))
       );
     }
   }, [query, options]);
@@ -57,8 +57,8 @@ export default function SearchableDropdownReusable({
     setSelectedIndex(-1);
   };
 
-  const handleSelect = (option: string) => {
-    setQuery(option);
+  const handleSelect = (option: NamedItem) => {
+    setQuery(option.name);
     onSelect?.(option);
     setShowDropdown(false);
   };
@@ -71,7 +71,7 @@ export default function SearchableDropdownReusable({
     } else if (e.key === "ArrowUp") {
       setSelectedIndex((prev) => Math.max(prev - 1, 0));
     } else if (e.key === "Enter" && selectedIndex >= 0) {
-      handleSelect(filteredOptions[selectedIndex].name);
+      handleSelect(filteredOptions[selectedIndex]);
     } else if (e.key === "Escape") {
       setShowDropdown(false);
     }
@@ -126,7 +126,7 @@ export default function SearchableDropdownReusable({
                   : {}),
               }}
               onMouseEnter={() => setSelectedIndex(index)}
-              onClick={() => handleSelect(option.name)}
+              onClick={() => handleSelect(option)}
             >
               {option.name}
             </li>

@@ -1,6 +1,6 @@
 import Auth from "../utils/auth";
 import { apiPrefix } from "../utils/globalVariables";
-import SpecializationsInterface from "../interfaces/SpecializationInterface";
+import {SpecializationsInterface} from "../interfaces/SpecializationInterface";
 
 //fetch all specializations
 export const fetchAllSpecializations = async (): Promise<SpecializationsInterface[]> => {

@@ -5,7 +5,7 @@ import {CountryInterface} from "../interfaces/CountryInterface";
 import {fetchAllOrganizations} from "../api/organizationsAPI";
 import {OrganizationInterface} from "../interfaces/OrganizationsInterface";
 import {fetchAllSpecializations} from "../api/specializationsAPI";
-import SpecializationsInterface from "../interfaces/SpecializationInterface";
+import {SpecializationsInterface} from "../interfaces/SpecializationInterface";
 import { fetchAllRoles } from "../api/rolesAPI";
 import { RoleInterface } from "../interfaces/rolesInterface";
 import { fetchAllCities } from "../api/citiesAPI";
@@ -17,7 +17,7 @@ interface UserOptionsContextInterface {
     specializations: SpecializationsInterface[];
     roles: RoleInterface[];
     cities: CityInterface[];
-
+    setCities: React.Dispatch<React.SetStateAction<CityInterface[]>>;
 }
 
 const UserOptionsContext = createContext<UserOptionsContextInterface | null>(null);
@@ -48,7 +48,7 @@ export const UserOptionsProvider: React.FC<{children: React.ReactNode}> = ({chil
                     fetchAllRoles(),
                     fetchAllCities()
                 ]);
-                console.log(`roles from context:`, fetchedRoles);
+
                 setCountries(fetchedCountries);
                 setOrganizations(fetchedOrganizations);
                 setSpecializations(fetchedSpecializations);
@@ -69,7 +69,7 @@ export const UserOptionsProvider: React.FC<{children: React.ReactNode}> = ({chil
     }
 
     return (
-        <UserOptionsContext.Provider value={{countries, organizations, specializations, roles, cities}}>
+        <UserOptionsContext.Provider value={{countries, organizations, specializations, roles, cities, setCities}}>
             {children}
         </UserOptionsContext.Provider>
     );

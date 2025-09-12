@@ -116,3 +116,27 @@ export const fetchUserById = async (userId: number): Promise<UserDataInterface> 
         throw error;
     }
 }
+
+//update user by ID
+export const updateUserById = async (userId: number, updatedData: Partial<UserDataInterface>): Promise<{message: string, user: UserDataInterface}> => {
+    try {
+        const response = await fetch(`${apiPrefix}users/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${Auth.getToken()}`,
+            },
+            body: JSON.stringify(updatedData),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update user');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error updating user:', error);
+        throw error;
+    }
+}

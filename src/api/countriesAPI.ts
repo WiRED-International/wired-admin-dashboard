@@ -8,7 +8,7 @@ export const fetchAllCountries = async (): Promise<CountryInterface[]> => {
             throw new Error("Network response was not ok");
         }
         const data = await response.json();
-        return data.countries;
+        return data;
     } catch (error) {
         console.error("Error fetching countries:", error);
         return [];
