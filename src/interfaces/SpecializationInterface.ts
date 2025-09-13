@@ -1,4 +1,4 @@
-export default interface SpecializationsInterface {
+export  interface SpecializationsInterface {
     id: number;
     name: string;
 }

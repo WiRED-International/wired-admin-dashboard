@@ -21,7 +21,8 @@ const columns = [
     { key: "email", label: "Email" },
     { key: "CME_Credits", label: "CME Credits" },
     { key: "remainingCredits", label: "Remaining Credits" },
-    { key: "specializations", label: "Specializations" },
+    //specializations has been removed for now due it causing issues with sorting and pagination
+    // { key: "specializations", label: "Specializations" },
     { key: "role", label: "Role" },
     { key: "country", label: "Country" },
     { key: "city", label: "City" },
@@ -53,13 +54,14 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSo
       if (columnKey === "actions") {
         return <UserTableActions user={user} />;
       }
-
-      if (columnKey === "specializations") {
-        if (Array.isArray(value) && value.length > 0) {
-          return value.map((spec: { name: string }) => spec.name).join(", ");
-        }
-        return "None";
-      }
+      //if specializations were to be added back in
+      
+    //   if (columnKey === "specializations") {
+    //     if (Array.isArray(value) && value.length > 0) {
+    //       return value.map((spec: { name: string }) => spec.name).join(", ");
+    //     }
+    //     return "None";
+    //   }
 
       if (Array.isArray(value)) {
         return value.join(", ");
