@@ -20,12 +20,13 @@ import UserCity from "./UserCity";
 import UserOrganization from "./UserOrganization";
 
 
-
+  const VIEW_MODE_EDIT = "edit";
+  const VIEW_MODE_VIEW = "view";
 interface SingleUserViewProps {
   user: UserDataInterface;
   setIsSingleUserViewOpen: (isOpen: boolean) => void;
-  viewMode: 'view' | 'edit';
-  setViewMode: (mode: 'view' | 'edit') => void;
+  viewMode: typeof VIEW_MODE_VIEW | typeof VIEW_MODE_EDIT;
+  setViewMode: (mode: typeof VIEW_MODE_VIEW | typeof VIEW_MODE_EDIT) => void;
 }
 
 
@@ -101,7 +102,7 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
     updateUserById(singleUserData.id, updatedData)
       .then((res) => {
         setSingleUserData(res.user);
-        setViewMode('view');
+        setViewMode(VIEW_MODE_VIEW);
       })
       .catch((err) => {
         console.error("Error updating user:", err);
@@ -177,7 +178,7 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
     <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.headerText}>
-          {viewMode === "view" ? "User Profile" : "Edit User"}
+          {viewMode === VIEW_MODE_VIEW ? "User Profile" : "Edit User"}
         </h2>
       </div>
       <div style={styles.content}>
@@ -244,12 +245,12 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
         >
           Close
         </button>
-        {viewMode === "view" && (
-          <button onClick={() => setViewMode("edit")} style={styles.button}>
+        {viewMode === VIEW_MODE_VIEW && (
+          <button onClick={() => setViewMode(VIEW_MODE_EDIT)} style={styles.button}>
             Edit
           </button>
         )}
-        {viewMode === "edit" && (
+        {viewMode === VIEW_MODE_EDIT && (
           <button
             style={styles.button}
             onClick={handleSaveChanges}
