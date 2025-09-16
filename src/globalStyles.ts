@@ -7,7 +7,7 @@ const whiteTheme = '#fff';
 const headerColor = '#508432';
 const success = '#5cb85c';
 const errorColor = '#D9534F';
-const pageBackgroundMain =  '#e0c6a8'
+const pageBackgroundMain = '#e0c6a8'
 
 export const globalStyles = {
     colors: {
@@ -22,19 +22,19 @@ export const globalStyles = {
         success: success,
         singleUserViewBackground: '#D9D9D9',
         singleUserViewHeader: '#96C98B',
-        
+
     },
     pageContainer: {
         fontFamily: 'Arial, sans-serif',
-        backgroundColor: pageBackgroundMain, 
+        backgroundColor: pageBackgroundMain,
         height: '100vh',
         display: 'flex',
         flexDirection: 'column' as const,
-        color: darkText, 
+        color: darkText,
         alignItems: 'center' as const,
         overflow: 'auto',
         width: '100%',
-      },
+    },
     header: {
         backgroundColor: headerColor,
         color: whiteTheme,
@@ -104,7 +104,7 @@ export const globalStyles = {
         display: 'flex',
         flexDirection: 'column' as const,
         gap: '10px',
-      },
+    },
     authSuccess: {
         color: success,
         fontSize: '14px',
@@ -143,15 +143,15 @@ export const globalStyles = {
         zIndex: 1,
         maxHeight: "200px", // to make the dropdown scrollable
         overflowY: "scroll" as const,  // Enable vertical scrolling
-      },
-      dropdownLI: {
+    },
+    dropdownLI: {
         padding: "8px",
         cursor: "pointer",
-      },
-      dropDownLISelected: {
+    },
+    dropDownLISelected: {
         backgroundColor: "#add8e6",
-      },
-      overlay: {
+    },
+    overlay: {
         position: 'fixed' as const,
         top: 0,
         left: 0,
@@ -162,6 +162,21 @@ export const globalStyles = {
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 1000,
-      },
-
-}
+    },
+    modal: {
+        backgroundColor: whiteTheme,
+        borderRadius: '8px',
+        padding: '20px',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+        maxWidth: '500px',
+        width: '100%',
+        maxHeight: '80vh',
+        overflowY: 'auto' as const,
+    },
+    modalButtons: {
+        display: 'flex',
+        justifyContent: 'flex-end',
+        gap: '10px',
+        marginTop: '20px',
+    },
+};
