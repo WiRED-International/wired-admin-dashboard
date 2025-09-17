@@ -6,6 +6,7 @@ import SingleUserView from './SingleUserView'
 import { useState } from 'react'
 import { deleteUserById } from '../../api/usersAPI'
 import Confirm_custom from './Confirm_custom'
+import Alert_Custom from '../Alert_Custom'
 
 
 interface UserTableActionsProps {
@@ -18,6 +19,8 @@ const UserTableActions = ({user, fetchAllUsers}: UserTableActionsProps) => {
   const [isSingleUserViewOpen, setIsSingleUserViewOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'view' | 'edit'>('view');
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  
 
   const handleViewClick = () => {
     setViewMode('view');
@@ -34,13 +37,16 @@ const UserTableActions = ({user, fetchAllUsers}: UserTableActionsProps) => {
   };
 
   const confirmDelete = async () => {
+    let message = "";
     try {
-      await deleteUserById(user.id);
+      const response = await deleteUserById(user.id);
+      message = response.message;
       fetchAllUsers();
     } catch (error) {
       console.error("Error deleting user:", error);
     } finally {
       setIsDeleteConfirmOpen(false);
+      setAlertMessage(message);
     }
   }
 
@@ -52,6 +58,10 @@ const UserTableActions = ({user, fetchAllUsers}: UserTableActionsProps) => {
         onCancel={() => setIsDeleteConfirmOpen(false)}
         isOpen={isDeleteConfirmOpen}
       />
+      {alertMessage && <Alert_Custom 
+        message={alertMessage} 
+        onClose={() => setAlertMessage(null)}
+        />}
       {isSingleUserViewOpen && (
         <SingleUserView
           user={user}
