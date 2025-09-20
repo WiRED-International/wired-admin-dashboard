@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+
 import { UserDataInterface } from "../../interfaces/UserDataInterface";
 import cssStyles from "./UsersTable.module.css";
 import UserTableActions from "./UserTableActions";
@@ -12,6 +12,9 @@ type UsersTableProps = {
     setSortBy: (sortBy: string | null) => void;
     setSortOrder: (sortOrder: 'ASC' | 'DESC') => void;
     setCurrentPage: (currentPage: number) => void;
+    fetchAllUsers: () => void;
+    isDeleteConfirmOpen: boolean;
+    setIsDeleteConfirmOpen: (isOpen: boolean) => void;
 };
 
 const columns = [
@@ -32,7 +35,7 @@ const columns = [
 const nonSortableColumns = ['actions', 'specializations', 'CME_Credits', 'remainingCredits'];
 
 
-const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSortBy, setSortOrder, setCurrentPage }: UsersTableProps) => {
+const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSortBy, setSortOrder, setCurrentPage, fetchAllUsers }: UsersTableProps) => {
 
 
     const sortButtonOnClick = (columnKey: string) => {
@@ -52,7 +55,10 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSo
       const value = (user as any)[columnKey];
 
       if (columnKey === "actions") {
-        return <UserTableActions user={user} />;
+        return <UserTableActions 
+            user={user} 
+            fetchAllUsers={fetchAllUsers} 
+        />;
       }
       //if specializations were to be added back in
       

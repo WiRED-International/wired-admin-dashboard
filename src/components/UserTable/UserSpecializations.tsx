@@ -106,7 +106,7 @@ const UserSpecializations = ({
                       marginBottom: "0.25rem",
                     }}
                   >
-                    {spec.name}
+                    {`-${spec.name}`}
                   </p>
                 )
               )

@@ -140,3 +140,24 @@ export const updateUserById = async (userId: number, updatedData: Partial<UserDa
         throw error;
     }
 }
+
+export const deleteUserById = async (userId: number): Promise<{message: string}> => {
+    try {
+        const response = await fetch(`${apiPrefix}users/${userId}`, {
+            method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${Auth.getToken()}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to delete user');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        throw error;
+    }
+}

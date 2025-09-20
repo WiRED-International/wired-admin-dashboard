@@ -18,30 +18,36 @@ const UsersPage = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<string | null>('last_name');
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState<boolean>(false);
+
+  const fetchAllUsers = async () => {
+    setLoading(true);
+    try {
+      const fetchedUsers: UserSearchBroadResponse = await searchUsersBroad(
+        searchQuery,
+        Number(currentPage),
+        Number(rowsPerPage),
+        sortBy,
+        sortOrder
+      );
+      setUsers(fetchedUsers.users || []);
+      setTotalPages(fetchedUsers.pageCount || 0);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setLoading(true);
-    const fetchAllUsers = async () => {
-
-      try {
-        const fetchedUsers: UserSearchBroadResponse = await searchUsersBroad(searchQuery, Number(currentPage), Number(rowsPerPage), sortBy, sortOrder);
-        setUsers(fetchedUsers.users || []);
-        setTotalPages(fetchedUsers.pageCount || 0);
-        
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchAllUsers();
-  }, [ sortBy, sortOrder, currentPage]);
+  }, [sortBy, sortOrder, currentPage]);
 
   
   return (
   
     <div style={globalStyles.pageContainer}>
+
       {loading && <LoadingSpinner />}
       <DashboardHeader />
       <div style={styles.usersContainer}>
@@ -66,6 +72,9 @@ const UsersPage = () => {
           setSortBy={setSortBy}
           setSortOrder={setSortOrder}
           setCurrentPage={setCurrentPage}
+          fetchAllUsers={fetchAllUsers}
+          isDeleteConfirmOpen={isDeleteConfirmOpen}
+          setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
         />
       </div>
     </div>
