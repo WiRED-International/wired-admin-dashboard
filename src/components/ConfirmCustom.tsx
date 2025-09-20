@@ -1,4 +1,4 @@
-import { globalStyles } from "../../globalStyles";
+import { globalStyles } from "../globalStyles";
 
 interface ConfirmCustomProps {
     message: string;

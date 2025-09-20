@@ -1,7 +1,6 @@
 import DashboardHeader from "../components/DashboardHeader";
 import UserSearchControls from "../components/UserSearchControls";
 import UsersTable from "../components/UserTable/UsersTable";
-import Confirm_custom from "../components/UserTable/Confirm_custom";
 import { globalStyles } from "../globalStyles";
 import { UserDataInterface, UserSearchBroadResponse } from "../interfaces/UserDataInterface";
 import { searchUsersBroad } from "../api/usersAPI";

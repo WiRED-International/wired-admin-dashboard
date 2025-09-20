@@ -5,8 +5,8 @@ import { UserDataInterface } from '../../interfaces/UserDataInterface'
 import SingleUserView from './SingleUserView'
 import { useState } from 'react'
 import { deleteUserById } from '../../api/usersAPI'
-import Confirm_custom from './Confirm_custom'
-import Alert_Custom from '../Alert_Custom'
+import Confirm_custom from '../ConfirmCustom'
+import Alert_Custom from '../AlertCustom'
 
 
 interface UserTableActionsProps {
