@@ -14,7 +14,7 @@ export const login = async (userInfo: UserLoginInterface) => {
     });
     //check if response is json, if not, throw a user-readable error
     const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json") || !response.ok) {
+    if (!contentType || !contentType.includes("application/json")) {
         throw new Error("server error");
     }
     const data = await response.json();
