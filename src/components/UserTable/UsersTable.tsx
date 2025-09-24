@@ -1,4 +1,3 @@
-
 import { UserDataInterface } from "../../interfaces/UserDataInterface";
 import cssStyles from "./UsersTable.module.css";
 import UserTableActions from "./UserTableActions";
@@ -52,14 +51,26 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSo
     
     };
     const renderCellValue = (columnKey: string, user: UserDataInterface) => {
-      const value = (user as any)[columnKey];
+        const value = (user as any)[columnKey];
 
-      if (columnKey === "actions") {
-        return <UserTableActions 
-            user={user} 
-            fetchAllUsers={fetchAllUsers} 
-        />;
-      }
+        // Special handling for CME_Credits
+        if (columnKey === "CME_Credits") {
+            if (user.quizScores && user.quizScores.length > 0) {
+            const credits = user.quizScores.reduce((sum, q) => {
+                const numericScore = parseFloat(q.score);
+                return sum + (numericScore >= 80 ? 5 : 0);
+            }, 0);
+            return credits;
+            }
+            return 0;
+        }
+
+        if (columnKey === "actions") {
+            return <UserTableActions 
+                user={user} 
+                fetchAllUsers={fetchAllUsers} 
+            />;
+        }
       //if specializations were to be added back in
       
     //   if (columnKey === "specializations") {
@@ -69,15 +80,15 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSo
     //     return "None";
     //   }
 
-      if (Array.isArray(value)) {
-        return value.join(", ");
-      }
-      //this is to handle objects like role, country, city, organization
-      if (value && typeof value === "object") {
-        return value.name || JSON.stringify(value);
-      }
+        if (Array.isArray(value)) {
+            return value.join(", ");
+        }
+        //this is to handle objects like role, country, city, organization
+        if (value && typeof value === "object") {
+            return value.name || JSON.stringify(value);
+        }
 
-      return value ?? "";
+        return value ?? "";
     };
       
       
