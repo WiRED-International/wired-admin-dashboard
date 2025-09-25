@@ -52,15 +52,26 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSo
     };
     const renderCellValue = (columnKey: string, user: UserDataInterface) => {
         const value = (user as any)[columnKey];
+        const currentYear: number = new Date().getFullYear();
 
         // Special handling for CME_Credits
         if (columnKey === "CME_Credits") {
             if (user.quizScores && user.quizScores.length > 0) {
-            const credits = user.quizScores.reduce((sum, q) => {
-                const numericScore = parseFloat(q.score);
-                return sum + (numericScore >= 80 ? 5 : 0);
-            }, 0);
-            return credits;
+                let credits = 0; 
+
+                for (let i = 0; i < user.quizScores.length; i++) {
+                    const q = user.quizScores[i];
+                    const numericScore = parseFloat(q.score);
+                    const quizDate = new Date(q.date_taken);
+                    const quizScoreYear = quizDate.getFullYear();
+
+                    // If score >= 80, add 5 credits
+                    if (numericScore >= 80 && quizScoreYear === currentYear) {
+                        credits += 5;
+                    }
+                }
+
+                return credits;
             }
             return 0;
         }
