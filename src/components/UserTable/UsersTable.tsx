@@ -4,7 +4,7 @@ import UserTableActions from "./UserTableActions";
 import { globalStyles } from "../../globalStyles";
 import SortButtons from "../SortButton/SortButtons";
 import { calculateCmeCredits } from "../../utils/cmeCredits";
-import React from "react";
+import React, { useMemo } from "react";
 
 type UsersTableProps = {
     users: UserDataInterface[];
@@ -55,10 +55,12 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSo
     
     };
 
-    const usersWithCredits: UserWithCredits[] = users.map((user) => ({
+    const usersWithCredits: UserWithCredits[] = useMemo(() => {
+    return users.map((user) => ({
         ...user,
         cmeCredits: calculateCmeCredits(user.quizScores || []),
     }));
+    }, [users]);
 
     const renderCellValue = (columnKey: string, user: UserDataInterface & { cmeCredits: number }) => {
         const value = (user as any)[columnKey];
