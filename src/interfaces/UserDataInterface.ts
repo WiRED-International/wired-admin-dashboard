@@ -12,7 +12,7 @@
 // ];
 
 export interface QuizScoreInterface {
-  score: string; // comes back as string from API
+  score: number;
   date_taken: string;
   module: {
     name: string;

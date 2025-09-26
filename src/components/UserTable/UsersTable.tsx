@@ -3,6 +3,8 @@ import cssStyles from "./UsersTable.module.css";
 import UserTableActions from "./UserTableActions";
 import { globalStyles } from "../../globalStyles";
 import SortButtons from "../SortButton/SortButtons";
+import { calculateCmeCredits } from "../../utils/cmeCredits";
+import React from "react";
 
 type UsersTableProps = {
     users: UserDataInterface[];
@@ -33,6 +35,8 @@ const columns = [
 
 const nonSortableColumns = ['actions', 'specializations', 'CME_Credits', 'remainingCredits'];
 
+type UserWithCredits = UserDataInterface & { cmeCredits: number };
+
 
 const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSortBy, setSortOrder, setCurrentPage, fetchAllUsers }: UsersTableProps) => {
 
@@ -50,37 +54,24 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSo
         }
     
     };
-    const renderCellValue = (columnKey: string, user: UserDataInterface) => {
+
+    const usersWithCredits: UserWithCredits[] = users.map((user) => ({
+        ...user,
+        cmeCredits: calculateCmeCredits(user.quizScores || []),
+    }));
+
+    const renderCellValue = (columnKey: string, user: UserDataInterface & { cmeCredits: number }) => {
         const value = (user as any)[columnKey];
-        const currentYear: number = new Date().getFullYear();
-
-        // Special handling for CME_Credits
-        if (columnKey === "CME_Credits") {
-            if (user.quizScores && user.quizScores.length > 0) {
-                let credits = 0; 
-
-                for (let i = 0; i < user.quizScores.length; i++) {
-                    const q = user.quizScores[i];
-                    const numericScore = parseFloat(q.score);
-                    const quizDate = new Date(q.date_taken);
-                    const quizScoreYear = quizDate.getFullYear();
-
-                    // If score >= 80, add 5 credits
-                    if (numericScore >= 80 && quizScoreYear === currentYear) {
-                        credits += 5;
-                    }
-                }
-
-                return credits;
-            }
-            return 0;
-        }
 
         if (columnKey === "actions") {
             return <UserTableActions 
                 user={user} 
                 fetchAllUsers={fetchAllUsers} 
             />;
+        }
+
+        if (columnKey === "CME_Credits") {
+            return user.cmeCredits; // ✅ now safe
         }
       //if specializations were to be added back in
       
@@ -131,7 +122,7 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSo
                 </tr>
             </thead>
             <tbody>
-                {users.map((user, index) => {
+                {usersWithCredits.map((user, index) => {
                     const isEven = index % 2 === 0;
                     return (
 
