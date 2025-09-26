@@ -15,10 +15,12 @@ const LoginPage = () => {
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserLogin({ ...userLogin, email: e.target.value });
+    setErrorMessage('');
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserLogin({ ...userLogin, password: e.target.value });
+    setErrorMessage('');
   };
 
   const handleLogin = async (e: React.FormEvent) => {
