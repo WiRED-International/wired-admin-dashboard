@@ -1,65 +1,70 @@
-import { defineConfig, loadEnv } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  base: '/apiv2/',
+export default defineConfig(({ mode }) => ({
+  base: mode === "development" ? "/" : "/apiv2/",
   plugins: [react()],
   server: {
     port: 5173,
     open: true,
     proxy: {
-      '/auth': {
-        target: 'http://localhost:3000',
+      "/auth": {
+        target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
-      '/api': {
-        target: 'http://localhost:3000',
+      "/api": {
+        target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
-      //modules routes and packages routes are not prefixed with /api
-      '/modules': {
-        target: 'http://localhost:3000',
+      // modules routes and packages routes are not prefixed with /api
+      "/modules": {
+        target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
-      '/packages': {
-        target: 'http://localhost:3000',
+      "/packages": {
+        target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
-      '/users': {
-        target: 'http://localhost:3000',
+      "/users": {
+        target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
-      '/roles': {
-        target: 'http://localhost:3000',
+      "/roles": {
+        target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
-      '/organizations': {
-        target: 'http://localhost:3000',
+      "/organizations": {
+        target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
-      '/countries': {
-        target: 'http://localhost:3000',
+      "/countries": {
+        target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
-      '/cities': {
-        target: 'http://localhost:3000',
+      "/cities": {
+        target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
-      '/specializations': {
-        target: 'http://localhost:3000',
+      "/specializations": {
+        target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
-    }
+      "/quiz-scores": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
-})
+}));

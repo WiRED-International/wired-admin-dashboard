@@ -11,6 +11,15 @@
 //   { key: "organization", label: "Organization" },
 // ];
 
+export interface QuizScoreInterface {
+  score: number;
+  date_taken: string;
+  module: {
+    name: string;
+    module_id: string;
+  };
+}
+
 export interface UserDataInterface {
   id: number;
   first_name: string;
@@ -18,6 +27,7 @@ export interface UserDataInterface {
   email: string;
   CME_Credits?: number;
   remainingCredits?: number;
+  quizScores?: QuizScoreInterface[];
   specializations: {name: string, id: number}[];
   role: {name: "SuperAdmin" | "Admin" | "User", id: number};
   country: { name: string, id: number };
