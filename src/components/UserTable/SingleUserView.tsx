@@ -5,9 +5,11 @@ import { UserDataInterface } from "../../interfaces/UserDataInterface"
 import { SpecializationsInterface } from "../../interfaces/SpecializationInterface";
 import { OrganizationInterface } from "../../interfaces/OrganizationsInterface";
 import { CityInterface } from "../../interfaces/CityInterface";
+import { QuizScoreInterface } from "../../interfaces/UserDataInterface";
 //api
 import { fetchUserById } from "../../api/usersAPI";
 import { updateUserById } from "../../api/usersAPI";
+import { fetchAllQuizScores } from "../../api/quizScoresAPI";
 //context
 import { useUserOptions } from "../../context/UserOptionsContext";
 //components
@@ -18,6 +20,8 @@ import UserNameAndEmail from "./UserNameAndEmail";
 import UserCountry from "./UserCountry";
 import UserCity from "./UserCity";
 import UserOrganization from "./UserOrganization";
+
+import QuizScores from "./QuizScores";
 
 
   const VIEW_MODE_EDIT = "edit";
@@ -39,6 +43,8 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
   const [selectedCountryId, setSelectedCountryId] = useState<number | null>(null);
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<number | null>(null);
   const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
+  const [quizScores, setQuizScores] = useState<QuizScoreInterface[]>([]);
+  const [quizYears, setQuizYears] = useState<number[]>([]);
 
   //get user options from context
   const { roles, countries, cities, organizations, specializations } = useUserOptions();
@@ -117,6 +123,10 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
         setLoading(true);
 
         const fetchedUser = await fetchUserById(user.id);
+        //fetch quiz scores for this user
+        const fetchedQuizScores = await fetchAllQuizScores(user.id);
+        setQuizScores(fetchedQuizScores || []);
+        //set fetched user data to state
 
         setFormState({
           first_name: fetchedUser.first_name,
@@ -169,10 +179,23 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
     setFilteredOrganizations(newFilteredOrganizations);
   }, [selectedCountryId, selectedCityId, cities, organizations]);
 
+  //extract unique years from quiz scores
+  useEffect(() => {
+    const yearsSet = new Set<number>();
+    quizScores.forEach(score => {
+      const year = new Date(score.date_taken).getFullYear();
+      yearsSet.add(year);
+    });
+    const yearsArray = Array.from(yearsSet).sort((a, b) => b - a); // Sort years descending
+    setQuizYears(yearsArray);
+  }, [quizScores]);
+
+
 
   if (loading) {
     return <LoadingSpinner />;
   }
+
 
   return (
     <div style={styles.container}>
@@ -233,7 +256,7 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
             setSelectedOrganizationId={setSelectedOrganizationId}
           />
         </form>
-        <div style={styles.quizScores}></div>
+        <QuizScores quizScores={quizScores} viewMode={viewMode} quizYears={quizYears} />
       </div>
       <div>
         <button
@@ -272,18 +295,20 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexDirection: 'column' as const,
     left: '50%',
     top: '50%',
-    transform: 'translate(-50%, -50%)'
+    transform: 'translate(-50%, -50%)',
+    overflow: 'auto' as const
   },
   header: {
     backgroundColor: globalStyles.colors.singleUserViewHeader,
     paddingInline: '30px',
     textAlign: 'left' as const,
-    width: '100%',
+    minWidth: '100%',
     height: '89px',
     top: '0',
     position: 'relative' as const,
     display: 'flex',
     alignItems: 'center' as const,
+    boxSizing: 'border-box' as const,
   },
   headerText: {
     fontSize: '40px',
@@ -293,7 +318,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '20px',
     display: 'flex',
     flexDirection: 'row' as const,
-    overflowY: 'auto',
+
     width: '100%',
     backgroundColor: globalStyles.colors.singleUserViewBackground,
   },
@@ -311,15 +336,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     margin: '10px',
     alignSelf: 'center' as const,
-  },
-  quizScores: {
-    padding: '20px',
-    // backgroundColor: 'green',
-    border: '1px solid #ccc',
-    borderRadius: '5px',
-    marginTop: '20px',
-    flex: 1,
-
   },
   formRow: {
     display: 'flex',

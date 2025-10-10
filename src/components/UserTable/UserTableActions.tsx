@@ -3,7 +3,7 @@ import editIcon from '/icons/edit_icon.png'
 import greenEyeIcon from '/icons/green_eye_icon.png'
 import { UserDataInterface } from '../../interfaces/UserDataInterface'
 import SingleUserView from './SingleUserView'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { deleteUserById } from '../../api/usersAPI'
 import Confirm_custom from '../ConfirmCustom'
 import Alert_Custom from '../AlertCustom'
@@ -49,6 +49,11 @@ const UserTableActions = ({user, fetchAllUsers}: UserTableActionsProps) => {
       setAlertMessage(message);
     }
   }
+
+  //TODO: delete this
+  useEffect(() => {
+    console.log(`UserTableActions mounted for user:`, user);
+  }, [user]);
 
   return (
     <div style={styles.container}>

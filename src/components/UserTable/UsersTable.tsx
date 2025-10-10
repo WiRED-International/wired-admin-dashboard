@@ -4,7 +4,7 @@ import UserTableActions from "./UserTableActions";
 import { globalStyles } from "../../globalStyles";
 import SortButtons from "../SortButton/SortButtons";
 import { calculateCmeCredits } from "../../utils/cmeCredits";
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 
 type UsersTableProps = {
     users: UserDataInterface[];
@@ -75,6 +75,10 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSo
         if (columnKey === "CME_Credits") {
             return user.cmeCredits; // ✅ now safe
         }
+        if (columnKey === "remainingCredits") {
+            const remaining = 100 - (user.cmeCredits || 0);
+            return remaining >= 0 ? remaining : 0; // Ensure it doesn't go negative
+        }
       //if specializations were to be added back in
       
     //   if (columnKey === "specializations") {
@@ -96,7 +100,10 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSo
     };
       
       
-
+    //TODO: delete this
+    useEffect(() => {
+        console.log(`usersWithCredits changed:`, usersWithCredits);
+    }, [usersWithCredits]);
 
     return (
         <table style={styles.table}>
