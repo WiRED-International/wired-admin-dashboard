@@ -1,11 +1,17 @@
 import styles from './QuizScores.module.css';
 import { QuizScoreInterface } from '../../interfaces/UserDataInterface';
-import { useState, useEffect} from 'react';
+import { useState, useEffect } from 'react';
+import Alert_Custom from '../AlertCustom';
 
 interface QuizScoresProps {
     quizScores: QuizScoreInterface[];
     viewMode?: 'view' | 'edit';
     quizYears?: number[];
+    setQuizScores: React.Dispatch<React.SetStateAction<QuizScoreInterface[]>>;
+    selectedYear: number | null;
+    setSelectedYear: React.Dispatch<React.SetStateAction<number | null>>;
+    filteredQuizScores: QuizScoreInterface[];
+    setFilteredQuizScores: React.Dispatch<React.SetStateAction<QuizScoreInterface[]>>;
 }
 
 //columns for quiz scores table
@@ -17,10 +23,12 @@ const columns = [
 ];
 
 
-const QuizScores = ({ quizScores, viewMode, quizYears }: QuizScoresProps) => {
+const QuizScores = ({ quizScores, viewMode, quizYears, setQuizScores, selectedYear, setSelectedYear, filteredQuizScores, setFilteredQuizScores }: QuizScoresProps) => {
 
-    const [selectedYear, setSelectedYear] = useState<number | null>(quizYears && quizYears.length > 0 ? quizYears[0] : null);
-    const [filteredQuizScores, setFilteredQuizScores] = useState<QuizScoreInterface[]>(quizScores);
+
+  
+    const [alertMessage, setAlertMessage] = useState<string | null>(null);
+
 
     const handleYearChange = (year: number | null) => {
         // Logic to filter quizScores based on selected year
@@ -32,6 +40,29 @@ const QuizScores = ({ quizScores, viewMode, quizYears }: QuizScoresProps) => {
         }
     }
 
+    const handleAlertClose = () => {
+        setAlertMessage(null);
+    }
+
+    const handleScoreChange = (id: number, newScore: number) => {
+        if (isNaN(newScore) || newScore < 0 || newScore > 100) {
+            setAlertMessage("Please enter a valid score between 0 and 100.");
+            return;
+        }
+        setQuizScores(prevScores =>
+            prevScores.map((score) =>
+                score.id === id ? { ...score, score: newScore } : score
+            )
+        );
+        // const updatedScores = [...filteredQuizScores];
+        // updatedScores[index].score = newScore;
+        // setFilteredQuizScores(prevScores =>
+        //     prevScores.map((score, i) =>
+        //         i === index ? { ...score, score: newScore } : score
+        //     )
+        // );
+
+    }
 
     useEffect(() => {
         if (quizYears && quizYears.length > 0 && selectedYear === null) {
@@ -40,6 +71,8 @@ const QuizScores = ({ quizScores, viewMode, quizYears }: QuizScoresProps) => {
         }
     }, [quizYears, selectedYear]);
 
+
+
     if (quizYears?.length === 0) {
         return <p className={styles.noData}>This user has not completed any quizzes.</p>;
     }
@@ -47,11 +80,12 @@ const QuizScores = ({ quizScores, viewMode, quizYears }: QuizScoresProps) => {
 
     return (
         <div className={styles.container}>
+            {alertMessage && <Alert_Custom message={alertMessage} onClose={handleAlertClose} />}
             <div className={styles.header}>
                 <h2 className={styles.heading}>Quiz Scores</h2>
                 <div className={styles.yearSelectContainer}>
                     <h2 className={styles.heading}>Select Year</h2>
-                    <select 
+                    <select
                         className={styles.yearSelect}
                         value={selectedYear ?? ''}
                         onChange={(e) => handleYearChange(e.target.value ? parseInt(e.target.value) : null)}
@@ -68,7 +102,7 @@ const QuizScores = ({ quizScores, viewMode, quizYears }: QuizScoresProps) => {
                 {filteredQuizScores && filteredQuizScores.length > 0 ? (
                     <table className={styles.table}>
                         <thead className={styles.tableHead}>
-                            <tr className={styles.headerRow}>
+                            <tr>
                                 {columns.map((column) => (
                                     <th key={column.key} className={styles.headerCell}>
                                         {column.label}
@@ -76,10 +110,10 @@ const QuizScores = ({ quizScores, viewMode, quizYears }: QuizScoresProps) => {
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className={styles.tableBody}>
+                        <tbody>
                             {filteredQuizScores.map((score, index) => (
                                 <tr
-                                    key={index}
+                                    key={`index-${index}-${selectedYear}`}//forces the input to reset when year changes
                                     className={`${styles.row} ${index % 2 === 0 ? styles.evenRow : styles.oddRow
                                         }`}
                                 >
@@ -88,7 +122,39 @@ const QuizScores = ({ quizScores, viewMode, quizYears }: QuizScoresProps) => {
                                     <td className={styles.cell}>
                                         {new Date(score.date_taken).toLocaleDateString()}
                                     </td>
-                                    <td className={styles.cell}>{score.score}</td>
+                                    {viewMode === 'edit' ? (
+                                        <td className={styles.cell}>
+                                            <form
+                                                onSubmit={(e) => {
+                                                    e.preventDefault();
+                                                    const formData = new FormData(e.currentTarget);
+                                                    const newScore = Number(formData.get('score'));
+    
+                                                    handleScoreChange(index, newScore);
+                                            
+                                                }}
+                                            >
+                                                <input
+                                                    name="score"
+                                                    className={styles.scoreInput}
+                                                    defaultValue={score.score}
+                                                    onBlur={(e) => {
+                                                        const newScore = Number(e.target.value);
+                                                        handleScoreChange(score.id, newScore);
+    
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            e.currentTarget.blur(); // <-- Manually blur
+                                                        }
+                                                    }}
+                                                />
+                                            </form>
+                                        </td>
+                                    ) : (
+                                        <td className={styles.cell}>{score.score}</td>
+                                    )}
                                 </tr>
                             ))}
                         </tbody>

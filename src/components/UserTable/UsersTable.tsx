@@ -99,11 +99,7 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSo
         return value ?? "";
     };
       
-      
-    //TODO: delete this
-    useEffect(() => {
-        console.log(`usersWithCredits changed:`, usersWithCredits);
-    }, [usersWithCredits]);
+    
 
     return (
         <table style={styles.table}>

@@ -14,3 +14,18 @@ export const fetchAllQuizScores = async (userId?: number): Promise<any[]> => {
     }
     return response.json();
 }
+
+export const updateQuizScore = async (quizScoreId: number, updatedData: any): Promise<any> => {
+    const response = await fetch(`${apiPrefix}quiz-scores/${quizScoreId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Auth.getToken()}` 
+        },
+        body: JSON.stringify(updatedData)
+    });
+    if (!response.ok) {
+        throw new Error("Failed to update quiz score");
+    }
+    return response.json();
+}

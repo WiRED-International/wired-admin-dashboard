@@ -35,7 +35,6 @@ const UsersPage = () => {
     } catch (error) {
       console.error("Error fetching users:", error);
     } finally {
-      console.log("Users fetched:", users);
       setLoading(false);
     }
   };

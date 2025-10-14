@@ -15,7 +15,7 @@ const Confirm_custom = ({ message, onConfirm, onCancel, isOpen }: ConfirmCustomP
         {
          isOpen && <div style={globalStyles.overlay}>
             <div style={globalStyles.modal}>
-              <p>{message}</p>
+              <p style={globalStyles.modalMessage}>{message}</p>
               <div style={globalStyles.modalButtons}>
                 <button onClick={onConfirm} style={{...globalStyles.submitButton, backgroundColor: globalStyles.colors.success}}>Confirm</button>
                 <button onClick={onCancel} style={{...globalStyles.submitButton, backgroundColor: globalStyles.colors.error}}>Cancel</button>

@@ -12,6 +12,7 @@
 // ];
 
 export interface QuizScoreInterface {
+  id: number;
   score: number;
   date_taken: string;
   module: {

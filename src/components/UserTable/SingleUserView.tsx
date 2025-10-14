@@ -10,6 +10,7 @@ import { QuizScoreInterface } from "../../interfaces/UserDataInterface";
 import { fetchUserById } from "../../api/usersAPI";
 import { updateUserById } from "../../api/usersAPI";
 import { fetchAllQuizScores } from "../../api/quizScoresAPI";
+import { updateQuizScore } from "../../api/quizScoresAPI";
 //context
 import { useUserOptions } from "../../context/UserOptionsContext";
 //components
@@ -20,6 +21,7 @@ import UserNameAndEmail from "./UserNameAndEmail";
 import UserCountry from "./UserCountry";
 import UserCity from "./UserCity";
 import UserOrganization from "./UserOrganization";
+import Confirm_custom from "../ConfirmCustom";
 
 import QuizScores from "./QuizScores";
 
@@ -45,6 +47,11 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
   const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
   const [quizScores, setQuizScores] = useState<QuizScoreInterface[]>([]);
   const [quizYears, setQuizYears] = useState<number[]>([]);
+  const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
+  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+  const [selectedYear, setSelectedYear] = useState<number | null>(quizYears && quizYears.length > 0 ? quizYears[0] : null);
+  const [filteredQuizScores, setFilteredQuizScores] = useState<QuizScoreInterface[]>(quizScores);
+  
 
   //get user options from context
   const { roles, countries, cities, organizations, specializations } = useUserOptions();
@@ -89,7 +96,9 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
 
   }
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
+    setLoading(true);
+    setSaveConfirmOpen(false);
     if (!singleUserData) return;
 
     const specializationIds = formState.specializations.map(spec => spec.id);
@@ -105,15 +114,31 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
       specialization_ids: specializationIds,
     };
 
-    updateUserById(singleUserData.id, updatedData)
-      .then((res) => {
-        setSingleUserData(res.user);
-        setViewMode(VIEW_MODE_VIEW);
-      })
-      .catch((err) => {
-        console.error("Error updating user:", err);
-        alert("Failed to update user. Please try again.");
-      });
+    try {
+      const res = await updateUserById(singleUserData.id, updatedData);
+      for(const score of quizScores) {
+        await updateQuizScore(score.id, { score: score.score });
+      }
+      setSingleUserData(res.user);
+      setViewMode(VIEW_MODE_VIEW);
+    } catch (err) {
+      console.error("Error updating user:", err);
+      alert("Failed to update user. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmClose = () => {
+    setCloseConfirmOpen(false);
+    setIsSingleUserViewOpen(false);
+  };
+  const handleClose = () => {
+    if (viewMode === VIEW_MODE_EDIT) {
+      setCloseConfirmOpen(true);
+    } else {
+      setIsSingleUserViewOpen(false);
+    }
   }
 
   useEffect(() => {
@@ -192,6 +217,7 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
 
 
 
+
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -199,6 +225,18 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
 
   return (
     <div style={styles.container}>
+      <Confirm_custom
+        message="Are you sure you want to close without saving? All unsaved changes will be lost."
+        onConfirm={handleConfirmClose}
+        onCancel={() => setCloseConfirmOpen(false)}
+        isOpen={closeConfirmOpen}
+      />
+      <Confirm_custom
+        message="Are you sure you want save your changes?"
+        onConfirm={handleSaveChanges}
+        onCancel={() => setSaveConfirmOpen(false)}
+        isOpen={saveConfirmOpen}
+      />
       <div style={styles.header}>
         <h2 style={styles.headerText}>
           {viewMode === VIEW_MODE_VIEW ? "User Profile" : "Edit User"}
@@ -256,7 +294,16 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
             setSelectedOrganizationId={setSelectedOrganizationId}
           />
         </form>
-        <QuizScores quizScores={quizScores} viewMode={viewMode} quizYears={quizYears} />
+        <QuizScores 
+          quizScores={quizScores} 
+          viewMode={viewMode} 
+          quizYears={quizYears} 
+          setQuizScores={setQuizScores}
+          selectedYear={selectedYear}
+          setSelectedYear={setSelectedYear}
+          filteredQuizScores={filteredQuizScores}
+          setFilteredQuizScores={setFilteredQuizScores}
+        />
       </div>
       <div>
         <button
@@ -264,7 +311,7 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
             ...styles.button,
             backgroundColor: globalStyles.colors.error,
           }}
-          onClick={() => setIsSingleUserViewOpen(false)}
+          onClick={handleClose}
         >
           Close
         </button>
@@ -276,7 +323,7 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
         {viewMode === VIEW_MODE_EDIT && (
           <button
             style={styles.button}
-            onClick={handleSaveChanges}
+            onClick={() => setSaveConfirmOpen(true)}
           >Save Changes</button>
         )}
       </div>

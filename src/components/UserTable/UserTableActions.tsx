@@ -49,12 +49,6 @@ const UserTableActions = ({user, fetchAllUsers}: UserTableActionsProps) => {
       setAlertMessage(message);
     }
   }
-
-  //TODO: delete this
-  useEffect(() => {
-    console.log(`UserTableActions mounted for user:`, user);
-  }, [user]);
-
   return (
     <div style={styles.container}>
       <Confirm_custom
