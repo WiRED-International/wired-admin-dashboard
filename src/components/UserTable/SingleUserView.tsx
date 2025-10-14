@@ -22,7 +22,6 @@ import UserCountry from "./UserCountry";
 import UserCity from "./UserCity";
 import UserOrganization from "./UserOrganization";
 import Confirm_custom from "../ConfirmCustom";
-
 import QuizScores from "./QuizScores";
 
 

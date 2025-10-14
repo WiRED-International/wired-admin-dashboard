@@ -4,7 +4,7 @@ import UserTableActions from "./UserTableActions";
 import { globalStyles } from "../../globalStyles";
 import SortButtons from "../SortButton/SortButtons";
 import { calculateCmeCredits } from "../../utils/cmeCredits";
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo } from "react";
 
 type UsersTableProps = {
     users: UserDataInterface[];
