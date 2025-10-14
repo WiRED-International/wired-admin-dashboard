@@ -1,4 +1,5 @@
 import { globalStyles } from "../globalStyles";
+import ReactDOM from "react-dom";
 
 interface ConfirmCustomProps {
     message: string;
@@ -10,7 +11,7 @@ interface ConfirmCustomProps {
 const Confirm_custom = ({ message, onConfirm, onCancel, isOpen }: ConfirmCustomProps) => {
     if (!isOpen) return null;
 
-    return (
+    return ReactDOM.createPortal(
       <>
         {
          isOpen && <div style={globalStyles.overlay}>
@@ -23,7 +24,8 @@ const Confirm_custom = ({ message, onConfirm, onCancel, isOpen }: ConfirmCustomP
             </div>
           </div>
         }
-      </>
+      </>,
+      document.body
     );
 };
 

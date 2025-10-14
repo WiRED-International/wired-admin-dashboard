@@ -46,7 +46,7 @@ const QuizScores = ({ quizScores, viewMode, quizYears, setQuizScores, selectedYe
 
     const handleScoreChange = (id: number, newScore: number) => {
         if (isNaN(newScore) || newScore < 0 || newScore > 100) {
-            setAlertMessage("Please enter a valid score between 0 and 100.");
+            setAlertMessage("Please enter a valid score between 0 and 100 (2 decimal places).");
             return;
         }
         setQuizScores(prevScores =>
