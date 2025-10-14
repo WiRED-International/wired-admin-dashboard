@@ -2,6 +2,7 @@ import styles from './QuizScores.module.css';
 import { QuizScoreInterface } from '../../interfaces/UserDataInterface';
 import { useState, useEffect } from 'react';
 import Alert_Custom from '../AlertCustom';
+import SortButtons from '../SortButton/SortButtons';
 
 interface QuizScoresProps {
     quizScores: QuizScoreInterface[];
@@ -28,6 +29,8 @@ const QuizScores = ({ quizScores, viewMode, quizYears, setQuizScores, selectedYe
 
   
     const [alertMessage, setAlertMessage] = useState<string | null>(null);
+    const [sortBy, setSortBy] = useState<string | null>(null);
+    const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
 
 
     const handleYearChange = (year: number | null) => {
@@ -54,15 +57,54 @@ const QuizScores = ({ quizScores, viewMode, quizYears, setQuizScores, selectedYe
                 score.id === id ? { ...score, score: newScore } : score
             )
         );
-        // const updatedScores = [...filteredQuizScores];
-        // updatedScores[index].score = newScore;
-        // setFilteredQuizScores(prevScores =>
-        //     prevScores.map((score, i) =>
-        //         i === index ? { ...score, score: newScore } : score
-        //     )
-        // );
-
     }
+    const handleSort = (columnKey: string) => {
+        if (sortBy === columnKey) {
+            setSortOrder(prev => (prev === 'ASC' ? 'DESC' : 'ASC'));
+        } else {
+            setSortBy(columnKey);
+            setSortOrder('ASC');
+        }
+    };
+
+    // Sort the filteredQuizScores whenever sortBy or sortOrder changes
+    useEffect(() => {
+        if (!sortBy) return;
+
+        const sortedScores = [...filteredQuizScores].sort((a, b) => {
+            let aValue: string | number = '';
+            let bValue: string | number = '';
+
+            switch (sortBy) {
+                case 'module_id':
+                    aValue = a.module.module_id;
+                    bValue = b.module.module_id;
+                    break;
+                case 'module_name':
+                    aValue = a.module.name;
+                    bValue = b.module.name;
+                    break;
+                case 'date_taken':
+                    aValue = new Date(a.date_taken).getTime();
+                    bValue = new Date(b.date_taken).getTime();
+                    break;
+                case 'score':
+                    aValue = a.score;
+                    bValue = b.score;
+                    break;
+            }
+
+            if (aValue > bValue) {
+                return sortOrder === 'ASC' ? 1 : -1;
+            }
+            if (aValue < bValue) {
+                return sortOrder === 'ASC' ? -1 : 1;
+            }
+            return 0;
+        });
+
+        setFilteredQuizScores(sortedScores);
+    }, [sortBy, sortOrder]);
 
     useEffect(() => {
         if (quizYears && quizYears.length > 0 && selectedYear === null) {
@@ -104,8 +146,19 @@ const QuizScores = ({ quizScores, viewMode, quizYears, setQuizScores, selectedYe
                         <thead className={styles.tableHead}>
                             <tr>
                                 {columns.map((column) => (
-                                    <th key={column.key} className={styles.headerCell}>
-                                        {column.label}
+                                    <th 
+                                        key={column.key} 
+                                        className={styles.headerCell}
+                                        onClick={() => handleSort(column.key)}
+                                    >
+                                        <div className={styles.sortHeader}>
+                                            {column.label}
+                                            <SortButtons
+                                                columnKey={column.key}
+                                                sortBy={sortBy}
+                                                sortOrder={sortOrder}
+                                            />
+                                        </div>
                                     </th>
                                 ))}
                             </tr>
