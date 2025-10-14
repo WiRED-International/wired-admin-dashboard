@@ -22,6 +22,7 @@ const columns = [
     { key: "date_taken", label: "Date Taken" },
     { key: "score", label: "Score" },
 ];
+const sortableColumns = ['module_id', 'module_name', 'date_taken'];
 
 
 const QuizScores = ({ quizScores, viewMode, quizYears, setQuizScores, selectedYear, setSelectedYear, filteredQuizScores, setFilteredQuizScores }: QuizScoresProps) => {
@@ -67,7 +68,6 @@ const QuizScores = ({ quizScores, viewMode, quizYears, setQuizScores, selectedYe
         }
     };
 
-    // Sort the filteredQuizScores whenever sortBy or sortOrder changes
     useEffect(() => {
         if (!sortBy) return;
 
@@ -88,10 +88,7 @@ const QuizScores = ({ quizScores, viewMode, quizYears, setQuizScores, selectedYe
                     aValue = new Date(a.date_taken).getTime();
                     bValue = new Date(b.date_taken).getTime();
                     break;
-                case 'score':
-                    aValue = a.score;
-                    bValue = b.score;
-                    break;
+
             }
 
             if (aValue > bValue) {
@@ -153,11 +150,13 @@ const QuizScores = ({ quizScores, viewMode, quizYears, setQuizScores, selectedYe
                                     >
                                         <div className={styles.sortHeader}>
                                             {column.label}
-                                            <SortButtons
-                                                columnKey={column.key}
-                                                sortBy={sortBy}
-                                                sortOrder={sortOrder}
-                                            />
+                                            {sortableColumns.includes(column.key) && (
+                                                <SortButtons
+                                                    columnKey={column.key}
+                                                    sortBy={sortBy}
+                                                    sortOrder={sortOrder}
+                                                />
+                                            )}
                                         </div>
                                     </th>
                                 ))}
