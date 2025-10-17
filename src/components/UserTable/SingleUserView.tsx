@@ -5,9 +5,12 @@ import { UserDataInterface } from "../../interfaces/UserDataInterface"
 import { SpecializationsInterface } from "../../interfaces/SpecializationInterface";
 import { OrganizationInterface } from "../../interfaces/OrganizationsInterface";
 import { CityInterface } from "../../interfaces/CityInterface";
+import { QuizScoreInterface } from "../../interfaces/UserDataInterface";
 //api
 import { fetchUserById } from "../../api/usersAPI";
 import { updateUserById } from "../../api/usersAPI";
+import { fetchAllQuizScores } from "../../api/quizScoresAPI";
+import { updateQuizScore } from "../../api/quizScoresAPI";
 //context
 import { useUserOptions } from "../../context/UserOptionsContext";
 //components
@@ -18,6 +21,8 @@ import UserNameAndEmail from "./UserNameAndEmail";
 import UserCountry from "./UserCountry";
 import UserCity from "./UserCity";
 import UserOrganization from "./UserOrganization";
+import Confirm_custom from "../ConfirmCustom";
+import QuizScores from "./QuizScores";
 
 
   const VIEW_MODE_EDIT = "edit";
@@ -39,6 +44,13 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
   const [selectedCountryId, setSelectedCountryId] = useState<number | null>(null);
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<number | null>(null);
   const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
+  const [quizScores, setQuizScores] = useState<QuizScoreInterface[]>([]);
+  const [quizYears, setQuizYears] = useState<number[]>([]);
+  const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
+  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+  const [selectedYear, setSelectedYear] = useState<number | null>(quizYears && quizYears.length > 0 ? quizYears[0] : null);
+  const [filteredQuizScores, setFilteredQuizScores] = useState<QuizScoreInterface[]>([]);
+  
 
   //get user options from context
   const { roles, countries, cities, organizations, specializations } = useUserOptions();
@@ -83,7 +95,9 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
 
   }
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
+    setLoading(true);
+    setSaveConfirmOpen(false);
     if (!singleUserData) return;
 
     const specializationIds = formState.specializations.map(spec => spec.id);
@@ -99,15 +113,41 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
       specialization_ids: specializationIds,
     };
 
-    updateUserById(singleUserData.id, updatedData)
-      .then((res) => {
-        setSingleUserData(res.user);
-        setViewMode(VIEW_MODE_VIEW);
-      })
-      .catch((err) => {
-        console.error("Error updating user:", err);
-        alert("Failed to update user. Please try again.");
-      });
+    try {
+      for (const score of quizScores) {
+        await updateQuizScore(score.id, { score: score.score });
+      }
+      //update scores using promise.all
+      await Promise.all(
+        quizScores.map(score => 
+          updateQuizScore(score.id, { score: score.score })
+        )
+      );
+      const res = await updateUserById(singleUserData.id, updatedData);
+      //I'm refetching the quiz scores here because I was having issues with state not updating properly after editing scores
+      const fetchedQuizScores = await fetchAllQuizScores(user.id);
+      setQuizScores(fetchedQuizScores || []);
+      //update user data in state with response from server
+      setSingleUserData(res.user);
+      setViewMode(VIEW_MODE_VIEW);
+    } catch (err) {
+      console.error("Error updating user:", err);
+      alert("Failed to update user. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmClose = () => {
+    setCloseConfirmOpen(false);
+    setIsSingleUserViewOpen(false);
+  };
+  const handleClose = () => {
+    if (viewMode === VIEW_MODE_EDIT) {
+      setCloseConfirmOpen(true);
+    } else {
+      setIsSingleUserViewOpen(false);
+    }
   }
 
   useEffect(() => {
@@ -117,6 +157,10 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
         setLoading(true);
 
         const fetchedUser = await fetchUserById(user.id);
+        //fetch quiz scores for this user
+        const fetchedQuizScores = await fetchAllQuizScores(user.id);
+        setQuizScores(fetchedQuizScores || []);
+        //set fetched user data to state
 
         setFormState({
           first_name: fetchedUser.first_name,
@@ -169,13 +213,49 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
     setFilteredOrganizations(newFilteredOrganizations);
   }, [selectedCountryId, selectedCityId, cities, organizations]);
 
+  //extract unique years from quiz scores
+  useEffect(() => {
+    const yearsSet = new Set<number>();
+    quizScores.forEach(score => {
+      const year = new Date(score.date_taken).getFullYear();
+      yearsSet.add(year);
+    });
+    const yearsArray = Array.from(yearsSet).sort((a, b) => b - a); // Sort years descending
+    setQuizYears(yearsArray);
+  }, [quizScores]);
+
+
+  useEffect(() => {
+    if (selectedYear !== null) {
+      setFilteredQuizScores(
+        quizScores.filter(score => new Date(score.date_taken).getFullYear() === selectedYear)
+      );
+    } else {
+      setFilteredQuizScores(quizScores);
+    }
+  }, [quizScores, selectedYear]);
+
+
 
   if (loading) {
     return <LoadingSpinner />;
   }
 
+
   return (
     <div style={styles.container}>
+      <Confirm_custom
+        message="Are you sure you want to close without saving? All unsaved changes will be lost."
+        onConfirm={handleConfirmClose}
+        onCancel={() => setCloseConfirmOpen(false)}
+        isOpen={closeConfirmOpen}
+      />
+      <Confirm_custom
+        message="Are you sure you want save your changes?"
+        onConfirm={handleSaveChanges}
+        onCancel={() => setSaveConfirmOpen(false)}
+        isOpen={saveConfirmOpen}
+      />
       <div style={styles.header}>
         <h2 style={styles.headerText}>
           {viewMode === VIEW_MODE_VIEW ? "User Profile" : "Edit User"}
@@ -233,7 +313,16 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
             setSelectedOrganizationId={setSelectedOrganizationId}
           />
         </form>
-        <div style={styles.quizScores}></div>
+        <QuizScores 
+          quizScores={quizScores} 
+          viewMode={viewMode} 
+          quizYears={quizYears} 
+          setQuizScores={setQuizScores}
+          selectedYear={selectedYear}
+          setSelectedYear={setSelectedYear}
+          filteredQuizScores={filteredQuizScores}
+          setFilteredQuizScores={setFilteredQuizScores}
+        />
       </div>
       <div>
         <button
@@ -241,7 +330,7 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
             ...styles.button,
             backgroundColor: globalStyles.colors.error,
           }}
-          onClick={() => setIsSingleUserViewOpen(false)}
+          onClick={handleClose}
         >
           Close
         </button>
@@ -253,7 +342,7 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
         {viewMode === VIEW_MODE_EDIT && (
           <button
             style={styles.button}
-            onClick={handleSaveChanges}
+            onClick={() => setSaveConfirmOpen(true)}
           >Save Changes</button>
         )}
       </div>
@@ -272,18 +361,20 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexDirection: 'column' as const,
     left: '50%',
     top: '50%',
-    transform: 'translate(-50%, -50%)'
+    transform: 'translate(-50%, -50%)',
+    overflow: 'auto' as const
   },
   header: {
     backgroundColor: globalStyles.colors.singleUserViewHeader,
     paddingInline: '30px',
     textAlign: 'left' as const,
-    width: '100%',
+    minWidth: '100%',
     height: '89px',
     top: '0',
     position: 'relative' as const,
     display: 'flex',
     alignItems: 'center' as const,
+    boxSizing: 'border-box' as const,
   },
   headerText: {
     fontSize: '40px',
@@ -293,7 +384,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '20px',
     display: 'flex',
     flexDirection: 'row' as const,
-    overflowY: 'auto',
+
     width: '100%',
     backgroundColor: globalStyles.colors.singleUserViewBackground,
   },
@@ -311,15 +402,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     margin: '10px',
     alignSelf: 'center' as const,
-  },
-  quizScores: {
-    padding: '20px',
-    // backgroundColor: 'green',
-    border: '1px solid #ccc',
-    borderRadius: '5px',
-    marginTop: '20px',
-    flex: 1,
-
   },
   formRow: {
     display: 'flex',
