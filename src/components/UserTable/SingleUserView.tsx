@@ -49,7 +49,7 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
   const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
   const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
   const [selectedYear, setSelectedYear] = useState<number | null>(quizYears && quizYears.length > 0 ? quizYears[0] : null);
-  const [filteredQuizScores, setFilteredQuizScores] = useState<QuizScoreInterface[]>(quizScores);
+  const [filteredQuizScores, setFilteredQuizScores] = useState<QuizScoreInterface[]>([]);
   
 
   //get user options from context
@@ -114,10 +114,20 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
     };
 
     try {
-      const res = await updateUserById(singleUserData.id, updatedData);
-      for(const score of quizScores) {
+      for (const score of quizScores) {
         await updateQuizScore(score.id, { score: score.score });
       }
+      //update scores using promise.all
+      await Promise.all(
+        quizScores.map(score => 
+          updateQuizScore(score.id, { score: score.score })
+        )
+      );
+      const res = await updateUserById(singleUserData.id, updatedData);
+      //I'm refetching the quiz scores here because I was having issues with state not updating properly after editing scores
+      const fetchedQuizScores = await fetchAllQuizScores(user.id);
+      setQuizScores(fetchedQuizScores || []);
+      //update user data in state with response from server
       setSingleUserData(res.user);
       setViewMode(VIEW_MODE_VIEW);
     } catch (err) {
@@ -214,6 +224,16 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
     setQuizYears(yearsArray);
   }, [quizScores]);
 
+
+  useEffect(() => {
+    if (selectedYear !== null) {
+      setFilteredQuizScores(
+        quizScores.filter(score => new Date(score.date_taken).getFullYear() === selectedYear)
+      );
+    } else {
+      setFilteredQuizScores(quizScores);
+    }
+  }, [quizScores, selectedYear]);
 
 
 

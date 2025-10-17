@@ -25,8 +25,15 @@ const columns = [
 const sortableColumns = ['module_id', 'module_name', 'date_taken'];
 
 
-const QuizScores = ({ quizScores, viewMode, quizYears, setQuizScores, selectedYear, setSelectedYear, filteredQuizScores, setFilteredQuizScores }: QuizScoresProps) => {
-
+const QuizScores = ({ 
+    quizScores, 
+    viewMode,
+    quizYears,
+    setQuizScores,
+    selectedYear,
+    setSelectedYear,
+    filteredQuizScores,
+    setFilteredQuizScores }: QuizScoresProps) => {
 
   
     const [alertMessage, setAlertMessage] = useState<string | null>(null);
@@ -34,15 +41,15 @@ const QuizScores = ({ quizScores, viewMode, quizYears, setQuizScores, selectedYe
     const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
 
 
+    const filterScoresByYear = (year: number | null) => {
+        if (year === null) return quizScores;
+        return quizScores.filter(score => new Date(score.date_taken).getFullYear() === year);
+    };
+
     const handleYearChange = (year: number | null) => {
-        // Logic to filter quizScores based on selected year
         setSelectedYear(year);
-        if (year !== null) {
-            setFilteredQuizScores(quizScores.filter(score => new Date(score.date_taken).getFullYear() === year));
-        } else {
-            setFilteredQuizScores(quizScores);
-        }
-    }
+        setFilteredQuizScores(filterScoresByYear(year));
+    };
 
     const handleAlertClose = () => {
         setAlertMessage(null);
@@ -101,14 +108,15 @@ const QuizScores = ({ quizScores, viewMode, quizYears, setQuizScores, selectedYe
         });
 
         setFilteredQuizScores(sortedScores);
-    }, [sortBy, sortOrder]);
+    }, [sortBy, sortOrder, quizScores]);
 
     useEffect(() => {
         if (quizYears && quizYears.length > 0 && selectedYear === null) {
-            setSelectedYear(quizYears[0]);
-            setFilteredQuizScores(quizScores.filter(score => new Date(score.date_taken).getFullYear() === quizYears[0]));
+            const initialYear = quizYears[0];
+            setSelectedYear(initialYear);
+            setFilteredQuizScores(filterScoresByYear(initialYear));
         }
-    }, [quizYears, selectedYear]);
+    }, [quizYears, selectedYear, quizScores]);
 
 
 

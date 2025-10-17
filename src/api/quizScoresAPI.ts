@@ -1,7 +1,8 @@
 import { apiPrefix } from "../utils/globalVariables";
 import Auth from "../utils/auth";
+import { QuizScoreInterface, QuizScoreUpdateResponseInterface } from "../interfaces/UserDataInterface";
 
-export const fetchAllQuizScores = async (userId?: number): Promise<any[]> => {
+export const fetchAllQuizScores = async (userId?: number): Promise<QuizScoreInterface[]> => {
     const url = userId ? `${apiPrefix}quiz-scores?userId=${userId}` : `${apiPrefix}quiz-scores`;
     const response = await fetch(url, {
         headers: {
@@ -15,7 +16,7 @@ export const fetchAllQuizScores = async (userId?: number): Promise<any[]> => {
     return response.json();
 }
 
-export const updateQuizScore = async (quizScoreId: number, updatedData: any): Promise<any> => {
+export const updateQuizScore = async (quizScoreId: number, updatedData: any): Promise<QuizScoreUpdateResponseInterface> => {
     const response = await fetch(`${apiPrefix}quiz-scores/${quizScoreId}`, {
         method: 'PUT',
         headers: {

@@ -21,6 +21,11 @@ export interface QuizScoreInterface {
   };
 }
 
+export interface QuizScoreUpdateResponseInterface {
+  message: string;
+  quizScore: QuizScoreInterface;
+}
+
 export interface UserDataInterface {
   id: number;
   first_name: string;
