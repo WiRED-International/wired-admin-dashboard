@@ -49,7 +49,6 @@ const UserTableActions = ({user, fetchAllUsers}: UserTableActionsProps) => {
       setAlertMessage(message);
     }
   }
-
   return (
     <div style={styles.container}>
       <Confirm_custom

@@ -1,4 +1,5 @@
 import { globalStyles } from "../globalStyles";
+import ReactDOM from "react-dom";
 
 interface AlertCustomProps {
     message: string | null;
@@ -6,7 +7,7 @@ interface AlertCustomProps {
 }
 
 const Alert_Custom = ({ message, onClose }: AlertCustomProps) => {
-    return (
+    return ReactDOM.createPortal(
         <div style={globalStyles.overlay}>
             <div style={globalStyles.modal}>
               <p>{message}</p>
@@ -14,7 +15,8 @@ const Alert_Custom = ({ message, onClose }: AlertCustomProps) => {
                 <button onClick={onClose} style={{...globalStyles.submitButton, backgroundColor: globalStyles.colors.success}}>Close</button>
               </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

@@ -12,12 +12,18 @@
 // ];
 
 export interface QuizScoreInterface {
+  id: number;
   score: number;
   date_taken: string;
   module: {
     name: string;
     module_id: string;
   };
+}
+
+export interface QuizScoreUpdateResponseInterface {
+  message: string;
+  quizScore: QuizScoreInterface;
 }
 
 export interface UserDataInterface {

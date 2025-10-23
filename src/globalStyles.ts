@@ -118,6 +118,10 @@ export const globalStyles = {
         color: errorColor,
         marginTop: "0px",
     },
+    modalMessage: {
+        fontSize: '18px',
+        textWrap: 'wrap' as const,
+    },
     footer: {
         backgroundColor: headerColor,
         color: whiteTheme,
