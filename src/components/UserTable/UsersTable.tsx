@@ -24,7 +24,7 @@ const columns = [
     { key: "first_name", label: "First Name" },
     { key: "email", label: "Email" },
     { key: "CME_Credits", label: "CME Credits" },
-    { key: "remainingCredits", label: "Remaining Credits" },
+    { key: "basicCompletionPercent", label: "Basic Training (%)" },
     //specializations has been removed for now due it causing issues with sorting and pagination
     // { key: "specializations", label: "Specializations" },
     { key: "role", label: "Role" },
@@ -33,10 +33,12 @@ const columns = [
     { key: "organization", label: "Organization" },
 ];
 
-const nonSortableColumns = ['actions', 'specializations', 'CME_Credits', 'remainingCredits'];
+const nonSortableColumns = ['actions', 'specializations', 'CME_Credits', 'basicCompletionPercent', ];
 
-type UserWithCredits = UserDataInterface & { cmeCredits: number };
-
+interface UserWithCredits extends UserDataInterface {
+  cmeCredits: number;
+  basicCompletionPercent?: number;
+}
 
 const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSortBy, setSortOrder, setCurrentPage, fetchAllUsers }: UsersTableProps) => {
 
@@ -62,23 +64,22 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSo
     }));
     }, [users]);
 
-    const renderCellValue = (columnKey: string, user: UserDataInterface & { cmeCredits: number }) => {
-        const value = (user as any)[columnKey];
+    const renderCellValue: (columnKey: string, user: UserWithCredits) => React.ReactNode = (columnKey, user) => {
+        const value = (user as unknown as Record<string, unknown>)[columnKey];
 
         if (columnKey === "actions") {
-            return <UserTableActions 
-                user={user} 
-                fetchAllUsers={fetchAllUsers} 
-            />;
+            return <UserTableActions user={user} fetchAllUsers={fetchAllUsers} />;
         }
 
         if (columnKey === "CME_Credits") {
-            return user.cmeCredits; // ✅ now safe
+            return user.cmeCredits ?? 0;
         }
-        if (columnKey === "remainingCredits") {
-            const remaining = 100 - (user.cmeCredits || 0);
-            return remaining >= 0 ? remaining : 0; // Ensure it doesn't go negative
+
+        if (columnKey === "basicCompletionPercent") {
+            const percent = user.basicCompletionPercent ?? 0;
+            return `${percent.toFixed(2)}%`;
         }
+
       //if specializations were to be added back in
       
     //   if (columnKey === "specializations") {
@@ -88,19 +89,22 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSo
     //     return "None";
     //   }
 
-        if (Array.isArray(value)) {
-            return value.join(", ");
-        }
-        //this is to handle objects like role, country, city, organization
         if (value && typeof value === "object") {
-            return value.name || JSON.stringify(value);
-        }
+    // return safely as string
+    const maybeName = (value as { name?: string }).name;
+    return maybeName ? maybeName : JSON.stringify(value);
+  }
 
-        return value ?? "";
-    };
+  // Always return string or number as a fallback
+  if (value === null || value === undefined) return "";
+
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+
+  if (typeof value === "string" || typeof value === "number") return value;
+
+  return String(value);
+};
       
-    
-
     return (
         <table style={styles.table}>
             <thead >

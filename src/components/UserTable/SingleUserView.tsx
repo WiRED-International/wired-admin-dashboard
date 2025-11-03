@@ -59,6 +59,8 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
   const [filteredOrganizations, setFilteredOrganizations] = useState<OrganizationInterface[]>([]);
   const [filteredCities, setFilteredCities] = useState<CityInterface[]>([]);
 
+  const [activeTab, setActiveTab] = useState<"all" | "basic" | "cme">("all");
+
   const [formState, setFormState] = useState({
     first_name: '',
     last_name: '',
@@ -241,6 +243,31 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
     return <LoadingSpinner />;
   }
 
+  // 🧩 Filter quiz scores based on active tab
+  let displayedScores = [...filteredQuizScores];
+
+  if (activeTab === "basic") {
+    displayedScores = displayedScores.filter(
+      (score) =>
+        Array.isArray(score.module?.categories) &&
+        score.module.categories.some((cat) =>
+          cat.toLowerCase().includes("basic")
+        )
+    );
+  }
+
+  if (activeTab === "cme") {
+    displayedScores = displayedScores.filter(
+      (score) =>
+        score.module?.credit_type?.toLowerCase() === "cme" &&
+        !(
+          Array.isArray(score.module?.categories) &&
+          score.module.categories.some((cat) =>
+            cat.toLowerCase().includes("basic")
+          )
+        )
+    );
+  }
 
   return (
     <div style={styles.container}>
@@ -314,14 +341,16 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
           />
         </form>
         <QuizScores 
-          quizScores={quizScores} 
+          quizScores={displayedScores} 
           viewMode={viewMode} 
           quizYears={quizYears} 
           setQuizScores={setQuizScores}
           selectedYear={selectedYear}
           setSelectedYear={setSelectedYear}
-          filteredQuizScores={filteredQuizScores}
+          filteredQuizScores={displayedScores}
           setFilteredQuizScores={setFilteredQuizScores}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
         />
       </div>
       <div>
@@ -414,5 +443,37 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '16px',
     maxWidth: '300px',
     width: '150px',
-  }
+  },
+  tabBar: {
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  marginBottom: "20px",
+  marginTop: "10px",
+  borderBottom: "2px solid #ddd",
+  width: "100%",
+  gap: "10px",
+  position: "sticky",
+  top: 0,
+  backgroundColor: globalStyles.colors.singleUserViewBackground,
+  zIndex: 10,
+  padding: "10px 0",
+  },
+
+  tab: {
+    padding: "10px 25px",
+    cursor: "pointer",
+    fontSize: "16px",
+    fontWeight: 500,
+    borderBottom: "3px solid transparent",
+    color: "#666",
+    transition: "all 0.2s ease-in-out",
+  },
+
+  activeTab: {
+    color: "#0070C0",
+    borderBottom: "3px solid #0070C0",
+    fontWeight: 600,
+    transform: "scale(1.05)",
+  },
 }
