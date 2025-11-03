@@ -13,6 +13,8 @@ interface QuizScoresProps {
     setSelectedYear: React.Dispatch<React.SetStateAction<number | null>>;
     filteredQuizScores: QuizScoreInterface[];
     setFilteredQuizScores: React.Dispatch<React.SetStateAction<QuizScoreInterface[]>>;
+    activeTab: "all" | "basic" | "cme";
+    setActiveTab: React.Dispatch<React.SetStateAction<"all" | "basic" | "cme">>;
 }
 
 //columns for quiz scores table
@@ -33,6 +35,8 @@ const QuizScores = ({
     selectedYear,
     setSelectedYear,
     filteredQuizScores,
+    activeTab,
+    setActiveTab,
     setFilteredQuizScores }: QuizScoresProps) => {
 
   
@@ -129,7 +133,26 @@ const QuizScores = ({
         <div className={styles.container}>
             {alertMessage && <Alert_Custom message={alertMessage} onClose={handleAlertClose} />}
             <div className={styles.header}>
-                <h2 className={styles.heading}>Quiz Scores</h2>
+                 <div className={styles.tabBar}>
+                    <div
+                    className={`${styles.tab} ${activeTab === "all" ? styles.activeTab : ""}`}
+                    onClick={() => setActiveTab("all")}
+                    >
+                    All
+                    </div>
+                    <div
+                    className={`${styles.tab} ${activeTab === "basic" ? styles.activeTab : ""}`}
+                    onClick={() => setActiveTab("basic")}
+                    >
+                    Basic Training
+                    </div>
+                    <div
+                    className={`${styles.tab} ${activeTab === "cme" ? styles.activeTab : ""}`}
+                    onClick={() => setActiveTab("cme")}
+                    >
+                    CME Credits
+                    </div>
+                </div>
                 <div className={styles.yearSelectContainer}>
                     <h2 className={styles.heading}>Select Year</h2>
                     <select

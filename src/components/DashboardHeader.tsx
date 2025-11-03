@@ -49,6 +49,11 @@ export default function DashboardHeader() {
                 ...styles.navigateButton,
                 ...(location.pathname === '/userview' ? styles.navActiveButton : {})
                 }} onClick={() => handleNavigate('/userview')}>Users Page</button>
+              <button style={{
+                ...styles.headerButton,
+                ...styles.navigateButton,
+                ...(location.pathname === "/exams" ? styles.navActiveButton : {}),
+                }} onClick={() => handleNavigate("/exams")}>Exams</button>
               <button style={{...styles.headerButton, ...styles.logoutButton}} onClick={handleLogout}>Logout</button>
             </div>
         </div>
