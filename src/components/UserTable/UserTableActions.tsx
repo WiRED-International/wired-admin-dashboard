@@ -21,6 +21,9 @@ const UserTableActions = ({user, fetchAllUsers}: UserTableActionsProps) => {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   
+  // Get current user role (depending on your setup)
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const isSuperAdmin = currentUser?.role?.name?.toLowerCase() === 'super_admin' || currentUser?.roleId === 3;
 
   const handleViewClick = () => {
     setViewMode('view');
@@ -73,14 +76,19 @@ const UserTableActions = ({user, fetchAllUsers}: UserTableActionsProps) => {
         <img src={greenEyeIcon} style={styles.icon} alt="View" />
         <span style={styles.actionText}>View</span>
       </div>
-      <div style={styles.actionContainer} onClick={handleEditClick}>
-        <img src={editIcon} style={styles.icon} alt="Edit" />
-        <span style={styles.actionText}>Edit</span>
-      </div>
-      <div style={styles.actionContainer} onClick={handleDeleteClick}>
-        <img src={deleteIcon} style={styles.icon} alt="Delete" />
-        <span style={styles.actionText}>Delete</span>
-      </div>
+
+      {isSuperAdmin && (
+        <>
+          <div style={styles.actionContainer} onClick={handleEditClick}>
+            <img src={editIcon} style={styles.icon} alt="Edit" />
+            <span style={styles.actionText}>Edit</span>
+          </div>
+          <div style={styles.actionContainer} onClick={handleDeleteClick}>
+            <img src={deleteIcon} style={styles.icon} alt="Delete" />
+            <span style={styles.actionText}>Delete</span>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -91,9 +99,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     gap: '5px',
+    flexWrap: 'nowrap',
+    whiteSpace: 'nowrap',
   },
   icon: {
-    height: '20px',
+    height: '18px',
   },
   actionContainer:{
     display: 'flex',
@@ -103,6 +113,6 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   actionText: {
     color: '#2E83F3',
-    fontSize: '20px',
+    fontSize: '18px',
   }
 }

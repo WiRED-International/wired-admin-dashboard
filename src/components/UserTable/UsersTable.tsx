@@ -5,6 +5,8 @@ import { globalStyles } from "../../globalStyles";
 import SortButtons from "../SortButton/SortButtons";
 import { calculateCmeCredits } from "../../utils/cmeCredits";
 import React, { useMemo } from "react";
+import { compactCols, getCellStyle } from "../../utils/helperFunctions";
+import { ResizableTH } from "../../utils/resizableTH";
 
 type UsersTableProps = {
     users: UserDataInterface[];
@@ -29,7 +31,7 @@ const columns = [
     // { key: "specializations", label: "Specializations" },
     { key: "role", label: "Role" },
     { key: "country", label: "Country" },
-    { key: "city", label: "City" },
+    // { key: "city", label: "City" },
     { key: "organization", label: "Organization" },
 ];
 
@@ -40,8 +42,21 @@ interface UserWithCredits extends UserDataInterface {
   basicCompletionPercent?: number;
 }
 
-const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSortBy, setSortOrder, setCurrentPage, fetchAllUsers }: UsersTableProps) => {
+const evenGray = "#FFFEFE";
+const oddGray = "#F5F5F5";
+const evenGreen = globalStyles.colors.singleUserViewHeader;
+const oddGreen = "#E3FFDE";
 
+const UsersTable: React.FC<UsersTableProps> = ({
+  users,
+  sortBy,
+  sortOrder,
+  setSortBy,
+  setSortOrder,
+  setCurrentPage,
+  fetchAllUsers,
+}: UsersTableProps) => {
+  const [colWidths, setColWidths] = React.useState<Record<string, number>>({});
 
     const sortButtonOnClick = (columnKey: string) => {
         if (!columnKey || nonSortableColumns.includes(columnKey)) return;
@@ -54,7 +69,6 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSo
             setSortOrder('ASC');
             setCurrentPage(1);
         }
-    
     };
 
     const usersWithCredits: UserWithCredits[] = useMemo(() => {
@@ -90,114 +104,128 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, sortBy, sortOrder, setSo
     //   }
 
         if (value && typeof value === "object") {
-    // return safely as string
-    const maybeName = (value as { name?: string }).name;
-    return maybeName ? maybeName : JSON.stringify(value);
-  }
+        // return safely as string
+        const maybeName = (value as { name?: string }).name;
+        return maybeName ? maybeName : JSON.stringify(value);
+        }
 
-  // Always return string or number as a fallback
-  if (value === null || value === undefined) return "";
+        // Always return string or number as a fallback
+        if (value === null || value === undefined) return "";
 
-  if (typeof value === "boolean") return value ? "Yes" : "No";
+        if (typeof value === "boolean") return value ? "Yes" : "No";
 
-  if (typeof value === "string" || typeof value === "number") return value;
+        if (typeof value === "string" || typeof value === "number") return value;
 
-  return String(value);
-};
+        return String(value);
+    };
       
     return (
-        <table style={styles.table}>
-            <thead >
-                <tr className={cssStyles.top_user_table_head}>
-                    {columns.map((column) => (
-                        <th
-                            key={column.key}
-                            style={styles.tableHead}
-                            className={cssStyles.user_table_head}
-                            onClick={() => sortButtonOnClick(column.key)}
-                        >
-                            <div className={cssStyles.user_table_head_text}>
-                                {column.label}
-                                {!nonSortableColumns.includes(column.key) && (
-                                    <SortButtons 
-                                        columnKey={column.key}
-                                        sortBy={sortBy}
-                                        sortOrder={sortOrder}
-                                    />
-                                )}
-                            </div>
-                        </th>
-                    ))}
-                </tr>
-            </thead>
-            <tbody>
-                {usersWithCredits.map((user, index) => {
-                    const isEven = index % 2 === 0;
-                    return (
+    <table style={styles.table}>
+      <thead>
+        <tr className={cssStyles.top_user_table_head}>
+          {columns.map((column) => (
+            <ResizableTH
+              key={column.key}
+              columnKey={column.key}
+              baseStyle={{
+                ...styles.tableHead,
+                ...(compactCols.has(column.key) && {
+                  padding: "6px 8px",
+                  width: colWidths[column.key]
+                    ? `${colWidths[column.key]}px`
+                    : "1%",
+                  whiteSpace: "nowrap",
+                  textAlign:
+                    column.key === "CME_Credits" ? "right" : "center",
+                  minWidth: "auto",
+                }),
+              }}
+              setColWidths={setColWidths}
+              colWidths={colWidths}
+              onHeaderClick={() => sortButtonOnClick(column.key)}
+            >
+              <>
+                {column.label}
+                {!nonSortableColumns.includes(column.key) && (
+                  <SortButtons
+                    columnKey={column.key}
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                  />
+                )}
+              </>
+            </ResizableTH>
+          ))}
+        </tr>
+      </thead>
 
-                        <tr key={index} style={{
-                            backgroundColor: isEven ? evenGray : oddGray,
+      <tbody>
+        {usersWithCredits.map((user, index) => {
+          const isEven = index % 2 === 0;
+          return (
+            <tr
+              key={index}
+              style={{ backgroundColor: isEven ? evenGray : oddGray }}
+            >
+              {columns.map((column) => {
+                const isFirstName = column.key === "first_name";
+                const backgroundColor = isFirstName
+                  ? isEven
+                    ? evenGreen
+                    : oddGreen
+                  : "";
 
-                        }}>
-                            {columns.map((column) => {
-                                const isFirstName = column.key === "first_name";
-                                let backgroundColor = "";
-                                if (isFirstName) {
-                                  backgroundColor = isEven
-                                    ? evenGreen
-                                    : oddGreen;
-                                }
-                                return (
-                                  <td
-                                    key={column.key}
-                                    style={{
-                                      ...styles.tableCell,
-                                      backgroundColor,
-                                    }}
-                                  >
-                                    {renderCellValue(column.key, user)}
-                                  </td>
-                                );
-                            })}
-                        </tr>
-                    )
-                })}
-            </tbody>
-        </table>
-    );
+                return (
+                  <td
+                    key={column.key}
+                    style={{
+                      ...getCellStyle(column.key, backgroundColor),
+                      ...(colWidths[column.key] && {
+                        width: `${colWidths[column.key]}px`,
+                      }),
+                    }}
+                  >
+                    {renderCellValue(column.key, user)}
+                  </td>
+                );
+              })}
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
 };
 
 export default UsersTable;
 
-const tableborder = "1px solid #A9A9A9";
-const evenGray = '#FFFEFE'
-const oddGray = '#F5F5F5'
-const evenGreen = globalStyles.colors.singleUserViewHeader
-const oddGreen = '#E3FFDE'
-
-const styles: { [key: string]: React.CSSProperties } = {
-    table: {
-        width: "100%",
-        borderCollapse: "collapse",
-        fontFamily: 'inter',
-        marginTop: "20px",
-        border: tableborder,
-    },
-    tableHead: {
-        textAlign: "left",
-        textWrap: "nowrap",
-        border: tableborder,
-        padding: "10px",
-        // couldnt get shadow to show below the bottom edge even with css
-    },
-
-    tableCell: {
-        border: tableborder,
-        padding: "10px",
-        textWrap: "nowrap",
-        overflowX: "auto",
-        minWidth: "150px",
-        maxWidth: "275px",
-    },
-
-}
+const styles: Record<string, React.CSSProperties> = {
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+    fontFamily: "inter",
+    marginTop: "20px",
+    border: "1px solid #A9A9A9",
+    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
+  },
+  tableHead: {
+    textAlign: "left",
+    whiteSpace: "nowrap",
+    border: "1px solid #A9A9A9",
+    padding: "12px 10px",
+    background: "linear-gradient(to bottom, #E6E6E6, #CCCCCC)",
+    fontWeight: 600,
+    color: "#333333",
+    position: "relative",
+    verticalAlign: "middle",
+  },
+  tableCell: {
+    border: "1px solid #A9A9A9",
+    padding: "10px 12px",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    minWidth: "120px",
+    verticalAlign: "middle",
+  },
+};
