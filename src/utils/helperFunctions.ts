@@ -84,4 +84,38 @@ export const formatDate = (timestamp: number) => {
   return `${month}/${day}/${year}`;
 };
 
+/**
+ * Columns that should be compact (narrow, auto-fit width)
+ */
+export const compactCols = new Set([
+  "actions",
+  "CME_Credits",
+  "basicCompletionPercent",
+  "role",
+]);
+
+/**
+ * Returns a compact style for selected columns.
+ */
+export const getCellStyle = (
+  columnKey: string,
+  backgroundColor: string,
+  colWidths?: Record<string, number>
+): React.CSSProperties => {
+  const isCompact = compactCols.has(columnKey);
+
+  return {
+    border: "1px solid #A9A9A9",
+    padding: isCompact ? "6px 8px" : "12px 14px",
+    backgroundColor,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    verticalAlign: "middle",
+    textAlign: isCompact ? "center" : "left",
+    ...(colWidths && colWidths[columnKey] ? { width: `${colWidths[columnKey]}px` } : {}),
+    minWidth: isCompact ? "auto" : "120px",
+  };
+};
+
 

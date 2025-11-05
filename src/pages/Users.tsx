@@ -13,7 +13,7 @@ const UsersPage = () => {
   const [users, setUsers] = useState<UserDataInterface[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(50);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<string | null>('last_name');
@@ -41,7 +41,7 @@ const UsersPage = () => {
 
   useEffect(() => {
     fetchAllUsers();
-  }, [sortBy, sortOrder, currentPage]);
+  }, [sortBy, sortOrder, currentPage, rowsPerPage]);
 
   
   return (

@@ -14,7 +14,7 @@ export default function DashboardHeader() {
   
     useEffect(() => {
         if(location.pathname === "/userview"){
-            setHeaderTitle("Wired Users");
+            setHeaderTitle("WiRED Users");
         }else if(location.pathname === "/"){
             setHeaderTitle("Wired Module/Package Downloads");
         }
