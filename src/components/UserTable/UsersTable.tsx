@@ -177,11 +177,9 @@ const UsersTable: React.FC<UsersTableProps> = ({
               style={{ backgroundColor: isEven ? evenGray : oddGray }}
             >
               {columns.map((column) => {
-                const isFirstName = column.key === "first_name";
-                const backgroundColor = isFirstName
-                  ? isEven
-                    ? evenGreen
-                    : oddGreen
+                const isSortedColumn = column.key === sortBy;
+                const backgroundColor = isSortedColumn
+                  ? (isEven ? evenGreen : oddGreen)
                   : "";
 
                 return (

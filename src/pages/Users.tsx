@@ -32,6 +32,16 @@ const UsersPage = () => {
       );
       setUsers(fetchedUsers.users || []);
       setTotalPages(fetchedUsers.pageCount || 0);
+      console.log(
+        "📦 users fetched:",
+        fetchedUsers.users?.length,
+        "rowsPerPage:",
+        rowsPerPage,
+        "sortBy:",
+        sortBy,
+        "sortOrder:",
+        sortOrder
+      );
     } catch (error) {
       console.error("Error fetching users:", error);
     } finally {
