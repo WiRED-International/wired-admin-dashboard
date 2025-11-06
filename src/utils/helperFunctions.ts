@@ -89,6 +89,7 @@ export const formatDate = (timestamp: number) => {
  */
 export const compactCols = new Set([
   "actions",
+  "row_numbers",
   "CME_Credits",
   "basicCompletionPercent",
   "role",
@@ -103,18 +104,25 @@ export const getCellStyle = (
   colWidths?: Record<string, number>
 ): React.CSSProperties => {
   const isCompact = compactCols.has(columnKey);
+  const isRowNumber = columnKey === "row_number";
 
   return {
     border: "1px solid #A9A9A9",
-    padding: isCompact ? "6px 8px" : "12px 14px",
+    padding: isCompact || isRowNumber ? "6px 8px" : "12px 14px",
+    width: isRowNumber ? "40px" : undefined,
     backgroundColor,
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
+    textAlign: isCompact || isRowNumber ? "center" : "left",
+    ...(colWidths && colWidths[columnKey]
+      ? { width: `${colWidths[columnKey]}px` }
+      : {}),
     verticalAlign: "middle",
-    textAlign: isCompact ? "center" : "left",
-    ...(colWidths && colWidths[columnKey] ? { width: `${colWidths[columnKey]}px` } : {}),
-    minWidth: isCompact ? "auto" : "120px",
+    ...(colWidths && colWidths[columnKey]
+      ? { width: `${colWidths[columnKey]}px` }
+      : {}),
+    minWidth: isCompact || isRowNumber ? "auto" : "120px",
   };
 };
 

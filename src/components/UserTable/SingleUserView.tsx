@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { globalStyles } from "../../globalStyles";
+import AuthService from "../../utils/auth";
 //interfaces
 import { UserDataInterface } from "../../interfaces/UserDataInterface"
 import { SpecializationsInterface } from "../../interfaces/SpecializationInterface";
@@ -25,15 +26,14 @@ import Confirm_custom from "../ConfirmCustom";
 import QuizScores from "./QuizScores";
 
 
-  const VIEW_MODE_EDIT = "edit";
-  const VIEW_MODE_VIEW = "view";
+const VIEW_MODE_EDIT = "edit";
+const VIEW_MODE_VIEW = "view";
 interface SingleUserViewProps {
   user: UserDataInterface;
   setIsSingleUserViewOpen: (isOpen: boolean) => void;
   viewMode: typeof VIEW_MODE_VIEW | typeof VIEW_MODE_EDIT;
   setViewMode: (mode: typeof VIEW_MODE_VIEW | typeof VIEW_MODE_EDIT) => void;
 }
-
 
 
 const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }: SingleUserViewProps) => {
@@ -58,6 +58,7 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
 
   const [filteredOrganizations, setFilteredOrganizations] = useState<OrganizationInterface[]>([]);
   const [filteredCities, setFilteredCities] = useState<CityInterface[]>([]);
+  const [roleId, setRoleId] = useState<number | null>(null);
 
   const [activeTab, setActiveTab] = useState<"all" | "basic" | "cme">("all");
 
@@ -237,6 +238,10 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
     }
   }, [quizScores, selectedYear]);
 
+  useEffect(() => {
+    const id = AuthService.getRoleId();
+    setRoleId(id);
+  }, []);
 
 
   if (loading) {
@@ -363,7 +368,7 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
         >
           Close
         </button>
-        {viewMode === VIEW_MODE_VIEW && (
+        {viewMode === VIEW_MODE_VIEW && roleId === 3 && (
           <button onClick={() => setViewMode(VIEW_MODE_EDIT)} style={styles.button}>
             Edit
           </button>

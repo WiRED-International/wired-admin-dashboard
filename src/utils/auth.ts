@@ -33,6 +33,22 @@ class AuthService {
   logout() {
     localStorage.removeItem('id_token');
   }
+
+  getRoleId(): number | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      const decoded = jwtDecode<JwtPayload & { roleId?: number }>(token);
+      if (typeof decoded.roleId === 'number') {
+        return decoded.roleId;
+      }
+    } catch (err) {
+      console.error('Failed to decode roleId from token:', err);
+    }
+
+    return null;
+  }
 }
 
 export default new AuthService();
