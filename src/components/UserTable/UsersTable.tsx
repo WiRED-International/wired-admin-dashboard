@@ -22,6 +22,7 @@ type UsersTableProps = {
 
 const columns = [
     { key: 'actions', label: 'Actions' },
+    { key: "row_number", label: "#"},
     { key: "last_name", label: "Last Name" },
     { key: "first_name", label: "First Name" },
     { key: "email", label: "Email" },
@@ -35,7 +36,7 @@ const columns = [
     { key: "organization", label: "Organization" },
 ];
 
-const nonSortableColumns = ['actions', 'specializations', 'CME_Credits', 'basicCompletionPercent', ];
+const nonSortableColumns = ['actions', 'row_number', 'specializations', 'CME_Credits', 'basicCompletionPercent', ];
 
 interface UserWithCredits extends UserDataInterface {
   cmeCredits: number;
@@ -78,8 +79,16 @@ const UsersTable: React.FC<UsersTableProps> = ({
     }));
     }, [users]);
 
-    const renderCellValue: (columnKey: string, user: UserWithCredits) => React.ReactNode = (columnKey, user) => {
+    const renderCellValue: (
+      columnKey: string, 
+      user: UserWithCredits,
+      index?: number
+    ) => React.ReactNode = (columnKey, user, index) => {
         const value = (user as unknown as Record<string, unknown>)[columnKey];
+
+        if (columnKey === "row_number") {
+          return (index ?? 0) + 1;
+        }
 
         if (columnKey === "actions") {
             return <UserTableActions user={user} fetchAllUsers={fetchAllUsers} />;
@@ -185,7 +194,7 @@ const UsersTable: React.FC<UsersTableProps> = ({
                       }),
                     }}
                   >
-                    {renderCellValue(column.key, user)}
+                    {renderCellValue(column.key, user, index)}
                   </td>
                 );
               })}

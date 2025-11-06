@@ -3,10 +3,11 @@ import editIcon from '/icons/edit_icon.png'
 import greenEyeIcon from '/icons/green_eye_icon.png'
 import { UserDataInterface } from '../../interfaces/UserDataInterface'
 import SingleUserView from './SingleUserView'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { deleteUserById } from '../../api/usersAPI'
 import Confirm_custom from '../ConfirmCustom'
 import Alert_Custom from '../AlertCustom'
+import AuthService from '../../utils/auth';
 
 
 interface UserTableActionsProps {
@@ -20,10 +21,15 @@ const UserTableActions = ({user, fetchAllUsers}: UserTableActionsProps) => {
   const [viewMode, setViewMode] = useState<'view' | 'edit'>('view');
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [roleId, setRoleId] = useState<number | null>(null);
+  const isSuperAdmin = roleId === 3;
   
   // Get current user role (depending on your setup)
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isSuperAdmin = currentUser?.role?.name?.toLowerCase() === 'super_admin' || currentUser?.roleId === 3;
+  useEffect(() => {
+    setRoleId(AuthService.getRoleId());
+  }, []);
+
+  console.debug('Resolved roleId =', roleId);
 
   const handleViewClick = () => {
     setViewMode('view');
