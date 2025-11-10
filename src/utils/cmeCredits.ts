@@ -10,12 +10,15 @@ export function calculateCmeCredits(
   if (!quizScores || quizScores.length === 0) return 0;
 
   let credits = 0;
-
+  quizScores.slice(0, 3).forEach((q, i) => {
+    console.log(`🧩 #${i} credit_type:`, q.module?.credit_type, "| score:", q.score);
+  });
   for (let i = 0; i < quizScores.length; i++) {
     const q = quizScores[i];
     const quizYear = new Date(q.date_taken).getFullYear();
+    const creditType = q.module?.credit_type?.toLocaleLowerCase();
 
-    if (q.score >= PASSING_SCORE && quizYear === currentYear) {
+    if (q.score >= PASSING_SCORE && quizYear === currentYear && creditType === "cme") {
       credits += CREDITS_PER_PASS;
     }
   }
