@@ -82,37 +82,37 @@ const QuizScores = ({
     useEffect(() => {
         if (!sortBy) return;
 
-        const sortedScores = [...filteredQuizScores].sort((a, b) => {
-            let aValue: string | number = '';
-            let bValue: string | number = '';
+        // Always base sorting on the *current* filtered list, not quizScores directly
+        setFilteredQuizScores(prev => {
+            const sorted = [...prev].sort((a, b) => {
+                let aValue: string | number = "";
+                let bValue: string | number = "";
 
-            switch (sortBy) {
-                case 'module_id':
-                    aValue = a.module.module_id;
-                    bValue = b.module.module_id;
-                    break;
-                case 'module_name':
-                    aValue = a.module.name;
-                    bValue = b.module.name;
-                    break;
-                case 'date_taken':
-                    aValue = new Date(a.date_taken).getTime();
-                    bValue = new Date(b.date_taken).getTime();
-                    break;
+                switch (sortBy) {
+                    case "module_id":
+                        aValue = a.module?.module_id ?? "";
+                        bValue = b.module?.module_id ?? "";
+                        break;
+                    case "module_name":
+                        aValue = a.module?.name ?? "";
+                        bValue = b.module?.name ?? "";
+                        break;
+                    case "date_taken":
+                        aValue = new Date(a.date_taken).getTime();
+                        bValue = new Date(b.date_taken).getTime();
+                        break;
+                    default:
+                        break;
+                }
 
-            }
+                if (aValue > bValue) return sortOrder === "ASC" ? 1 : -1;
+                if (aValue < bValue) return sortOrder === "ASC" ? -1 : 1;
+                return 0;
+            });
 
-            if (aValue > bValue) {
-                return sortOrder === 'ASC' ? 1 : -1;
-            }
-            if (aValue < bValue) {
-                return sortOrder === 'ASC' ? -1 : 1;
-            }
-            return 0;
+            return sorted;
         });
-
-        setFilteredQuizScores(sortedScores);
-    }, [sortBy, sortOrder, quizScores]);
+    }, [sortBy, sortOrder]);
 
     useEffect(() => {
         if (quizYears && quizYears.length > 0 && selectedYear === null) {

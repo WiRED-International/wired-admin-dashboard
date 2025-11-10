@@ -3,10 +3,9 @@ import cssStyles from "./UsersTable.module.css";
 import UserTableActions from "./UserTableActions";
 import { globalStyles } from "../../globalStyles";
 import SortButtons from "../SortButton/SortButtons";
-import { calculateCmeCredits } from "../../utils/cmeCredits";
-import React, { useMemo } from "react";
-import { compactCols, getCellStyle } from "../../utils/helperFunctions";
+import { getCellStyle } from "../../utils/helperFunctions";
 import { ResizableTH } from "../../utils/resizableTH";
+import React from "react";
 
 type UsersTableProps = {
     users: UserDataInterface[];
@@ -36,12 +35,7 @@ const columns = [
     { key: "organization", label: "Organization" },
 ];
 
-const nonSortableColumns = ['actions', 'row_number', 'specializations', 'CME_Credits', 'basicCompletionPercent', ];
-
-interface UserWithCredits extends UserDataInterface {
-  cmeCredits: number;
-  basicCompletionPercent?: number;
-}
+const nonSortableColumns = ['actions', 'row_number', 'specializations', 'basicCompletionPercent', ];
 
 const evenGray = "#FFFEFE";
 const oddGray = "#F5F5F5";
@@ -57,7 +51,19 @@ const UsersTable: React.FC<UsersTableProps> = ({
   setCurrentPage,
   fetchAllUsers,
 }: UsersTableProps) => {
-  const [colWidths, setColWidths] = React.useState<Record<string, number>>({});
+    const [colWidths, setColWidths] = React.useState<Record<string, number>>(() => {
+      try {
+        const saved = localStorage.getItem("usersTableColWidths");
+        return saved ? JSON.parse(saved) : {};
+      } catch {
+        return {};
+      }
+    });
+
+    // 💾 Save widths whenever they change
+    React.useEffect(() => {
+      localStorage.setItem("usersTableColWidths", JSON.stringify(colWidths));
+    }, [colWidths]);
 
     const sortButtonOnClick = (columnKey: string) => {
         if (!columnKey || nonSortableColumns.includes(columnKey)) return;
@@ -72,16 +78,9 @@ const UsersTable: React.FC<UsersTableProps> = ({
         }
     };
 
-    const usersWithCredits: UserWithCredits[] = useMemo(() => {
-    return users.map((user) => ({
-        ...user,
-        cmeCredits: calculateCmeCredits(user.quizScores || []),
-    }));
-    }, [users]);
-
     const renderCellValue: (
       columnKey: string, 
-      user: UserWithCredits,
+      user: UserDataInterface,
       index?: number
     ) => React.ReactNode = (columnKey, user, index) => {
         const value = (user as unknown as Record<string, unknown>)[columnKey];
@@ -95,7 +94,7 @@ const UsersTable: React.FC<UsersTableProps> = ({
         }
 
         if (columnKey === "CME_Credits") {
-            return user.cmeCredits ?? 0;
+            return user.CME_Credits ?? 0;
         }
 
         if (columnKey === "basicCompletionPercent") {
@@ -138,16 +137,11 @@ const UsersTable: React.FC<UsersTableProps> = ({
               columnKey={column.key}
               baseStyle={{
                 ...styles.tableHead,
-                ...(compactCols.has(column.key) && {
-                  padding: "6px 8px",
-                  width: colWidths[column.key]
-                    ? `${colWidths[column.key]}px`
-                    : "1%",
-                  whiteSpace: "nowrap",
-                  textAlign:
-                    column.key === "CME_Credits" ? "right" : "center",
-                  minWidth: "auto",
-                }),
+                padding: "6px 8px",
+                textAlign: column.key === "CME_Credits" ? "right" : "center",
+                whiteSpace: "nowrap",
+                minWidth: "80px",
+                width: colWidths[column.key] ? `${colWidths[column.key]}px` : undefined,
               }}
               setColWidths={setColWidths}
               colWidths={colWidths}
@@ -169,7 +163,7 @@ const UsersTable: React.FC<UsersTableProps> = ({
       </thead>
 
       <tbody>
-        {usersWithCredits.map((user, index) => {
+        {users.map((user, index) => {
           const isEven = index % 2 === 0;
           return (
             <tr
