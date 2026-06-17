@@ -18,6 +18,7 @@ import PageContainer from "@/components/ui/PageContainer";
 import PageHeader from "@/components/ui/PageHeader";
 import Panel from "@/components/ui/Panel";
 import { ExamDetails } from "@/interfaces/ExamDetails";
+import SearchableOrganizationPicker from "@/components/Common/SearchableOrganizationPicker";
 
 export default function
 ExamDetailsPage() {
@@ -490,37 +491,15 @@ ExamDetailsPage() {
               }}
             >
 
-              <select
-                value={
-                  selectedOrgId ?? ""
+              <SearchableOrganizationPicker
+                organizations={availableOrganizations}
+                selectedId={selectedOrgId}
+                onSelect={(id) =>
+                  setSelectedOrgId(id)
                 }
-                onChange={(e) =>
-                  setSelectedOrgId(
-                    Number(
-                      e.target.value
-                    )
-                  )
-                }
-              >
-
-                <option value="">
-                  Select Organization
-                </option>
-
-                {availableOrganizations.map(
-                  (org) => (
-
-                    <option
-                      key={org.id}
-                      value={org.id}
-                    >
-                      {org.name}
-                    </option>
-
-                  )
-                )}
-
-              </select>
+                placeholder="Select Organization"
+                clearLabel="Clear Selection"
+              />
 
             </div>
 

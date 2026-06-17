@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ExamListItem } from "@/interfaces/ExamListItemInterface";
 import { OrganizationListItem } from "@/interfaces/OrganizationListItemInterface";
 import { ExamFilters as ExamFiltersType } from "@/interfaces/Exam";
+import SearchableOrganizationPicker from "@/components/Common/SearchableOrganizationPicker";
 
 type ExamFiltersProps = {
   filters: ExamFiltersType;
@@ -35,17 +36,7 @@ export default function ExamFilters({
 
   const [orgOptions, setOrgOptions] = useState<OrganizationListItem[]>([]);
 
-  const [orgOpen, setOrgOpen] = useState(false);
-
-  const [orgSearch, setOrgSearch] = useState("");
-
-  const orgRef = useRef<HTMLDivElement>(null);
-
   // Filter logic
-  const filteredOrgs = (orgOptions ?? []).filter((org) =>
-    org.name.toLowerCase().includes(orgSearch.toLowerCase())
-  );
-
   const filteredExams = (examOptions ?? []).filter((exam) =>
     exam.title.toLowerCase().includes(examSearch.toLowerCase())
   );
@@ -77,13 +68,6 @@ export default function ExamFilters({
   // 2️⃣ Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-
-      if (
-        orgRef.current &&
-        !orgRef.current.contains(event.target as Node)
-      ) {
-        setOrgOpen(false);
-      }
 
       if (
         examRef.current &&
@@ -229,67 +213,16 @@ export default function ExamFilters({
         </div>
 
         {/* ===== SEARCHABLE ORGANIZATION DROPDOWN ===== */}
-        <div style={styles.searchableWrapper} ref={orgRef}>
-          <div
-            style={styles.dropdown}
-            onClick={() => setOrgOpen(!orgOpen)}
-          >
-            {orgId
-              ? orgOptions.find((o) => o.id === orgId)?.name
-              : "All Organizations"}
-          </div>
-
-          {orgOpen && (
-            <div style={styles.dropdownPanel}>
-              {/* Search input */}
-              <input
-                type="text"
-                placeholder="Search organizations..."
-                style={styles.searchInput}
-                value={orgSearch}
-                onChange={(e) => setOrgSearch(e.target.value)}
-                autoFocus
-              />
-
-              <div style={styles.listContainer}>
-                {filteredOrgs.length === 0 && (
-                  <div style={styles.noResults}>No organizations found</div>
-                )}
-
-                {filteredOrgs.map((org) => (
-                  <div
-                    key={org.id}
-                    style={styles.listItem}
-                    onClick={() => {
-                      setFilters((prev) => ({
-                        ...prev,
-                        orgId: org.id,
-                      }));
-                      setOrgOpen(false);
-                    }}
-                  >
-                    {org.name}
-                  </div>
-                ))}
-              </div>
-
-              {/* Clear selection */}
-              <div
-                style={styles.clearItem}
-                onClick={() => {
-                  setFilters((prev) => ({
-                    ...prev,
-                    orgId: null,
-                  }));
-                  setOrgOpen(false);
-                  setOrgSearch("");
-                }}
-              >
-                Clear Organization Filter
-              </div>
-            </div>
-          )}
-        </div>
+        <SearchableOrganizationPicker
+          organizations={orgOptions}
+          selectedId={orgId}
+          onSelect={(id) => {
+            setFilters((prev) => ({
+              ...prev,
+              orgId: id,
+            }));
+          }}
+        />
 
         {/* Status Dropdown */}
         <select
