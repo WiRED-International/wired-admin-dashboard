@@ -1,11 +1,12 @@
 import { UserDataInterface } from "../../interfaces/UserDataInterface";
+import TableContainer from "../ui/TableContainer";
 import cssStyles from "./UsersTable.module.css";
 import UserTableActions from "./UserTableActions";
 import { globalStyles } from "../../globalStyles";
 import SortButtons from "../SortButton/SortButtons";
 import { getCellStyle } from "../../utils/helperFunctions";
-import { ResizableTH } from "../../utils/resizableTH";
 import React from "react";
+import Table from "../ui/table/Table";
 
 type UsersTableProps = {
     users: UserDataInterface[];
@@ -25,14 +26,15 @@ const columns = [
     { key: "last_name", label: "Last Name" },
     { key: "first_name", label: "First Name" },
     { key: "email", label: "Email" },
-    { key: "CME_Credits", label: "CME Credits" },
-    { key: "basicCompletionPercent", label: "Basic Training (%)" },
+    { key: "CME_Credits", label: "CME" },
+    { key: "basicCompletionPercent", label: "Basic Training" },
+    { key: "organization", label: "Organization" },
     //specializations has been removed for now due it causing issues with sorting and pagination
     // { key: "specializations", label: "Specializations" },
-    { key: "role", label: "Role" },
     { key: "country", label: "Country" },
+    { key: "role", label: "Role" },
     // { key: "city", label: "City" },
-    { key: "organization", label: "Organization" },
+    
 ];
 
 const nonSortableColumns = ['actions', 'row_number', 'specializations', 'basicCompletionPercent', ];
@@ -51,20 +53,6 @@ const UsersTable: React.FC<UsersTableProps> = ({
   setCurrentPage,
   fetchAllUsers,
 }: UsersTableProps) => {
-    const [colWidths, setColWidths] = React.useState<Record<string, number>>(() => {
-      try {
-        const saved = localStorage.getItem("usersTableColWidths");
-        return saved ? JSON.parse(saved) : {};
-      } catch {
-        return {};
-      }
-    });
-
-    // 💾 Save widths whenever they change
-    React.useEffect(() => {
-      localStorage.setItem("usersTableColWidths", JSON.stringify(colWidths));
-    }, [colWidths]);
-
     const sortButtonOnClick = (columnKey: string) => {
         if (!columnKey || nonSortableColumns.includes(columnKey)) return;
 
@@ -128,105 +116,142 @@ const UsersTable: React.FC<UsersTableProps> = ({
     };
       
     return (
-    <table style={styles.table}>
-      <thead>
-        <tr className={cssStyles.top_user_table_head}>
-          {columns.map((column) => (
-            <ResizableTH
-              key={column.key}
-              columnKey={column.key}
-              baseStyle={{
-                ...styles.tableHead,
-                padding: "6px 8px",
-                textAlign: column.key === "CME_Credits" ? "right" : "center",
-                whiteSpace: "nowrap",
-                minWidth: "80px",
-                width: colWidths[column.key] ? `${colWidths[column.key]}px` : undefined,
-              }}
-              setColWidths={setColWidths}
-              colWidths={colWidths}
-              onHeaderClick={() => sortButtonOnClick(column.key)}
-            >
-              <>
-                {column.label}
-                {!nonSortableColumns.includes(column.key) && (
-                  <SortButtons
-                    columnKey={column.key}
-                    sortBy={sortBy}
-                    sortOrder={sortOrder}
-                  />
-                )}
-              </>
-            </ResizableTH>
-          ))}
-        </tr>
-      </thead>
+      
+      <TableContainer>
+        <Table>
+          <thead className={cssStyles.stickyHeader}>
+            <tr className={cssStyles.top_user_table_head}>
+              {columns.map((column) => (
+                <th
+                  key={column.key}
+                  style={{
+                    ...styles.tableHead,
 
-      <tbody>
-        {users.map((user, index) => {
-          const isEven = index % 2 === 0;
-          return (
-            <tr
-              key={index}
-              style={{ backgroundColor: isEven ? evenGray : oddGray }}
-            >
-              {columns.map((column) => {
-                const isSortedColumn = column.key === sortBy;
-                const backgroundColor = isSortedColumn
-                  ? (isEven ? evenGreen : oddGreen)
-                  : "";
+                    padding: "6px 8px",
 
-                return (
-                  <td
-                    key={column.key}
+                    textAlign: "center",
+
+                    whiteSpace: "nowrap",
+
+                    width:
+                      column.key === "actions"
+                        ? "160px"
+                        : column.key === "row_number"
+                        ? "50px"
+                        : column.key === "last_name"
+                        ? "120px"
+                        : column.key === "first_name"
+                        ? "120px"
+                        : column.key === "email"
+                        ? "220px"
+                        : column.key === "CME_Credits"
+                        ? "110px"
+                        : column.key === "basic_training"
+                        ? "140px"
+                        : column.key === "role"
+                        ? "90px"
+                        : column.key === "country"
+                        ? "100px"
+                        : column.key === "organization"
+                        ? "160px"
+                        : "110px",
+                  }}
+
+                  onClick={() => sortButtonOnClick(column.key)}
+                >
+                  <div
                     style={{
-                      ...getCellStyle(column.key, backgroundColor),
-                      ...(colWidths[column.key] && {
-                        width: `${colWidths[column.key]}px`,
-                      }),
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
                     }}
                   >
-                    {renderCellValue(column.key, user, index)}
-                  </td>
-                );
-              })}
+                    <span>{column.label}</span>
+
+                    {!nonSortableColumns.includes(column.key) && (
+                      <SortButtons
+                        columnKey={column.key}
+                        sortBy={sortBy}
+                        sortOrder={sortOrder}
+                      />
+                    )}
+                  </div>
+                </th>
+              ))}
             </tr>
-          );
-        })}
-      </tbody>
-    </table>
-  );
-};
+          </thead>
+
+          <tbody>
+            {users.map((user, index) => {
+              const isEven = index % 2 === 0;
+              return (
+                <tr
+                  key={index}
+                  className={cssStyles.tableRow}
+                  style={{ backgroundColor: isEven ? evenGray : oddGray }}
+                >
+                  {columns.map((column) => {
+                    const isSortedColumn = column.key === sortBy;
+                    const backgroundColor = isSortedColumn
+                      ? (isEven ? evenGreen : oddGreen)
+                      : "";
+
+                    const cellValue = renderCellValue(column.key, user, index);
+
+                    return (
+                      <td
+                        key={column.key}
+                        title={
+                          typeof cellValue === "string" || typeof cellValue === "number"
+                            ? String(cellValue)
+                            : undefined
+                        }
+                        style={{
+                          ...getCellStyle(column.key, backgroundColor),
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          maxWidth: "220px",
+                        }}
+                      >
+                        {cellValue}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </Table>
+      </TableContainer>
+    );
+  };
 
 export default UsersTable;
 
 const styles: Record<string, React.CSSProperties> = {
-  table: {
-    width: "100%",
-    borderCollapse: "collapse",
-    fontFamily: "inter",
-    marginTop: "20px",
-    border: "1px solid #A9A9A9",
-    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
-  },
   tableHead: {
     textAlign: "left",
     whiteSpace: "nowrap",
-    border: "1px solid #A9A9A9",
-    padding: "12px 10px",
-    background: "linear-gradient(to bottom, #E6E6E6, #CCCCCC)",
-    fontWeight: 600,
-    color: "#333333",
-    position: "relative",
+    border: "1px solid #E2E8F0",
+    padding: "8px 6px",
+    background: "#F8FAFC",
+    fontWeight: 700,
+    fontSize: "14px",
+    color: "#334155",
     verticalAlign: "middle",
   },
+  
   tableCell: {
-    border: "1px solid #A9A9A9",
-    padding: "10px 12px",
+    border: "1px solid #E2E8F0",
+    padding: "4px 8px",
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
     minWidth: "120px",
     verticalAlign: "middle",
+    fontSize: "14px",
+    color: "#334155",
+    backgroundColor: "#FFFFFF",
   },
 };

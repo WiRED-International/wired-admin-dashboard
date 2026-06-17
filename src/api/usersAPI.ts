@@ -75,7 +75,7 @@ export const searchUsersBroad = async (searchQuery: string, page: number, rowsPe
     const query = encodeURIComponent(searchQuery);
     const sortQuery = sortBy ? `&sortBy=${encodeURIComponent(sortBy)}&sortOrder=${sortOrder}` : '';
     // const sortQuery = ''
-    const url = `${apiPrefix}users/search/broad?query=${query}&pageNumber=${page}&rowsPerPage=${rowsPerPage}${sortQuery}&_=${Date.now()}`;
+    const url = `${apiPrefix}/users/search/broad?query=${query}&pageNumber=${page}&rowsPerPage=${rowsPerPage}${sortQuery}&_=${Date.now()}`;
 
     try {
         const response = await fetch(url, {

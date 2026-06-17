@@ -5,8 +5,10 @@ import { globalStyles } from "../../globalStyles";
 interface UserRolesProps {
   singleUserData: UserDataInterface | null;
   viewMode: "view" | "edit";
-  formState: any;
-  setFormState: React.Dispatch<React.SetStateAction<any>>;
+  formState: UserDataInterface;
+  setFormState: React.Dispatch<
+    React.SetStateAction<UserDataInterface>
+  >;
   roles: RoleInterface[];
   styles: { [key: string]: React.CSSProperties };
 }
@@ -22,15 +24,22 @@ const UserRoles = ({
     <div style={styles.formRow}>
       <label style={styles.label}>Role:</label>
       {viewMode === "view" ? (
-        <span>{roles.find(r => r.name === formState.role)?.name}</span>
+        <span>{roles.find(r => r.name === formState.role?.name)?.name}</span>
       ) : (
         <select
           style={globalStyles.input}
-          value={roles.find(r => r.name === formState.role)?.id || ""}
+          value={
+            roles.find(
+              r => r.name === formState.role?.name
+            )?.id || ""
+          }
           onChange={(e) =>
             setFormState({
               ...formState,
-              role: roles.find(r => r.id === Number(e.target.value))?.name || "",
+              role:
+                roles.find(
+                  r => r.id === Number(e.target.value)
+                ) || formState.role,
             })
           }
         >

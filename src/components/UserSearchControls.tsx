@@ -1,5 +1,8 @@
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
+import Select from "../components/ui/Select";
 import React, { ChangeEvent } from 'react';
-
+import Toolbar from "../components/ui/Toolbar";
 import { UserDataInterface } from "../interfaces/UserDataInterface";
 import { searchUsersBroad } from '../api/usersAPI';
 
@@ -67,37 +70,46 @@ const UserSearchControls: React.FC<UserSearchControlsProps> = ({ currentPage, ro
 
 
     return (
-        <div style={styles.searchContainer}>
+        <Toolbar>
             <div style={styles.pageControls}>
-                <button
-                    style={styles.pageButton} type="button"
+                <Button
                     onClick={() => handlePaginationChange(1)}
                     disabled={currentPage === 1}
                 >{`<<`}
-                </button>
-                <button
+                </Button>
+                <Button
                     style={styles.pageButton} type="button"
                     onClick={() => handlePaginationChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                >{`<`}</button>
-                <input
-                    type="number"
+                >{`<`}</Button>
+                <Select
                     value={currentPage}
-                    onChange={(e) => handlePaginationChange(Number(e.target.value))}
-                    style={styles.pageInput}
-                    min={1}
-                    max={totalPages}
+                    onChange={(e) =>
+                        handlePaginationChange(Number(e.target.value))
+                    }
+
+                    options={Array.from(
+                        { length: totalPages },
+                        (_, i) => ({
+                            label: `Page ${i + 1}`,
+                            value: i + 1,
+                        })
+                    )}
+
+                    style={{
+                        width: "90px",
+                    }}
                 />
-                <button
+                <Button
                     style={styles.pageButton} type="button"
                     onClick={() => handlePaginationChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                >{`>`}</button>
-                <button
+                >{`>`}</Button>
+                <Button
                     style={styles.pageButton} type="button"
                     onClick={() => handlePaginationChange(totalPages)}
                     disabled={currentPage === totalPages}
-                >{`>>`}</button>
+                >{`>>`}</Button>
                 {totalPages > 0 && (
                     <span style={{ marginLeft: '10px' }}>
                         Page {currentPage} of {totalPages}
@@ -106,80 +118,64 @@ const UserSearchControls: React.FC<UserSearchControlsProps> = ({ currentPage, ro
             </div>
             <div style={styles.pageControls}>
                 <h3 style={styles.label}>Rows per page:</h3>
-                <select
+                <Select
                     style={styles.pageInput}
                     value={rowsPerPage}
                     onChange={(e) => handlePaginationChange(1, Number(e.target.value))}
+                    options={[
+                        { label: "50", value: 50 },
+                        { label: "100", value: 100 },
+                        { label: "200", value: 200 },
+                    ]}
                 >
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                    <option value={200}>200</option>
-                </select>
+                </Select>
             </div>
             <div style={styles.pageControls}>
                 <form
                     onSubmit={handleSearchSubmit}
-                    style={{ display: 'flex', alignItems: 'center' }}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                    }}
                 >
                     <h3 style={styles.label}>Search:</h3>
-                    <input
+                    <Input
                         type="text"
                         placeholder="Search by name or email"
                         value={searchQuery}
                         onChange={handleSearchChange}
-                        style={{ ...styles.pageInput, ...styles.searchInput }}
+                        style={{ width: "240px" }}
                         name="search"
                     />
-                    <button type="submit" style={styles.searchButton}>Search</button>
+                    <Button type="submit">
+                        Search
+                    </Button>
                 </form>
             </div>
-        </div>
+        </Toolbar>
     );
 }
 
 export default UserSearchControls;
 
 const styles: { [key: string]: React.CSSProperties } = {
-    searchContainer: {
-        display: "flex",
-        flexDirection: "row",
-    },
     pageControls: {
         display: "flex",
-        flexDirection: "row",
+
         alignItems: "center",
-        borderRight: "3px solid #9D9D9D",
-        paddingBlock: "10px",
-        paddingRight: "40px",
-        paddingLeft: "10px",
-        textWrap: "nowrap",
-    },
-    pageButton: {
-        border: "none",
-        backgroundColor: 'transparent',
-        fontSize: "24px",
-        marginInline: "10px",
-    },
-    pageInput: {
-        width: "50px",
-        height: "30px",
-        fontFamily: 'inter',
-    },
-    searchInput: {
-        width: "200px",
-        height: "30px",
-        fontFamily: 'inter',
-        marginInline: "10px",
+
+        gap: "12px",
+
+        paddingRight: "20px",
+
+        minHeight: "44px",
     },
     label: {
-        fontFamily: 'inter',
-        marginInline: "10px",
-        marginBlock: "0px",
+        fontFamily: "Inter, sans-serif",
+        fontSize: "14px",
+        fontWeight: 600,
+        color: "#475569",
+        margin: 0,
     },
-    searchButton: {
-        height: "30px",
-        fontFamily: 'inter',
-        marginInline: "10px",
-        cursor: "pointer",
-    }
 };
