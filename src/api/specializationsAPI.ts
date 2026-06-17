@@ -4,7 +4,7 @@ import {SpecializationsInterface} from "../interfaces/SpecializationInterface";
 
 //fetch all specializations
 export const fetchAllSpecializations = async (): Promise<SpecializationsInterface[]> => {
-    const url = `${apiPrefix}api/specializations`;
+    const url = `${apiPrefix}/api/specializations`;
 
     try {
         const response = await fetch(url, {

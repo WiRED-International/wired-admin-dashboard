@@ -1,7 +1,8 @@
-import DashboardHeader from "../components/DashboardHeader";
+import PageHeader from "../components/ui/PageHeader";
+import PageContainer from "../components/ui/PageContainer";
+import Panel from "../components/ui/Panel";
 import UserSearchControls from "../components/UserSearchControls";
 import UsersTable from "../components/UserTable/UsersTable";
-import { globalStyles } from "../globalStyles";
 import { UserDataInterface, UserSearchBroadResponse } from "../interfaces/UserDataInterface";
 import { searchUsersBroad } from "../api/usersAPI";
 import { useEffect, useState } from "react";
@@ -56,12 +57,18 @@ const UsersPage = () => {
   
   return (
   
-    <div style={globalStyles.pageContainer}>
+    <>
 
       {loading && <LoadingSpinner />}
-      <DashboardHeader />
-      <div style={styles.usersContainer}>
-        <h1 style={styles.userHeader}>Registered Users</h1>
+      {/* <DashboardHeader /> */}
+      <PageContainer>
+
+        <Panel>
+
+          <PageHeader
+            title="Registered Users"
+            subtitle="Manage users, roles, CME progress, and account activity."
+          />
         <UserSearchControls
           currentPage={currentPage}
           rowsPerPage={rowsPerPage}
@@ -86,23 +93,9 @@ const UsersPage = () => {
           isDeleteConfirmOpen={isDeleteConfirmOpen}
           setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
         />
-      </div>
-    </div>
+        </Panel>
+      </PageContainer>
+    </>
   );
 }
 export default UsersPage;
-
-const styles: { [key: string]: React.CSSProperties } = {
-  usersContainer: {
-    padding: "20px",
-    backgroundColor: "#E4E4E4",
-    width: "100%",
-    height: "100%",
-    overflowY: "auto",
-  },
-  usersHeader: {
-    fontFamily: 'inter',
-    fontWeight: 'bolder',
-    fontSize: "48px",
-  }
-}

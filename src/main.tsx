@@ -10,7 +10,12 @@ import AdminDashboard from "./pages/AdminDashboard.tsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage.tsx";
 import PasswordResetPage from "./pages/PasswordResetPage.tsx";
 import UsersPage from "./pages/Users.tsx";
+import ExamsPage from "./pages/ExamsPage.tsx"
+import ScheduleExamPage from "./pages/ScheduleExamPage.tsx";
+import ScheduledExamsPage from "./pages/ScheduledExamsPage";
+import ExamDetailsPage from "./pages/ExamDetailsPage.tsx";
 import { UserOptionsProvider } from "./context/UserOptionsContext.tsx";
+import ExamAttemptDetailsPage from "./pages/ExamAttemptDetailsPage";
 
 const router = createBrowserRouter(
   [
@@ -56,6 +61,50 @@ const router = createBrowserRouter(
           element: (
             <ProtectedRoute redirectTo="/login">
               <UsersPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/exams",
+          element: (
+            <ProtectedRoute redirectTo="/login">
+              <ExamsPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/exams/schedule",
+          element: (
+            <ProtectedRoute redirectTo="/login">
+              <ScheduleExamPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/exams/scheduled",
+          element: (
+            <ProtectedRoute redirectTo="/login">
+              <ScheduledExamsPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/exams/results/:sessionId",
+          element: (
+            <ProtectedRoute
+              redirectTo="/login"
+            >
+              <ExamAttemptDetailsPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/exams/:id",
+          element: (
+            <ProtectedRoute
+              redirectTo="/login"
+            >
+              <ExamDetailsPage />
             </ProtectedRoute>
           ),
         },

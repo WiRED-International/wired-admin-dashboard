@@ -10,7 +10,19 @@
   justify-content: space-between;
   align-items: center;
 }
+.tableRow {
+  transition: background-color 0.12s ease;
+}
 
+.tableRow:hover td {
+  background-color: #F8FAFC !important;
+}
 
+.stickyHeader th {
+  position: sticky;
+  top: 0;
 
+  z-index: 10;
 
+  background: #F8FAFC;
+}

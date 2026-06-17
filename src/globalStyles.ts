@@ -1,5 +1,3 @@
-
-
 //color variables
 const darkText = '#333';
 const lightGray = '#f9f9f9';
@@ -27,13 +25,11 @@ export const globalStyles = {
     pageContainer: {
         fontFamily: 'Arial, sans-serif',
         backgroundColor: pageBackgroundMain,
-        height: '100vh',
         display: 'flex',
         flexDirection: 'column' as const,
         color: darkText,
-        alignItems: 'center' as const,
-        overflow: 'auto',
         width: '100%',
+        minHeight: '100%',
     },
     header: {
         backgroundColor: headerColor,

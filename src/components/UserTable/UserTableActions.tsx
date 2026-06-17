@@ -1,6 +1,3 @@
-import deleteIcon from '/icons/delete.png'
-import editIcon from '/icons/edit_icon.png'
-import greenEyeIcon from '/icons/green_eye_icon.png'
 import { UserDataInterface } from '../../interfaces/UserDataInterface'
 import SingleUserView from './SingleUserView'
 import { useEffect, useState } from 'react'
@@ -79,19 +76,21 @@ const UserTableActions = ({user, fetchAllUsers}: UserTableActionsProps) => {
         />
       )}
       <div style={styles.actionContainer} onClick={handleViewClick}>
-        <img src={greenEyeIcon} style={styles.icon} alt="View" />
         <span style={styles.actionText}>View</span>
       </div>
 
       {isSuperAdmin && (
         <>
+          <span style={styles.separator}>|</span>
+
           <div style={styles.actionContainer} onClick={handleEditClick}>
-            <img src={editIcon} style={styles.icon} alt="Edit" />
             <span style={styles.actionText}>Edit</span>
           </div>
+
+          <span style={styles.separator}>|</span>
+
           <div style={styles.actionContainer} onClick={handleDeleteClick}>
-            <img src={deleteIcon} style={styles.icon} alt="Delete" />
-            <span style={styles.actionText}>Delete</span>
+            <span style={styles.deleteText}>Delete</span>
           </div>
         </>
       )}
@@ -118,6 +117,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '5px',
   },
   actionText: {
+    color: '#2E83F3',
+    fontSize: '18px',
+  },
+  deleteText: {
     color: '#2E83F3',
     fontSize: '18px',
   }

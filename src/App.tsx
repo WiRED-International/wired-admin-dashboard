@@ -1,17 +1,29 @@
+import { Outlet, useLocation } from "react-router-dom";
+import LayoutShell from "./layout/LayoutShell";
+import Footer from "./components/Footer";
 
-import { Outlet } from 'react-router-dom';
-import './App.css'
-import Footer from './components/Footer';
-import '@fontsource/inter'
+export default function App() {
+  const location = useLocation();
 
-function App() {
+  // pages that should NOT show the sidebar layout
+  const noLayoutRoutes = [
+    "/login",
+    "/forgot-password",
+    "/reset-password",
+  ];
 
-  return (
+  const hideLayout = noLayoutRoutes.some(route =>
+    location.pathname.startsWith(route)
+  );
+
+  return hideLayout ? (
     <>
-      <Outlet/>
-      <Footer/>
+      <Outlet />
+      <Footer />
     </>
-  )
+  ) : (
+    <LayoutShell>
+      <Outlet />
+    </LayoutShell>
+  );
 }
-
-export default App
