@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   getScheduledExams,
   getAccessibleOrganizations,
@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import PageContainer from "@/components/ui/PageContainer";
 import PageHeader from "@/components/ui/PageHeader";
 import Panel from "@/components/ui/Panel";
+import SearchableOrganizationPicker from "@/components/Common/SearchableOrganizationPicker";
 
 function renderStatusBadge(status: string) {
   const base: React.CSSProperties = {
@@ -84,12 +85,6 @@ export default function ScheduledExamsPage() {
 
   const [sortOrder, setSortOrder] = useState <"ASC" | "DESC"> ("DESC");
 
-  const [orgOpen, setOrgOpen] = useState(false);
-
-  const [orgSearch, setOrgSearch] = useState("");
-
-  const orgRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     const loadOrganizations = async () => {
         try {
@@ -153,27 +148,6 @@ export default function ScheduledExamsPage() {
     sortOrder,
   ]);
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        orgRef.current &&
-        !orgRef.current.contains(event.target as Node)
-      ) {
-        setOrgOpen(false);
-      }
-    }
-
-    document.addEventListener(
-      "mousedown",
-      handleClickOutside
-    );
-
-    return () =>
-      document.removeEventListener(
-        "mousedown",
-        handleClickOutside
-      );
-  }, []);
     const formatDate = (value: string) => {
 
       return new Date(value).toLocaleString(
@@ -208,11 +182,7 @@ export default function ScheduledExamsPage() {
       setPage(1);
 
     };
-    const filteredOrgs = organizations.filter((org) =>
-      org.name
-        .toLowerCase()
-        .includes(orgSearch.toLowerCase())
-    );
+   
   return (
     <PageContainer>
 
@@ -275,113 +245,25 @@ export default function ScheduledExamsPage() {
               <option value="Closed">Closed</option>
             </select>
           </div>
-          <div style={{ position: "relative" }} ref={orgRef}>
-            <label style={{ marginRight: "8px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <label>
               Organization
             </label>
 
-            <div
-              style={{
-                display: "inline-block",
-                minWidth: "220px",
-                padding: "10px 14px",
-                backgroundColor: "#F4F4F5",
-                borderRadius: "6px",
-                fontSize: "14px",
-                color: "#444",
-                border: "1px solid #ddd",
-                cursor: "pointer",
+            <SearchableOrganizationPicker
+              organizations={organizations}
+              selectedId={organizationFilter}
+              onSelect={(id) => {
+                setOrganizationFilter(id);
+                setPage(1);
               }}
-              onClick={() => setOrgOpen(!orgOpen)}
-            >
-              {organizationFilter
-                ? organizations.find((o) => o.id === organizationFilter)?.name
-                : "All Organizations"}
-            </div>
-
-            {orgOpen && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  left: "95px",
-                  marginTop: "4px",
-                  width: "320px",
-                  background: "#fff",
-                  border: "1px solid #ddd",
-                  borderRadius: "8px",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
-                  zIndex: 1000,
-                }}
-              >
-                <input
-                  type="text"
-                  placeholder="Search organizations..."
-                  value={orgSearch}
-                  onChange={(e) => setOrgSearch(e.target.value)}
-                  autoFocus
-                  style={{
-                    width: "100%",
-                    boxSizing: "border-box",
-                    padding: "10px 12px",
-                    border: "none",
-                    borderBottom: "1px solid #E5E7EB",
-                    fontSize: "14px",
-                  }}
-                />
-
-                <div
-                  style={{
-                    maxHeight: "220px",
-                    overflowY: "auto",
-                  }}
-                >
-                  {filteredOrgs.length === 0 && (
-                    <div style={{ padding: "12px", color: "#666" }}>
-                      No organizations found
-                    </div>
-                  )}
-
-                  {filteredOrgs.map((org) => (
-                    <div
-                      key={org.id}
-                      style={{
-                        padding: "10px 12px",
-                        cursor: "pointer",
-                        fontSize: "14px",
-                      }}
-                      onClick={() => {
-                        setOrganizationFilter(org.id);
-                        setPage(1);
-                        setOrgOpen(false);
-                        setOrgSearch("");
-                      }}
-                    >
-                      {org.name}
-                    </div>
-                  ))}
-                </div>
-
-                <div
-                  style={{
-                    padding: "10px 12px",
-                    borderTop: "1px solid #E5E7EB",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    color: "#B91C1C",
-                    fontWeight: 600,
-                  }}
-                  onClick={() => {
-                    setOrganizationFilter(null);
-                    setPage(1);
-                    setOrgOpen(false);
-                    setOrgSearch("");
-                  }}
-                >
-                  Clear Organization Filter
-                </div>
-              </div>
-            )}
+            />
           </div>
         </div>
 
