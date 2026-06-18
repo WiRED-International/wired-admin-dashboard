@@ -3,6 +3,7 @@ import { getExamTemplates, getAccessibleOrganizations, scheduleExam } from "@/ap
 import { ExamTemplate } from "@/interfaces/ExamTemplate";
 import { searchUsersBroad } from "@/api/usersAPI";
 import { UserSearchResult } from "@/interfaces/UserSearchResult";
+import SearchableOrganizationMultiSelect from "@/components/Common/SearchableOrganizationMultiSelect";
 
 export default function ScheduleExamPage() {
   const [scheduling, setScheduling] = useState(false);
@@ -18,7 +19,6 @@ export default function ScheduleExamPage() {
 
   const [organizations, setOrganizations] = useState<{ id: number; name: string }[]>([]);
   const [selectedOrganizations, setSelectedOrganizations] = useState<number[]>([]);
-  const [orgSelection, setOrgSelection] = useState("");
 
   const [userSearch, setUserSearch] = useState("");
   const [userResults, setUserResults] = useState<UserSearchResult[]>([]);
@@ -171,66 +171,14 @@ export default function ScheduleExamPage() {
 
       <h2>Organization Access</h2>
 
-      <select
-        value={orgSelection}
-        onChange={(e) => {
-
-          setOrgSelection(e.target.value);
-
-          const id = Number(e.target.value);
-
-          if (
-            id &&
-            !selectedOrganizations.includes(id)
-          ) {
-            setSelectedOrganizations([
-              ...selectedOrganizations,
-              id,
-            ]);
-          }
-
-          // Reset dropdown back to placeholder
-          setOrgSelection("");
-        }}
-      >
-        <option value="">
-          Select Organization
-        </option>
-
-        {organizations.map((org) => (
-          <option
-            key={org.id}
-            value={org.id}
-          >
-            {org.name}
-          </option>
-        ))}
-      </select>
-      <ul>
-        {selectedOrganizations.map((orgId) => {
-          const org = organizations.find(
-            (o) => o.id === orgId
-          );
-
-          return (
-            <li key={orgId}>
-              {org?.name}
-
-              <button
-                onClick={() =>
-                  setSelectedOrganizations(
-                    selectedOrganizations.filter(
-                      (id) => id !== orgId
-                    )
-                  )
-                }
-              >
-                Remove
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+      <SearchableOrganizationMultiSelect
+        organizations={organizations}
+        selectedIds={selectedOrganizations}
+        onChange={(ids) =>
+          setSelectedOrganizations(ids)
+        }
+        placeholder="Select Organizations"
+      />
       <h2>User Access</h2>
 
       <input
@@ -440,7 +388,6 @@ export default function ScheduleExamPage() {
             setSelectedUsers([]);
             setUserResults([]);
             setUserSearch("");
-            setOrgSelection("");
 
           } catch (err) {
 
