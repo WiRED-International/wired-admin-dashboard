@@ -33,11 +33,6 @@ const UserTableActions = ({user, fetchAllUsers}: UserTableActionsProps) => {
     setIsSingleUserViewOpen(true);
   };
 
-  const handleEditClick = () => {
-    setViewMode('edit');
-    setIsSingleUserViewOpen(true);
-  };
-
   const handleDeleteClick = () => {
     setIsDeleteConfirmOpen(true);
   };
@@ -81,12 +76,6 @@ const UserTableActions = ({user, fetchAllUsers}: UserTableActionsProps) => {
 
       {isSuperAdmin && (
         <>
-          <span style={styles.separator}>|</span>
-
-          <div style={styles.actionContainer} onClick={handleEditClick}>
-            <span style={styles.actionText}>Edit</span>
-          </div>
-
           <span style={styles.separator}>|</span>
 
           <div style={styles.actionContainer} onClick={handleDeleteClick}>

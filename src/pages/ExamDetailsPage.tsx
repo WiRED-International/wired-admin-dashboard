@@ -19,6 +19,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import Panel from "@/components/ui/Panel";
 import { ExamDetails } from "@/interfaces/ExamDetails";
 import SearchableOrganizationPicker from "@/components/Common/SearchableOrganizationPicker";
+import SearchableTimeZonePicker from "@/components/Common/SearchableTimeZonePicker";
 
 export default function
 ExamDetailsPage() {
@@ -33,6 +34,8 @@ ExamDetailsPage() {
 
   const [editing, setEditing] = useState(false);
 
+  const [successMessage, setSuccessMessage] = useState("");
+
   const [formData, setFormData] =
   useState({
     title: "",
@@ -40,6 +43,7 @@ ExamDetailsPage() {
     localStart: "",
     localEnd: "",
     duration_minutes: 0,
+    time_zone: "",
   });
 
   const [showAddOrg, setShowAddOrg] = useState(false);
@@ -74,19 +78,16 @@ ExamDetailsPage() {
 
         setFormData({
           title: data.title,
-          description:
-            data.description || "",
 
-          localStart:
-            data.available_from
-              .slice(0, 16),
+          description: data.description || "",
 
-          localEnd:
-            data.available_until
-              .slice(0, 16),
+          localStart: data.available_from.slice(0, 16),
 
-          duration_minutes:
-            data.duration_minutes,
+          localEnd: data.available_until.slice(0, 16),
+
+          duration_minutes: data.duration_minutes,
+
+          time_zone: data.time_zone || "",
         });
 
         const orgs = await getAccessibleOrganizations();
@@ -124,10 +125,46 @@ ExamDetailsPage() {
 
   return (
     <PageContainer>
+      <button
+        onClick={() =>
+          navigate("/exams/scheduled")
+        }
+        style={{
+          background: "none",
+          border: "none",
+          color: "#2B78F6",
+          cursor: "pointer",
+          padding: 0,
+          marginBottom: "12px",
+          fontSize: "14px",
+          fontWeight: 600,
+          textDecoration: "none",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "4px",
+        }}
+      >
+        ← Back to Scheduled Exams
+      </button>
       <PageHeader
         title={exam.title}
         subtitle="Exam session details"
       />
+      {successMessage && (
+        <div
+          style={{
+            backgroundColor: "#ECFDF5",
+            color: "#166534",
+            border: "1px solid #BBF7D0",
+            borderRadius: "8px",
+            padding: "12px 16px",
+            marginBottom: "16px",
+            fontWeight: 600,
+          }}
+        >
+          ✓ {successMessage}
+        </div>
+      )}
       <Panel>
 
       <div
@@ -141,9 +178,16 @@ ExamDetailsPage() {
 
           <>
             <button
-              onClick={() =>
-                setEditing(true)
-              }
+              style={{
+                backgroundColor: "#2B78F6",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: "8px",
+                padding: "10px 16px",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+              onClick={() => setEditing(true)}
             >
               Edit Exam
             </button>
@@ -151,6 +195,13 @@ ExamDetailsPage() {
             <button
               style={{
                 marginLeft: "8px",
+                backgroundColor: "#DC2626",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: "8px",
+                padding: "10px 16px",
+                fontWeight: 600,
+                cursor: "pointer",
               }}
               onClick={async () => {
 
@@ -188,6 +239,15 @@ ExamDetailsPage() {
 
           <>
             <button
+              style={{
+                backgroundColor: "#2B78F6",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: "8px",
+                padding: "10px 16px",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
               onClick={async () => {
 
                 try {
@@ -197,7 +257,7 @@ ExamDetailsPage() {
                     {
                       ...formData,
                       timeZone:
-                        "Africa/Nairobi",
+                        formData.time_zone,
                     }
                   );
 
@@ -209,6 +269,12 @@ ExamDetailsPage() {
                   setExam(updated);
 
                   setEditing(false);
+
+                  setSuccessMessage("Exam updated successfully");
+
+                  setTimeout(() => {
+                    setSuccessMessage("");
+                  }, 3000);
 
                 } catch (err) {
 
@@ -226,34 +292,36 @@ ExamDetailsPage() {
             </button>
 
             <button
+              style={{
+                marginLeft: "8px",
+                backgroundColor: "#FFFFFF",
+                color: "#334155",
+                border: "1px solid #CBD5E1",
+                borderRadius: "8px",
+                padding: "10px 16px",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
               onClick={() => {
 
                 setFormData({
 
-                  title:
-                    exam.title,
+                  title: exam.title,
 
-                  description:
-                    exam.description || "",
+                  description: exam.description || "",
 
-                  localStart:
-                    exam.available_from
-                      .slice(0, 16),
+                  localStart: exam.available_from.slice(0, 16),
 
-                  localEnd:
-                    exam.available_until
-                      .slice(0, 16),
+                  localEnd: exam.available_until.slice(0, 16),
 
-                  duration_minutes:
-                    exam.duration_minutes,
+                  duration_minutes: exam.duration_minutes,
+
+                  time_zone: exam.time_zone || "",
 
                 });
 
                 setEditing(false);
 
-              }}
-              style={{
-                marginLeft: "8px",
               }}
             >
               Cancel
@@ -266,198 +334,194 @@ ExamDetailsPage() {
 
       <h2>Session Information</h2>
 
-      <p>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "16px 32px",
+          marginTop: "16px",
+        }}
+      >
+        <div
+          style={{
+            gridColumn: "1 / -1",
+          }}
+        >
+          <strong>Title:</strong>{" "}
 
-        <strong>
-          Title:
-        </strong>
+          {editing ? (
+            <div style={{ marginTop: "8px" }}>
+              <input
+                value={formData.title}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    title: e.target.value,
+                  })
+                }
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  border: "1px solid #CBD5E1",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+          ) : (
+            exam.title
+          )}
+        </div>
+        <div>
+          <strong>Start:</strong>{" "}
+          {editing ? (
+            <input
+              type="datetime-local"
+              value={formData.localStart}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  localStart: e.target.value,
+                })
+              }
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                border: "1px solid #CBD5E1",
+                borderRadius: "8px",
+                fontSize: "14px",
+              }}
+            />
+          ) : (
+            new Date(exam.available_from).toLocaleString()
+          )}
+        </div>
 
-        {" "}
+        <div>
+          <strong>End:</strong>{" "}
+          {editing ? (
+            <input
+              type="datetime-local"
+              value={formData.localEnd}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  localEnd: e.target.value,
+                })
+              }
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                border: "1px solid #CBD5E1",
+                borderRadius: "8px",
+                fontSize: "14px",
+                boxSizing: "border-box",
+              }}
+            />
+          ) : (
+            new Date(exam.available_until).toLocaleString()
+          )}
+        </div>
+        <div>
+          {editing ? (
 
-        {editing ? (
+            <>
+              <strong>Duration:</strong>
 
-          <input
-            value={formData.title}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                title: e.target.value,
-              })
-            }
-            style={{
-              width: "100%",
-              marginTop: "8px",
-              padding: "8px",
-            }}
-          />
+              <div>
+                <input
+                  type="number"
+                  value={formData.duration_minutes}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      duration_minutes: Number(
+                        e.target.value
+                      ),
+                    })
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    border: "1px solid #CBD5E1",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    boxSizing: "border-box",
+                  }}
+                />
+              </div>
+            </>
 
-        ) : (
+          ) : (
 
-          exam.title
+            <>
+              <strong>Duration:</strong>{" "}
+              {exam.duration_minutes} minutes
+            </>
 
-        )}
+          )}
+        </div>
+        <div>
+          <strong>Time Zone:</strong>{" "}
 
-      </p>
+          {editing ? (
 
-      <p>
+            <SearchableTimeZonePicker
+              value={formData.time_zone}
+              onChange={(timeZone) =>
+                setFormData({
+                  ...formData,
+                  time_zone: timeZone,
+                })
+              }
+            />
 
-        <strong>
-          Description:
-        </strong>
+          ) : (
 
-        {" "}
+            exam.time_zone
 
-        {editing ? (
+          )}
+        </div>
 
-          <textarea
-            value={
-              formData.description
-            }
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                description:
-                  e.target.value,
-              })
-            }
-            rows={4}
-            style={{
-              width: "100%",
-            }}
-          />
+        <div></div>
 
-        ) : (
+        <div
+          style={{
+            gridColumn: "1 / -1",
+            marginTop: "8px",
+          }}
+        >
+          <strong>Description:</strong>
 
-          exam.description
-
-        )}
-
-      </p>
-
-      <p>
-
-        <strong>
-          Duration:
-        </strong>
-
-        {" "}
-
-        {editing ? (
-
-          <input
-            type="number"
-            value={
-              formData.duration_minutes
-            }
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                duration_minutes:
-                  Number(
-                    e.target.value
-                  ),
-              })
-            }
-            style={{
-              width: "120px",
-              marginLeft: "8px",
-            }}
-          />
-
-        ) : (
-
-          <>
-            {exam.duration_minutes}
-            {" "}
-            minutes
-          </>
-
-        )}
-
-      </p>
-
-      <p>
-
-        <strong>
-          Start:
-        </strong>
-
-        {" "}
-
-        {editing ? (
-
-          <input
-            type="datetime-local"
-            value={
-              formData.localStart
-            }
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                localStart:
-                  e.target.value,
-              })
-            }
-            style={{
-              marginLeft: "8px",
-            }}
-          />
-
-        ) : (
-
-          <>
-            {new Date(
-              exam.available_from
-            ).toLocaleString()}
-            {" "}
-            ({exam.time_zone})
-          </>
-
-        )}
-
-      </p>
-
-      <p>
-
-        <strong>
-          End:
-        </strong>
-
-        {" "}
-
-        {editing ? (
-
-          <input
-            type="datetime-local"
-            value={
-              formData.localEnd
-            }
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                localEnd:
-                  e.target.value,
-              })
-            }
-            style={{
-              marginLeft: "8px",
-            }}
-          />
-
-        ) : (
-
-          <>
-            {new Date(
-              exam.available_until
-            ).toLocaleString()}
-            {" "}
-            ({exam.time_zone})
-          </>
-
-        )}
-
-      </p>
-
+          <div style={{ marginTop: "8px" }}>
+            {editing ? (
+              <textarea
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    description: e.target.value,
+                  })
+                }
+                rows={4}
+                style={{
+                  width: "100%",
+                  minHeight: "120px",
+                  padding: "12px",
+                  border: "1px solid #CBD5E1",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  resize: "vertical",
+                  boxSizing: "border-box",
+                }}
+              />
+            ) : (
+              exam.description || "No description"
+            )}
+          </div>
+        </div>
+      </div>
       </Panel>
 
       <Panel>
@@ -472,15 +536,28 @@ ExamDetailsPage() {
           }}
         >
 
-          <button
-            onClick={() =>
-              setShowAddOrg(
-                !showAddOrg
-              )
-            }
-          >
-            Add Organization
-          </button>
+          {editing && (
+
+            <button
+              style={{
+                backgroundColor: "#2B78F6",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: "8px",
+                padding: "10px 16px",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+              onClick={() =>
+                setShowAddOrg(
+                  !showAddOrg
+                )
+              }
+            >
+              Add Organization
+            </button>
+
+          )}
 
           {showAddOrg && (
 
@@ -501,129 +578,158 @@ ExamDetailsPage() {
                 clearLabel="Clear Selection"
               />
 
+              <div style={{ marginTop: "12px" }}>
+                <button
+                  disabled={!selectedOrgId}
+                  style={{
+                    backgroundColor: selectedOrgId
+                      ? "#2B78F6"
+                      : "#94A3B8",
+                    color: "#FFFFFF",
+                    border: "none",
+                    borderRadius: "8px",
+                    padding: "10px 16px",
+                    fontWeight: 600,
+                    cursor: selectedOrgId
+                      ? "pointer"
+                      : "not-allowed",
+                  }}
+                  onClick={async () => {
+                    if (!selectedOrgId) return;
+
+                    try {
+                      await assignOrganizationToExam(
+                        Number(id),
+                        selectedOrgId
+                      );
+
+                      const updated =
+                        await getExamDetails(Number(id));
+
+                      setExam(updated);
+                      setSelectedOrgId(null);
+                      setShowAddOrg(false);
+                    } catch (err) {
+                      console.error(err);
+                      alert("Failed to assign organization");
+                    }
+                  }}
+                >
+                  Assign
+                </button>
+
+                <button
+                  style={{
+                    marginLeft: "8px",
+                    backgroundColor: "#FFFFFF",
+                    color: "#334155",
+                    border: "1px solid #CBD5E1",
+                    borderRadius: "8px",
+                    padding: "10px 16px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => {
+                    setShowAddOrg(false);
+                    setSelectedOrgId(null);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+
             </div>
 
           )}
 
         </div>
 
-        <button
-          disabled={!selectedOrgId}
+        <div
           style={{
-            marginTop: "8px",
-          }}
-          onClick={async () => {
-
-            if (!selectedOrgId) {
-              return;
-            }
-
-            try {
-
-              await assignOrganizationToExam(
-                Number(id),
-                selectedOrgId
-              );
-
-              const updated =
-                await getExamDetails(
-                  Number(id)
-                );
-
-              setExam(updated);
-
-              setSelectedOrgId(null);
-
-              setShowAddOrg(false);
-
-            } catch (err) {
-
-              console.error(err);
-
-              alert(
-                "Failed to assign organization"
-              );
-
-            }
-
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
+            marginTop: "12px",
           }}
         >
-          Assign
-        </button>
-        <button
-          style={{
-            marginLeft: "8px",
-          }}
-          onClick={() => {
-
-            setShowAddOrg(false);
-
-            setSelectedOrgId(null);
-
-          }}
-        >
-          Cancel
-        </button>
-
-        <ul>
 
           {exam.organizations.map(
             (org) => (
 
-              <li key={org.id}>
+              <div
+                key={org.id}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "10px 12px",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "6px",
+                  backgroundColor: "#F9FAFB",
+                }}
+              >
 
-                {org.name}
+                <div>
+                  {org.name}
+                </div>
+                {editing && (
+                  <button
+                    style={{
+                      marginLeft: "12px",
+                      backgroundColor: "transparent",
+                      color: "#DC2626",
+                      border: "none",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      padding: "4px 8px",
+                    }}
+                    onClick={async () => {
 
-                <button
-                  style={{
-                    marginLeft: "12px",
-                  }}
-                  onClick={async () => {
-
-                    const confirmed =
-                      window.confirm(
-                        `Remove ${org.name} from this exam?`
-                      );
-
-                    if (!confirmed) {
-                      return;
-                    }
-
-                    try {
-
-                      await removeOrganizationFromExam(
-                        Number(id),
-                        org.id
-                      );
-
-                      const updated =
-                        await getExamDetails(
-                          Number(id)
+                      const confirmed =
+                        window.confirm(
+                          `Remove ${org.name} from this exam?`
                         );
 
-                      setExam(updated);
+                      if (!confirmed) {
+                        return;
+                      }
 
-                    } catch (err) {
+                      try {
 
-                      console.error(err);
+                        await removeOrganizationFromExam(
+                          Number(id),
+                          org.id
+                        );
 
-                      alert(
-                        "Failed to remove organization"
-                      );
+                        const updated =
+                          await getExamDetails(
+                            Number(id)
+                          );
 
-                    }
+                        setExam(updated);
 
-                  }}
-                >
-                  Remove
-                </button>
+                      } catch (err) {
 
-              </li>
+                        console.error(err);
+
+                        alert(
+                          "Failed to remove organization"
+                        );
+
+                      }
+
+                    }}
+                  >
+                    Remove
+                  </button>
+              )}
+              </div>
 
             )
           )}
 
-        </ul>
+        </div>
 
       </Panel>
 
@@ -632,18 +738,6 @@ ExamDetailsPage() {
         <h2>
           Participants
         </h2>
-
-        <button
-          onClick={() =>
-            setShowAddParticipant(
-              !showAddParticipant
-            )
-          }
-        >
-          {showAddParticipant
-            ? "Cancel"
-            : "Add Participant"}
-        </button>
 
         {showAddParticipant && (
 
@@ -701,100 +795,185 @@ ExamDetailsPage() {
 
         )}
 
-        <p>
-          {exam.exam_user_access.length}
-          {" "}
-          Assigned Users
-        </p>
-
-        <button
-          onClick={() =>
-            setShowParticipants(
-              !showParticipants
-            )
-          }
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: "16px",
+            marginBottom: "16px",
+          }}
         >
-          {showParticipants
-            ? "Hide Participants"
-            : "Show Participants"}
-        </button>
+          {editing && (
+            <button
+              style={{
+                backgroundColor: showAddParticipant
+                  ? "#FFFFFF"
+                  : "#2B78F6",
+                color: showAddParticipant
+                  ? "#334155"
+                  : "#FFFFFF",
+                border: showAddParticipant
+                  ? "1px solid #CBD5E1"
+                  : "none",
+                borderRadius: "8px",
+                padding: "10px 16px",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+              onClick={() =>
+                setShowAddParticipant(
+                  !showAddParticipant
+                )
+              }
+            >
+              {showAddParticipant
+                ? "Cancel"
+                : "Add Participant"}
+            </button>
+          )}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
+            }}
+          >
+            <strong>
+              {exam.exam_user_access.length}
+            </strong>{" "}
+            Assigned Users
+          </div>
+
+          <button
+            style={{
+              backgroundColor: "#FFFFFF",
+              color: "#334155",
+              border: "1px solid #CBD5E1",
+              borderRadius: "8px",
+              padding: "10px 16px",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+            onClick={() =>
+              setShowParticipants(
+                !showParticipants
+              )
+            }
+          >
+            {showParticipants
+              ? "Hide Participants"
+              : "View Participants"}
+          </button>
+        </div>
 
         {showParticipants && (
 
-          <ul>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+              marginTop: "16px",
+            }}
+          >
 
             {exam.exam_user_access.map(
               (access) => (
 
-                <li
+                <div
                   key={access.id}
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    marginBottom: "8px",
+                    padding: "12px 16px",
+                    border: "1px solid #E5E7EB",
+                    borderRadius: "8px",
+                    backgroundColor: "#F8FAFC",
                   }}
                 >
 
-                  <span>
+                  <div>
 
-                    {access.users.first_name}
-                    {" "}
-                    {access.users.last_name}
-                    {" "}
-                    (
-                    {access.users.email}
-                    )
+                    <div
+                      style={{
+                        fontWeight: 600,
+                      }}
+                    >
+                      {access.users.first_name}
+                      {" "}
+                      {access.users.last_name}
+                    </div>
 
-                  </span>
+                    <div
+                      style={{
+                        fontSize: "13px",
+                        color: "#64748B",
+                      }}
+                    >
+                      {access.users.email}
+                    </div>
 
-                  <button
-                    onClick={async () => {
+                  </div>
+                  {editing && (
+                    <button
+                      style={{
+                        backgroundColor: "#FEF2F2",
+                        color: "#DC2626",
+                        border: "1px solid #FECACA",
+                        borderRadius: "6px",
+                        padding: "6px 12px",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                      onClick={async () => {
 
-                      const confirmed =
-                        window.confirm(
-                          `Remove ${access.users.first_name} ${access.users.last_name} from this exam?`
-                        );
-
-                      if (!confirmed) {
-                        return;
-                      }
-
-                      try {
-
-                        await removeUserFromExam(
-                          Number(id),
-                          access.users.id
-                        );
-
-                        const updated =
-                          await getExamDetails(
-                            Number(id)
+                        const confirmed =
+                          window.confirm(
+                            `Remove ${access.users.first_name} ${access.users.last_name} from this exam?`
                           );
 
-                        setExam(updated);
+                        if (!confirmed) {
+                          return;
+                        }
 
-                      } catch (err) {
+                        try {
 
-                        console.error(err);
+                          await removeUserFromExam(
+                            Number(id),
+                            access.users.id
+                          );
 
-                        alert(
-                          "Failed to remove participant"
-                        );
+                          const updated =
+                            await getExamDetails(
+                              Number(id)
+                            );
 
-                      }
+                          setExam(updated);
 
-                    }}
-                  >
-                    Remove
-                  </button>
+                        } catch (err) {
 
-                </li>
+                          console.error(err);
+
+                          alert(
+                            "Failed to remove participant"
+                          );
+
+                        }
+
+                      }}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
 
               )
             )}
 
-          </ul>
+          </div>
 
         )}
 

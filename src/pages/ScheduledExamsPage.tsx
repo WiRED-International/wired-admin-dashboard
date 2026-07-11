@@ -185,7 +185,27 @@ export default function ScheduledExamsPage() {
    
   return (
     <PageContainer>
-
+      <button
+        onClick={() =>
+          navigate("/exams")
+        }
+        style={{
+          background: "none",
+          border: "none",
+          color: "#2B78F6",
+          cursor: "pointer",
+          padding: 0,
+          marginBottom: "12px",
+          fontSize: "14px",
+          fontWeight: 600,
+          textDecoration: "none",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "4px",
+        }}
+      >
+        ← Back to Exams
+      </button>
       <PageHeader
         title="Scheduled Exams"
         subtitle="Manage scheduled, active, and completed exams"

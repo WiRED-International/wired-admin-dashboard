@@ -2,6 +2,7 @@ import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext.tsx";
 import App from "./App.tsx";
+import Auth from "@/utils/auth";
 import ErrorPage from "./pages/ErrorPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import LoginRedirectWrapper from "./components/LoginRedirectWrapper.tsx";
@@ -15,7 +16,10 @@ import ScheduleExamPage from "./pages/ScheduleExamPage.tsx";
 import ScheduledExamsPage from "./pages/ScheduledExamsPage";
 import ExamDetailsPage from "./pages/ExamDetailsPage.tsx";
 import { UserOptionsProvider } from "./context/UserOptionsContext.tsx";
-import ExamAttemptDetailsPage from "./pages/ExamAttemptDetailsPage";
+import ExamAttemptDetailsPage from "./pages/ExamAttemptDetailsPage.tsx";
+import ExamTemplatesPage from "./pages/ExamTemplatesPage.tsx";
+import ExamTemplateDetailsPage from "./pages/ExamTemplateDetailsPage.tsx";
+import ExamTemplateQuestionDetailsPage from "./pages/ExamTemplateQuestionDetailsPage.tsx";
 
 const router = createBrowserRouter(
   [
@@ -99,12 +103,47 @@ const router = createBrowserRouter(
           ),
         },
         {
+          path: "/exams/templates",
+          element: (
+            <ProtectedRoute
+              redirectTo="/login"
+              allow={() => Auth.isSuperAdmin()}
+            >
+                <ExamTemplatesPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/exams/templates/:templateId",
+          element: (
+            <ProtectedRoute redirectTo="/login">
+              <ExamTemplateDetailsPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
           path: "/exams/:id",
           element: (
             <ProtectedRoute
               redirectTo="/login"
             >
               <ExamDetailsPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/exams/templates/:templateId/questions/new",
+          element: (
+            <ProtectedRoute redirectTo="/login">
+              <ExamTemplateQuestionDetailsPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/exams/templates/:templateId/questions/:questionId",
+          element: (
+            <ProtectedRoute redirectTo="/login">
+              <ExamTemplateQuestionDetailsPage />
             </ProtectedRoute>
           ),
         },

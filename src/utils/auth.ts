@@ -1,4 +1,11 @@
-import { JwtPayload, jwtDecode } from 'jwt-decode';
+import { JwtPayload, jwtDecode } from "jwt-decode";
+
+export const ROLES = {
+  USER: 1,
+  ADMIN: 2,
+  SUPER_ADMIN: 3,
+  INSTRUCTOR: 4,
+} as const;
 
 class AuthService {
   getProfile() {
@@ -48,6 +55,33 @@ class AuthService {
     }
 
     return null;
+  }
+
+  hasRole(...roles: number[]): boolean {
+    const roleId = this.getRoleId();
+
+    return roleId !== null && roles.includes(roleId);
+  }
+
+  isUser(): boolean {
+    return this.hasRole(ROLES.USER);
+  }
+
+  isInstructor(): boolean {
+    return this.hasRole(ROLES.INSTRUCTOR);
+  }
+
+  isAdmin(): boolean {
+    return this.hasRole(
+      ROLES.ADMIN,
+      ROLES.SUPER_ADMIN
+    );
+  }
+
+  isSuperAdmin(): boolean {
+    return this.hasRole(
+      ROLES.SUPER_ADMIN
+    );
   }
 }
 

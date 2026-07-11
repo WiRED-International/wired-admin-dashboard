@@ -118,7 +118,7 @@ export default function UpcomingExams() {
                     navigate(`/exams/${item.id}`)
                   }
                 >
-                  View
+                  Edit
                 </button>
 
               </div>
@@ -246,8 +246,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 
   durationBadge: {
-    background: "#2B78F6",
-    color: "white",
+    background: "#F3F4F6",
+    color: "#475569",
+    border: "1px solid #D1D5DB",
     padding: "4px 10px",
     borderRadius: "12px",
     fontSize: "12px",
@@ -328,11 +329,13 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 
   viewBtn: {
-    background: "#F3F4F6",
-    border: "1px solid #D1D5DB",
+    backgroundColor: "#2B78F6",
+    color: "#FFFFFF",
+    border: "none",
     padding: "4px 10px",
     borderRadius: "6px",
     cursor: "pointer",
     fontSize: "12px",
+    fontWeight: 600,
   },
 };

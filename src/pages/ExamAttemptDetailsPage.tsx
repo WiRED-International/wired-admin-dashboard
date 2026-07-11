@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getExamAttemptDetails } from "@/api/examsAPI";
 import { ExamAttemptResponse } from "@/interfaces/ExamAttempt";
+import { useNavigate } from "react-router-dom";
 
 export default function ExamAttemptDetailsPage() {
   const { sessionId } = useParams();
@@ -13,6 +14,7 @@ export default function ExamAttemptDetailsPage() {
   const [filter, setFilter] = useState< "all" | "correct" | "incorrect" | "unanswered" >("all");
 
   const [expandedQuestions, setExpandedQuestions] = useState<number[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function load() {
@@ -115,7 +117,27 @@ export default function ExamAttemptDetailsPage() {
 
     return (
     <PageContainer>
-
+      <button
+        onClick={() =>
+          navigate("/exams")
+        }
+        style={{
+          background: "none",
+          border: "none",
+          color: "#2B78F6",
+          cursor: "pointer",
+          padding: 0,
+          marginBottom: "12px",
+          fontSize: "14px",
+          fontWeight: 600,
+          textDecoration: "none",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "4px",
+        }}
+      >
+        ← Back to Exams
+      </button>
       <PageHeader
         title="Exam Attempt Details"
         subtitle={`Session #${sessionId}`}
