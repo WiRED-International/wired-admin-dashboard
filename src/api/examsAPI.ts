@@ -92,7 +92,7 @@ export async function getAllExams(): Promise<ExamListItem[]> {
 // Admin-accessible organizations
 // -----------------------------------------------------
 export async function getAccessibleOrganizations():
-  Promise<{ id: number; name: string }[]> {
+  Promise<{ id: number; name: string; userCount: number; }[]> {
 
   const token = Auth.getToken();
   if (!token) throw new Error("Not authenticated.");

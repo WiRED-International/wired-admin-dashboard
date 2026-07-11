@@ -2,18 +2,26 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 interface ProtectedRouteProps {
-  children: React.ReactNode; // The component to render if authenticated
-  redirectTo?: string; // Optional custom redirect path (default is '/login')
+  children: React.ReactNode;
+  redirectTo?: string;
+
+  // Optional authorization check
+  allow?: () => boolean;
 }
 
-const ProtectedRoute = ({ children, redirectTo = '/login' }: ProtectedRouteProps) => {
+const ProtectedRoute = ({
+  children,
+  redirectTo = "/login",
+  allow,
+}: ProtectedRouteProps) => {
   const { isAuthenticated } = useAuth();
 
-
-
   if (isAuthenticated === false) {
-
     return <Navigate to={redirectTo} />;
+  }
+
+  if (allow && !allow()) {
+    return <Navigate to="/exams" replace />;
   }
 
   return <>{children}</>;

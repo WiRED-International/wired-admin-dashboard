@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { globalStyles } from "../globalStyles";
-import auth from "../utils/auth";
+import Auth from "../utils/auth";
 import { useAuth } from "../context/AuthContext";
 import {
   Users,
@@ -24,9 +24,15 @@ export default function Sidebar({
   const { setIsAuthenticated } = useAuth();
 
   const handleLogout = () => {
-    auth.logout();
+    Auth.logout();
     setIsAuthenticated(false);
   };
+
+  /* 
+  Temporarily exclude Admins from accessing Exams Page.
+  To include admins, Super Admins, and Instructors, change to Auth.isAdmin() || Auth.isInstructor();
+  */
+  const canAccessExams = Auth.isSuperAdmin() || Auth.isInstructor();
 
   const navItems = [
     {
@@ -41,11 +47,15 @@ export default function Sidebar({
       icon: <Users size={20} />,
     },
 
-    {
-      name: "Exams",
-      path: "/exams",
-      icon: <FileText size={20} />,
-    },
+    ...(canAccessExams
+      ? [
+          {
+            name: "Exams",
+            path: "/exams",
+            icon: <FileText size={20} />,
+          },
+        ]
+      : []),
   ];
 
   return (

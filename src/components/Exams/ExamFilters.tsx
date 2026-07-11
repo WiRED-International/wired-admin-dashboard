@@ -4,6 +4,8 @@ import { ExamListItem } from "@/interfaces/ExamListItemInterface";
 import { OrganizationListItem } from "@/interfaces/OrganizationListItemInterface";
 import { ExamFilters as ExamFiltersType } from "@/interfaces/Exam";
 import SearchableOrganizationPicker from "@/components/Common/SearchableOrganizationPicker";
+import { useNavigate } from "react-router-dom";
+import Auth from "@/utils/auth";
 
 type ExamFiltersProps = {
   filters: ExamFiltersType;
@@ -17,6 +19,7 @@ export default function ExamFilters({
   filters,
   setFilters,
 }: ExamFiltersProps) {
+  const navigate = useNavigate();
   const {
     examId,
     orgId,
@@ -306,8 +309,15 @@ export default function ExamFilters({
         </button>
       </div>
 
-      {/* RIGHT SIDE: Create Exam Button */}
-      <button style={styles.createBtn}>+ Create Exam</button>
+      {/* RIGHT SIDE: Exam Templates Button */}
+      {Auth.isSuperAdmin() && (
+        <button
+          style={styles.createBtn}
+          onClick={() => navigate("/exams/templates")}
+        >
+          Exam Templates
+        </button>
+      )}
     </div>
   );
 }

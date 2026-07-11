@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 type Organization = {
   id: number;
   name: string;
+  userCount: number;
 };
 
 type Props = {
@@ -10,6 +11,7 @@ type Props = {
   selectedIds: number[];
   onChange: (ids: number[]) => void;
   placeholder?: string;
+  showSelectedList?: boolean;
 };
 
 export default function SearchableOrganizationMultiSelect({
@@ -17,6 +19,7 @@ export default function SearchableOrganizationMultiSelect({
   selectedIds,
   onChange,
   placeholder = "Select Organizations",
+  showSelectedList = false,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -84,7 +87,29 @@ export default function SearchableOrganizationMultiSelect({
         }
       >
         {selectedIds.length > 0
-          ? `${selectedIds.length} selected`
+          ? (() => {
+
+              const selectedOrgs =
+                organizations.filter(org =>
+                  selectedIds.includes(org.id)
+                );
+
+              const firstOrg =
+                selectedOrgs[0];
+
+              if (!firstOrg) {
+                return placeholder;
+              }
+
+              if (selectedOrgs.length === 1) {
+                return `${firstOrg.name} (${firstOrg.userCount})`;
+              }
+
+              return `${firstOrg.name} (${firstOrg.userCount}) + ${
+                selectedOrgs.length - 1
+              } more`;
+
+            })()
           : placeholder}
       </div>
 
@@ -148,7 +173,7 @@ export default function SearchableOrganizationMultiSelect({
                         {isSelected
                         ? "✓ "
                         : ""}
-                        {org.name}
+                        {org.name} ({org.userCount})
                     </span>
                     </div>
                 );
@@ -168,6 +193,50 @@ export default function SearchableOrganizationMultiSelect({
             </div>
 
         </div>
+      )}
+      {showSelectedList &&
+        selectedIds.length > 0 && (
+          <div style={styles.selectedList}>
+            <div style={styles.selectedTitle}>
+              Selected Organizations
+            </div>
+
+            {selectedIds.map((id) => {
+              const org = organizations.find(
+                (o) => o.id === id
+              );
+
+              if (!org) return null;
+
+              return (
+                <div
+                  key={id}
+                  style={styles.selectedItem}
+                >
+                  <span>
+                    {org.name} ({org.userCount})
+                  </span>
+
+                  <button
+                    type="button"
+                    style={styles.removeBtn}
+                    onClick={() => {
+
+                      onChange(
+                        selectedIds.filter(
+                          selectedId =>
+                            selectedId !== id
+                        )
+                      );
+
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              );
+            })}
+          </div>
       )}
 
     </div>
@@ -241,6 +310,43 @@ const styles: {
     fontSize: "14px",
     color: "#B91C1C",
     fontWeight: 600,
+  },
+  selectedList: {
+    marginTop: "10px",
+    padding: "10px",
+    background: "#F8FAFC",
+    border: "1px solid #E2E8F0",
+    borderRadius: "6px",
+  },
+
+  selectedTitle: {
+    fontSize: "13px",
+    fontWeight: 600,
+    marginBottom: "8px",
+  },
+
+  selectedItem: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "6px 0",
+    fontSize: "13px",
+  },
+
+  removeBtn: {
+    border: "1px solid #FECACA",
+    backgroundColor: "#FEF2F2",
+    cursor: "pointer",
+    color: "#B91C1C",
+    fontSize: "14px",
+    fontWeight: 700,
+    width: "24px",
+    height: "24px",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
   },
 
 };
