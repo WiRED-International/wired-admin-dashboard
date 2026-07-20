@@ -33,6 +33,23 @@ export interface QuizScoreInterface {
   module: ModuleInterface;
 }
 
+export interface TranscriptRecordInterface {
+    recordId: string;
+    displayId: string;
+    title: string;
+    type: string;
+
+    training: string;
+
+    specializations: string[];
+
+    completedAt: string;
+
+    score: number;
+
+    status: string;
+}
+
 export interface QuizScoreUpdateResponseInterface {
   message: string;
   quizScore: QuizScoreInterface;
@@ -60,4 +77,18 @@ export interface UserSearchBroadResponse {
   totalCount: number;
   totalPages: number;
   pageCount: number;
+}
+
+export interface LearningProgress {
+  basicTraining: {
+    completed: number;
+    total: number;
+    percent: number;
+  };
+
+  act: {
+    completed: number;
+    total: number;
+    percent: number;
+  };
 }

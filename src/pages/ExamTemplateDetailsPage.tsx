@@ -16,6 +16,7 @@ export default function ExamTemplateDetailsPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [program, setProgram] = useState("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [showSuccess, setShowSuccess] = useState(false);
@@ -41,9 +42,8 @@ export default function ExamTemplateDetailsPage() {
       setTemplate(data);
       setTitle(data.title);
 
-      setDescription(
-        data.description || ""
-      );
+      setDescription(data.description || "");
+      setProgram(data.program || "Basic Training");
 
     } catch (error) {
 
@@ -70,6 +70,7 @@ export default function ExamTemplateDetailsPage() {
           {
             title,
             description,
+            program,
           }
         );
 
@@ -207,6 +208,30 @@ export default function ExamTemplateDetailsPage() {
 
                 )}
               </div>
+              <div style={styles.summaryProgram}>
+                {isEditing ? (
+                  <select
+                    value={program}
+                    onChange={(e) => setProgram(e.target.value)}
+                  >
+                    <option value="Basic Training">
+                      Basic Training
+                    </option>
+
+                    <option value="ACT">
+                      ACT
+                    </option>
+
+                    <option value="Specialization">
+                      Specialization
+                    </option>
+                  </select>
+                ) : (
+                  <>
+                    <strong>Program:</strong> {template.program}
+                  </>
+                )}
+              </div>
               <div style={styles.summaryDescription}>
                 {isEditing ? (
                   <textarea
@@ -250,6 +275,10 @@ export default function ExamTemplateDetailsPage() {
 
                         setDescription(
                           template.description || ""
+                        );
+
+                        setProgram(
+                          template.program || "Basic Training"
                         );
 
                         setIsEditing(false);

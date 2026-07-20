@@ -20,6 +20,7 @@ import ExamAttemptDetailsPage from "./pages/ExamAttemptDetailsPage.tsx";
 import ExamTemplatesPage from "./pages/ExamTemplatesPage.tsx";
 import ExamTemplateDetailsPage from "./pages/ExamTemplateDetailsPage.tsx";
 import ExamTemplateQuestionDetailsPage from "./pages/ExamTemplateQuestionDetailsPage.tsx";
+import UserDetailsPage from "./pages/UserDetailsPage.tsx";
 
 const router = createBrowserRouter(
   [
@@ -65,6 +66,14 @@ const router = createBrowserRouter(
           element: (
             <ProtectedRoute redirectTo="/login">
               <UsersPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/userview/:userId",
+          element: (
+            <ProtectedRoute redirectTo="/login">
+              <UserDetailsPage />
             </ProtectedRoute>
           ),
         },

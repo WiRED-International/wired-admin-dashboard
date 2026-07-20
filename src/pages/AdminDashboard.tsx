@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import DashboardHeader from '../components/DashboardHeader';
 import { fetchDownloads } from '../api/downloadsApi';
 import { fetchModuleAndPackageInfo } from '../api/modulesAPI';
 import { ModuleDownloadInterface } from '../interfaces/ModuleDownloadInterface';
@@ -101,7 +100,7 @@ const AdminDashboard = () => {
 
   return (
     <div style={globalStyles.pageContainer}>
-      <DashboardHeader />
+      {/* <DashboardHeader /> */}
 
       {filterPopoverOpen &&
         <FilterPopover
