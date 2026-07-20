@@ -33,6 +33,8 @@ export interface ExamTemplate {
 
   description: string | null;
 
+  program: string;
+
   questionCount?: number;
 
   exam_template_questions?: ExamTemplateQuestion[];

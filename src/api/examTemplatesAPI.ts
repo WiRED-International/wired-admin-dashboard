@@ -68,6 +68,7 @@ export async function updateExamTemplate(
   data: {
     title: string;
     description: string;
+    program: string;
   }
 ) {
 

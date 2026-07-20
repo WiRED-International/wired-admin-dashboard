@@ -5,6 +5,7 @@ import { deleteUserById } from '../../api/usersAPI'
 import Confirm_custom from '../ConfirmCustom'
 import Alert_Custom from '../AlertCustom'
 import AuthService from '../../utils/auth';
+import { useNavigate } from "react-router-dom";
 
 
 interface UserTableActionsProps {
@@ -13,7 +14,7 @@ interface UserTableActionsProps {
 }
 
 const UserTableActions = ({user, fetchAllUsers}: UserTableActionsProps) => {
-
+  const navigate = useNavigate();
   const [isSingleUserViewOpen, setIsSingleUserViewOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'view' | 'edit'>('view');
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -21,17 +22,15 @@ const UserTableActions = ({user, fetchAllUsers}: UserTableActionsProps) => {
   const [roleId, setRoleId] = useState<number | null>(null);
   const isSuperAdmin = roleId === 3;
   
+  
   // Get current user role (depending on your setup)
   useEffect(() => {
     setRoleId(AuthService.getRoleId());
   }, []);
 
-  console.debug('Resolved roleId =', roleId);
-
   const handleViewClick = () => {
-    setViewMode('view');
-    setIsSingleUserViewOpen(true);
-  };
+    navigate(`/userview/${user.id}`);
+  }
 
   const handleDeleteClick = () => {
     setIsDeleteConfirmOpen(true);

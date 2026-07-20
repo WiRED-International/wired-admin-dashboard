@@ -3,7 +3,7 @@ import Auth from "../utils/auth";
 import { QuizScoreInterface, QuizScoreUpdateResponseInterface } from "../interfaces/UserDataInterface";
 
 export const fetchAllQuizScores = async (userId?: number): Promise<QuizScoreInterface[]> => {
-    const url = userId ? `${apiPrefix}quiz-scores?userId=${userId}` : `${apiPrefix}quiz-scores`;
+    const url = userId ? `${apiPrefix}/quiz-scores?userId=${userId}` : `${apiPrefix}quiz-scores`;
     const response = await fetch(url, {
         headers: {
             'Content-Type': 'application/json',
@@ -17,7 +17,7 @@ export const fetchAllQuizScores = async (userId?: number): Promise<QuizScoreInte
 }
 
 export const updateQuizScore = async (quizScoreId: number, updatedData: any): Promise<QuizScoreUpdateResponseInterface> => {
-    const response = await fetch(`${apiPrefix}quiz-scores/${quizScoreId}`, {
+    const response = await fetch(`${apiPrefix}/quiz-scores/${quizScoreId}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
