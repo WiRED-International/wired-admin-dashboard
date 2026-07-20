@@ -3,7 +3,6 @@ import { globalStyles } from "../../globalStyles";
 import AuthService from "../../utils/auth";
 //interfaces
 import { UserDataInterface } from "../../interfaces/UserDataInterface"
-import { SpecializationsInterface } from "../../interfaces/SpecializationInterface";
 import { OrganizationInterface } from "../../interfaces/OrganizationsInterface";
 import { CityInterface } from "../../interfaces/CityInterface";
 import { QuizScoreInterface } from "../../interfaces/UserDataInterface";
@@ -62,22 +61,26 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
 
   const [activeTab, setActiveTab] = useState<"all" | "basic" | "cme">("all");
 
-  const [formState, setFormState] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    specializations: [] as SpecializationsInterface[],
-    role: '',
-    country: '',
-    city: '',
-    organization: '',
-  });
+  const [formState, setFormState] = useState<UserDataInterface>({
+  id: 0,
+  first_name: "",
+  last_name: "",
+  email: "",
+  specializations: [],
+  role: { id: 0, name: "User" },
+  country: { id: 0, name: "" },
+  city: { id: 0, name: "" },
+  organization: { id: 0, name: "" },
+});
 
   const handleCountryChange = (countryName: string) => {
     setSelectedCountryId(null);
     setFormState((prevFormState) => ({
       ...prevFormState,
-      country: countryName,
+      country: {
+        id: 0,
+        name: countryName,
+      },
     }));
   }
   const handleCountrySelect = (countryId: number, countryName: string) => {
@@ -85,9 +88,18 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
     if (countryId !== selectedCountryId) {
       setFormState((prevFormState) => ({
         ...prevFormState,
-        country: countryName,
-        city: '',
-        organization: '',
+        country: {
+          id: countryId,
+          name: countryName,
+        },
+        city: {
+          id: 0,
+          name: "",
+        },
+        organization: {
+          id: 0,
+          name: "",
+        },
 
       }));
       setSelectedCityId(null);
@@ -109,7 +121,7 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
       first_name: formState.first_name,
       last_name: formState.last_name,
       email: formState.email,
-      role_id: roles.find(r => r.name === formState.role)?.id || singleUserData.role.id,
+      role_id: formState.role.id || singleUserData.role.id,
       country_id: selectedCountryId,
       city_id: selectedCityId,
       organization_id: selectedOrganizationId,
@@ -166,14 +178,15 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
         //set fetched user data to state
 
         setFormState({
+          id: fetchedUser.id,
           first_name: fetchedUser.first_name,
           last_name: fetchedUser.last_name,
           email: fetchedUser.email,
           specializations: fetchedUser.specializations,
-          role: fetchedUser.role.name,
-          country: fetchedUser.country?.name ?? '',
-          city: fetchedUser.city?.name ?? '',
-          organization: fetchedUser.organization?.name ?? '',
+          role: fetchedUser.role,
+          country: fetchedUser.country,
+          city: fetchedUser.city,
+          organization: fetchedUser.organization,
         });
 
         setSingleUserData(fetchedUser);
