@@ -1,6 +1,7 @@
 import {
     GoogleMap,
     Marker,
+    MarkerClusterer,
     InfoWindow,
     useLoadScript,
 } from "@react-google-maps/api";
@@ -9,7 +10,7 @@ import { ModuleDownloadInterface } from "../interfaces/ModuleDownloadInterface";
 
 const mapContainerStyle = {
     width: "100%",
-    height: "100%",
+    flex: 1,
 };
 interface GoogleMapsComponentProps {
     downloads: ModuleDownloadInterface[];
@@ -26,6 +27,7 @@ const GoogleMapsComponent = ({ downloads, handleViewAllDownloads, googleAPIKey }
     });
 
     const [selectedDownload, setSelectedDownload] = useState<ModuleDownloadInterface | null>(null);
+
 
     const mapRef = useRef<google.maps.Map | null>(null);
 
@@ -49,27 +51,53 @@ const GoogleMapsComponent = ({ downloads, handleViewAllDownloads, googleAPIKey }
         }
     }, [downloads]);
 
-  
-    if (loadError) return <p>Error loading maps</p>;
-    if (!isLoaded) return <p>Loading maps...</p>;
+    if (loadError) {
+    console.error(loadError);
+    return <p>Error loading maps</p>;
+    }
 
+    if (!isLoaded) {
+    return <p>Loading maps...</p>;
+    }
     return (
+      <div
+          style={{
+              flex: 1,
+              display: "flex",
+              minHeight: 0,
+          }}
+      >
         <GoogleMap
             mapContainerStyle={mapContainerStyle}
             zoom={4}
             center={defaultCenter}
             onLoad={onLoad}
         >
-            {downloads.map((download, index) => (
-                <Marker
-                    key={index}
-                    position={{ 
-                        lat: parseFloat(download.latitude), 
-                        lng: parseFloat(download.longitude) 
-                    }}
-                    onClick={() => setSelectedDownload(download)}
-                />
-            ))}
+            <MarkerClusterer
+                options={{
+                    maxZoom: 15,
+                    gridSize: 60,
+                }}
+            >
+              {(clusterer) => (
+                  <>
+                      {downloads.map((download) => (
+                          <Marker
+                              key={download.id}
+                              clusterer={clusterer}
+                              position={{
+                                  lat: parseFloat(download.latitude),
+                                  lng: parseFloat(download.longitude)
+                              }}
+                              onClick={() => {
+                                  console.log(download);
+                                  setSelectedDownload(download);
+                              }}
+                          />
+                      ))}
+                  </>
+              )}
+          </MarkerClusterer>
 
             {selectedDownload && (
                 <InfoWindow
@@ -96,6 +124,7 @@ const GoogleMapsComponent = ({ downloads, handleViewAllDownloads, googleAPIKey }
                 </InfoWindow>
             )}
         </GoogleMap>
+      </div>
     );
 };
 
