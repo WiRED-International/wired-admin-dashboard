@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getExamTemplates, getAccessibleOrganizations, scheduleExam } from "@/api/examsAPI";
 import { ExamTemplate } from "@/interfaces/ExamTemplate";
 import { searchUsersBroad } from "@/api/usersAPI";
@@ -38,6 +38,7 @@ export default function ScheduleExamPage() {
   const [selectedUsers, setSelectedUsers] = useState<UserSearchResult[]>([]);
 
   const [successMessage, setSuccessMessage] = useState("");
+  const successRef = useRef<HTMLDivElement>(null);
 
   const organizationUserCount =
     selectedOrganizations.reduce(
@@ -52,6 +53,15 @@ export default function ScheduleExamPage() {
       },
       0
     );
+
+  useEffect(() => {
+    if (successMessage) {
+      successRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [successMessage]);
 
   useEffect(() => {
     const loadInitialData = async () => {
@@ -137,6 +147,24 @@ export default function ScheduleExamPage() {
         title="Schedule Exam"
         subtitle="Create and assign a new exam session"
       />
+      {successMessage && (
+        <div
+          ref={successRef}
+          style={{
+            backgroundColor: "#ECFDF5",
+            border: "1px solid #86EFAC",
+            color: "#166534",
+            borderRadius: "10px",
+            padding: "18px 20px",
+            marginBottom: "24px",
+            fontSize: "16px",
+            fontWeight: 600,
+            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+          }}
+        >
+          ✅ {successMessage}
+        </div>
+      )}
       <Panel>
         <h2>Session Details</h2>
 
@@ -557,6 +585,7 @@ export default function ScheduleExamPage() {
               setSuccessMessage(
                 `Exam scheduled successfully (ID: ${examId})`
               );
+
               setSelectedTemplateId("");
               setTitle("");
               setDescription("");
@@ -589,17 +618,6 @@ export default function ScheduleExamPage() {
         </button>
       </div>
       </Panel>
-      {successMessage && (
-        <div
-          style={{
-            marginTop: "16px",
-            color: "#16A34A",
-            fontWeight: 600,
-          }}
-        >
-          {successMessage}
-        </div>
-      )}
     </PageContainer>
   );
 }
