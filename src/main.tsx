@@ -10,6 +10,7 @@ import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage.tsx";
 import PasswordResetPage from "./pages/PasswordResetPage.tsx";
+import PasswordResetSuccessPage from "./pages/PasswordResetSuccessPage.tsx";
 import UsersPage from "./pages/Users.tsx";
 import ExamsPage from "./pages/ExamsPage.tsx"
 import ScheduleExamPage from "./pages/ScheduleExamPage.tsx";
@@ -58,6 +59,14 @@ const router = createBrowserRouter(
           element: (
             <LoginRedirectWrapper>
               <PasswordResetPage />
+            </LoginRedirectWrapper>
+          ),
+        },
+        {
+          path: "/password-reset-success",
+          element: (
+            <LoginRedirectWrapper>
+              <PasswordResetSuccessPage />
             </LoginRedirectWrapper>
           ),
         },

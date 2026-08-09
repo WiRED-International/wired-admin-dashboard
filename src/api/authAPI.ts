@@ -39,10 +39,18 @@ export const sendPasswordResetEmail = async (email: string) => {
       body: JSON.stringify({email})
     });
     const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json") || !response.ok) {
-        throw new Error("server error");
+
+    if (!contentType || !contentType.includes("application/json")) {
+      throw new Error("Server returned an invalid response.");
     }
+
     const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Server error");
+    }
+
+    return data;
     if(!response.ok) {
       throw new Error(data.message || 'Failed to send password reset email');
     }
@@ -54,24 +62,30 @@ export const sendPasswordResetEmail = async (email: string) => {
 
 export const resetPassword = async (token: string, password: string) => {
   try {
-    const response = await fetch(`${apiPrefix}auth/reset-password`, {
-      method: 'POST',
+    const response = await fetch("/auth/reset-password", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({password, token})
+      body: JSON.stringify({ token, password }),
     });
+
     const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json") || !response.ok) {
-        throw new Error("server error");
+
+    if (!contentType || !contentType.includes("application/json")) {
+      throw new Error("Server returned an invalid response.");
     }
+
     const data = await response.json();
-    if(!response.ok) {
-      throw new Error(data.message || 'Failed to reset password');
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to reset password");
     }
-  } catch(err) {
-    console.error('Error from resetting password: ', err);
+
+    return data;
+  } catch (err) {
+    console.error("Error from resetting password:", err);
     throw err;
   }
-}
+};
 

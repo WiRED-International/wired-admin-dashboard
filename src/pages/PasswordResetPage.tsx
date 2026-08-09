@@ -5,11 +5,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 
 const ResetPasswordPage = () => {
   const { token } = useParams(); // Get the token from the URL
+  console.log("URL token:", token);
   const navigate = useNavigate();
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const [message] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,10 +36,8 @@ const ResetPasswordPage = () => {
 
     try {
       await resetPassword(token as string, password);
-      setMessage('Your password has been reset successfully.');
-      setErrorMessage('');
-      //a toast message might be better here
-      setTimeout(() => navigate('/login'), 3000);
+
+      navigate('/password-reset-success');
     } catch (error) {
       if (error instanceof Error) {
         setErrorMessage(error.message);
