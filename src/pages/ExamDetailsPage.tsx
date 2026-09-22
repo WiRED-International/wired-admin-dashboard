@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import {
   useParams,
   useNavigate
 } from "react-router-dom";
 import {
   getExamDetails,
+  getExamTemplates,
   updateExam,
   deleteExam,
-  removeOrganizationFromExam,
-  assignOrganizationToExam,
-  getAccessibleOrganizations,
+  assignClassToExam,
+  removeClassFromExam,
   searchUsersForExam,
   assignUserToExam,
   removeUserFromExam,
@@ -18,8 +19,10 @@ import PageContainer from "@/components/ui/PageContainer";
 import PageHeader from "@/components/ui/PageHeader";
 import Panel from "@/components/ui/Panel";
 import { ExamDetails } from "@/interfaces/ExamDetails";
-import SearchableOrganizationPicker from "@/components/Common/SearchableOrganizationPicker";
+import { ExamTemplate } from "@/interfaces/ExamTemplate";
 import SearchableTimeZonePicker from "@/components/Common/SearchableTimeZonePicker";
+import { fetchClasses } from "../api/classAPI";
+import { ClassItem } from "../interfaces/Class";
 
 export default function
 ExamDetailsPage() {
@@ -30,11 +33,15 @@ ExamDetailsPage() {
 
   const [exam, setExam] = useState<ExamDetails | null>(null);
 
+  const [templates, setTemplates] = useState<ExamTemplate[]>([]);
+
   const [showParticipants, setShowParticipants] = useState(false);
 
   const [editing, setEditing] = useState(false);
 
   const [successMessage, setSuccessMessage] = useState("");
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [formData, setFormData] =
   useState({
@@ -44,13 +51,14 @@ ExamDetailsPage() {
     localEnd: "",
     duration_minutes: 0,
     time_zone: "",
+    exam_template_id: null as number | null,
   });
 
-  const [showAddOrg, setShowAddOrg] = useState(false);
+  const [showAddClass, setShowAddClass] = useState(false);
 
-  const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
+  const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
 
-  const [availableOrgs, setAvailableOrgs] = useState<{ id: number; name: string }[]>([]);
+  const [availableClasses, setAvailableClasses] = useState<ClassItem[]>([]);
 
   const [showAddParticipant, setShowAddParticipant] = useState(false);
 
@@ -88,11 +96,17 @@ ExamDetailsPage() {
           duration_minutes: data.duration_minutes,
 
           time_zone: data.time_zone || "",
+
+          exam_template_id: data.exam_template_id,
         });
 
-        const orgs = await getAccessibleOrganizations();
+        const classData = await fetchClasses();
 
-        setAvailableOrgs(orgs);
+        setAvailableClasses(classData.classes);
+
+        const templateData = await getExamTemplates();
+
+        setTemplates(templateData);
 
       } catch (err) {
 
@@ -114,12 +128,14 @@ ExamDetailsPage() {
     return <div>Loading...</div>;
   }
 
-  const availableOrganizations =
-  availableOrgs.filter(
-    (org) =>
-      !exam.organizations.some(
-        (assigned) =>
-          assigned.id === org.id
+  const assignableClasses = availableClasses.filter(
+    (classItem) =>
+      classItem.status !== "draft" &&
+      classItem.status !== "completed" &&
+      classItem.status !== "archived" &&
+      !exam.classes.some(
+        (assignedClass) =>
+          assignedClass.id === classItem.id
       )
   );
 
@@ -203,33 +219,9 @@ ExamDetailsPage() {
                 fontWeight: 600,
                 cursor: "pointer",
               }}
-              onClick={async () => {
-
-                const confirmed =
-                  window.confirm(
-                    "Are you sure you want to delete this exam?"
-                  );
-
-                if (!confirmed) {
-                  return;
-                }
-
-                try {
-                  await deleteExam(Number(id));
-                  navigate("/exams/scheduled");
-                } catch (err) {
-
-                  console.error(
-                    err
-                  );
-
-                  alert(
-                    "Failed to delete exam"
-                  );
-
-                }
-
-              }}
+              onClick={() =>
+                setShowDeleteModal(true)
+              }
             >
               Delete Exam
             </button>
@@ -280,9 +272,26 @@ ExamDetailsPage() {
 
                   console.error(err);
 
-                  alert(
-                    "Failed to save exam"
-                  );
+                  setFormData({
+                    title: exam.title,
+                    description: exam.description || "",
+                    localStart: exam.available_from.slice(0, 16),
+                    localEnd: exam.available_until.slice(0, 16),
+                    duration_minutes: exam.duration_minutes,
+                    time_zone: exam.time_zone || "",
+                    exam_template_id: exam.exam_template_id,
+                  });
+
+                  if (axios.isAxiosError(err)) {
+                    alert(
+                      err.response?.data?.message ||
+                      "Failed to save exam"
+                    );
+                  } else {
+                    alert(
+                      "Failed to save exam"
+                    );
+                  }
 
                 }
 
@@ -317,6 +326,8 @@ ExamDetailsPage() {
                   duration_minutes: exam.duration_minutes,
 
                   time_zone: exam.time_zone || "",
+
+                  exam_template_id: exam.exam_template_id,
 
                 });
 
@@ -399,6 +410,40 @@ ExamDetailsPage() {
         </div>
 
         <div>
+        {editing ? (
+          <>
+            <strong>Duration:</strong>
+
+            <div>
+              <input
+                type="number"
+                value={formData.duration_minutes}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    duration_minutes: Number(e.target.value),
+                  })
+                }
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  border: "1px solid #CBD5E1",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <strong>Duration:</strong>{" "}
+            {exam.duration_minutes} minutes
+          </>
+        )}
+      </div>
+
+        <div>
           <strong>End:</strong>{" "}
           {editing ? (
             <input
@@ -423,45 +468,7 @@ ExamDetailsPage() {
             new Date(exam.available_until).toLocaleString()
           )}
         </div>
-        <div>
-          {editing ? (
-
-            <>
-              <strong>Duration:</strong>
-
-              <div>
-                <input
-                  type="number"
-                  value={formData.duration_minutes}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      duration_minutes: Number(
-                        e.target.value
-                      ),
-                    })
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px",
-                    border: "1px solid #CBD5E1",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-            </>
-
-          ) : (
-
-            <>
-              <strong>Duration:</strong>{" "}
-              {exam.duration_minutes} minutes
-            </>
-
-          )}
-        </div>
+        
         <div>
           <strong>Time Zone:</strong>{" "}
 
@@ -484,7 +491,49 @@ ExamDetailsPage() {
           )}
         </div>
 
-        <div></div>
+        <div>
+          <strong>Exam Template:</strong>{" "}
+
+          {editing ? (
+            <div style={{ marginTop: "8px" }}>
+              <select
+                value={formData.exam_template_id ?? ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    exam_template_id:
+                      e.target.value === ""
+                        ? null
+                        : Number(e.target.value),
+                  })
+                }
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  border: "1px solid #CBD5E1",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  boxSizing: "border-box",
+                }}
+              >
+                <option value="">
+                  Select a template
+                </option>
+
+                {templates.map((template) => (
+                  <option
+                    key={template.id}
+                    value={template.id}
+                  >
+                    {template.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            exam.exam_template?.title ?? "No template assigned"
+          )}
+        </div>
 
         <div
           style={{
@@ -527,7 +576,7 @@ ExamDetailsPage() {
       <Panel>
 
         <h2>
-          Organizations
+          Classes
         </h2>
 
         <div
@@ -549,17 +598,17 @@ ExamDetailsPage() {
                 cursor: "pointer",
               }}
               onClick={() =>
-                setShowAddOrg(
-                  !showAddOrg
+                setShowAddClass(
+                  !showAddClass
                 )
               }
             >
-              Add Organization
+              Add Class
             </button>
 
           )}
 
-          {showAddOrg && (
+          {showAddClass && (
 
             <div
               style={{
@@ -568,21 +617,45 @@ ExamDetailsPage() {
               }}
             >
 
-              <SearchableOrganizationPicker
-                organizations={availableOrganizations}
-                selectedId={selectedOrgId}
-                onSelect={(id) =>
-                  setSelectedOrgId(id)
+              <select
+                value={selectedClassId ?? ""}
+                onChange={(e) =>
+                  setSelectedClassId(
+                    e.target.value === ""
+                      ? null
+                      : Number(e.target.value)
+                  )
                 }
-                placeholder="Select Organization"
-                clearLabel="Clear Selection"
-              />
+                style={{
+                  width: "100%",
+                  maxWidth: "400px",
+                  padding: "10px 12px",
+                  border: "1px solid #CBD5E1",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                }}
+              >
+                <option value="">
+                  Select Class
+                </option>
+
+                {assignableClasses.map(
+                  (classItem) => (
+                    <option
+                      key={classItem.id}
+                      value={classItem.id}
+                    >
+                      {classItem.name}
+                    </option>
+                  )
+                )}
+              </select>
 
               <div style={{ marginTop: "12px" }}>
                 <button
-                  disabled={!selectedOrgId}
+                  disabled={!selectedClassId}
                   style={{
-                    backgroundColor: selectedOrgId
+                    backgroundColor: selectedClassId
                       ? "#2B78F6"
                       : "#94A3B8",
                     color: "#FFFFFF",
@@ -590,28 +663,32 @@ ExamDetailsPage() {
                     borderRadius: "8px",
                     padding: "10px 16px",
                     fontWeight: 600,
-                    cursor: selectedOrgId
+                    cursor: selectedClassId
                       ? "pointer"
                       : "not-allowed",
                   }}
                   onClick={async () => {
-                    if (!selectedOrgId) return;
+                    if (!selectedClassId) return;
 
                     try {
-                      await assignOrganizationToExam(
+                      await assignClassToExam(
                         Number(id),
-                        selectedOrgId
+                        selectedClassId
                       );
 
                       const updated =
                         await getExamDetails(Number(id));
 
                       setExam(updated);
-                      setSelectedOrgId(null);
-                      setShowAddOrg(false);
+                      setSelectedClassId(null);
+                      setShowAddClass(false);
+
                     } catch (err) {
                       console.error(err);
-                      alert("Failed to assign organization");
+
+                      alert(
+                        "Failed to assign class"
+                      );
                     }
                   }}
                 >
@@ -630,8 +707,8 @@ ExamDetailsPage() {
                     cursor: "pointer",
                   }}
                   onClick={() => {
-                    setShowAddOrg(false);
-                    setSelectedOrgId(null);
+                    setShowAddClass(false);
+                    setSelectedClassId(null);
                   }}
                 >
                   Cancel
@@ -653,11 +730,11 @@ ExamDetailsPage() {
           }}
         >
 
-          {exam.organizations.map(
-            (org) => (
+          {exam.classes.map(
+            (classItem) => (
 
               <div
-                key={org.id}
+                key={classItem.id}
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
@@ -670,8 +747,27 @@ ExamDetailsPage() {
               >
 
                 <div>
-                  {org.name}
+                  <div
+                    style={{
+                      fontWeight: 600,
+                    }}
+                  >
+                    {classItem.name}
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: "3px",
+                      fontSize: "13px",
+                      color: "#64748B",
+                    }}
+                  >
+                    {classItem.organization?.name ?? "—"}
+                    {" • "}
+                    {classItem.program?.name ?? "—"}
+                  </div>
                 </div>
+
                 {editing && (
                   <button
                     style={{
@@ -688,7 +784,7 @@ ExamDetailsPage() {
 
                       const confirmed =
                         window.confirm(
-                          `Remove ${org.name} from this exam?`
+                          `Remove ${classItem.name} from this exam?`
                         );
 
                       if (!confirmed) {
@@ -697,9 +793,9 @@ ExamDetailsPage() {
 
                       try {
 
-                        await removeOrganizationFromExam(
+                        await removeClassFromExam(
                           Number(id),
-                          org.id
+                          classItem.id
                         );
 
                         const updated =
@@ -714,7 +810,7 @@ ExamDetailsPage() {
                         console.error(err);
 
                         alert(
-                          "Failed to remove organization"
+                          "Failed to remove class"
                         );
 
                       }
@@ -723,7 +819,8 @@ ExamDetailsPage() {
                   >
                     Remove
                   </button>
-              )}
+                )}
+
               </div>
 
             )
@@ -1062,6 +1159,136 @@ ExamDetailsPage() {
           </div>
         )}
       </Panel>
+      {showDeleteModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(15, 23, 42, 0.55)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: "20px",
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: "12px",
+              padding: "24px",
+              width: "100%",
+              maxWidth: "460px",
+              boxShadow: "0 20px 40px rgba(0, 0, 0, 0.20)",
+            }}
+          >
+            <h2
+              style={{
+                marginTop: 0,
+                marginBottom: "12px",
+              }}
+            >
+              Delete Exam?
+            </h2>
+
+            <p
+              style={{
+                marginTop: 0,
+                marginBottom: "8px",
+                color: "#475569",
+                lineHeight: 1.5,
+              }}
+            >
+              Are you sure you want to permanently delete
+              <strong> {exam.title}</strong>?
+            </p>
+
+            <p
+              style={{
+                marginTop: 0,
+                marginBottom: "24px",
+                color: "#64748B",
+                fontSize: "14px",
+              }}
+            >
+              This action cannot be undone.
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "8px",
+              }}
+            >
+              <button
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  color: "#334155",
+                  border: "1px solid #CBD5E1",
+                  borderRadius: "8px",
+                  padding: "10px 16px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+                onClick={() =>
+                  setShowDeleteModal(false)
+                }
+              >
+                Cancel
+              </button>
+
+              <button
+                style={{
+                  backgroundColor: "#DC2626",
+                  color: "#FFFFFF",
+                  border: "none",
+                  borderRadius: "8px",
+                  padding: "10px 16px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+                onClick={async () => {
+
+                  try {
+
+                    await deleteExam(
+                      Number(id)
+                    );
+
+                    setShowDeleteModal(false);
+
+                    navigate(
+                      "/exams/scheduled"
+                    );
+
+                  } catch (err) {
+
+                    console.error(err);
+
+                    setShowDeleteModal(false);
+
+                    if (axios.isAxiosError(err)) {
+                      alert(
+                        err.response?.data?.message ||
+                        "Failed to delete exam"
+                      );
+                    } else {
+                      alert(
+                        "Failed to delete exam"
+                      );
+                    }
+
+                  }
+
+                }}
+              >
+                Delete Exam
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PageContainer>
   );
 }

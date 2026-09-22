@@ -1,3 +1,9 @@
+export type ExamType =
+  | 'general'
+  | 'basic_qualifying'
+  | 'act_final'
+  | 'specialization_final';
+
 export interface ExamTemplateQuestion {
   id: number;
 
@@ -34,6 +40,8 @@ export interface ExamTemplate {
   description: string | null;
 
   program: string;
+
+  exam_type: ExamType | null;
 
   questionCount?: number;
 

@@ -4,7 +4,7 @@ import Panel from "@/components/ui/Panel";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { ExamTemplate } from "@/interfaces/ExamTemplate";
+import { ExamTemplate, ExamType } from "@/interfaces/ExamTemplate";
 
 import { getExamTemplate, updateExamTemplate, deleteExamTemplateQuestion, } from "@/api/examTemplatesAPI";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +17,7 @@ export default function ExamTemplateDetailsPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [program, setProgram] = useState("");
+  const [examType, setExamType] = useState<ExamType | "">("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [showSuccess, setShowSuccess] = useState(false);
@@ -44,6 +45,7 @@ export default function ExamTemplateDetailsPage() {
 
       setDescription(data.description || "");
       setProgram(data.program || "Basic Training");
+      setExamType(data.exam_type || "");
 
     } catch (error) {
 
@@ -71,6 +73,7 @@ export default function ExamTemplateDetailsPage() {
             title,
             description,
             program,
+            exam_type: examType || null,
           }
         );
 
@@ -190,59 +193,106 @@ export default function ExamTemplateDetailsPage() {
             )}
             <div style={styles.summaryCard}>
 
-              <div style={styles.summaryTitle}>
+              <div style={styles.formField}>
+                <label style={styles.formLabel}>Template Title</label>
+
                 {isEditing ? (
-
                   <input
+                    style={styles.formInput}
                     value={title}
-                    onChange={(e) =>
-                      setTitle(
-                        e.target.value
-                      )
-                    }
+                    onChange={(e) => setTitle(e.target.value)}
                   />
-
                 ) : (
-
-                  template.title
-
+                  <div style={styles.summaryTitle}>{template.title}</div>
                 )}
               </div>
-              <div style={styles.summaryProgram}>
+              <div style={styles.formField}>
+                <label style={styles.formLabel}>Program</label>
+
                 {isEditing ? (
                   <select
+                    style={styles.formSelect}
                     value={program}
+                    disabled={
+                      examType === "basic_qualifying" ||
+                      examType === "act_final" ||
+                      examType === "specialization_final"
+                    }
                     onChange={(e) => setProgram(e.target.value)}
                   >
-                    <option value="Basic Training">
-                      Basic Training
-                    </option>
-
-                    <option value="ACT">
-                      ACT
-                    </option>
-
-                    <option value="Specialization">
-                      Specialization
-                    </option>
+                    <option value="Basic Training">Basic Training</option>
+                    <option value="ACT">ACT</option>
+                    <option value="Specialization">Specialization</option>
                   </select>
                 ) : (
-                  <>
-                    <strong>Program:</strong> {template.program}
-                  </>
+                  <div style={styles.fieldValue}>{template.program}</div>
                 )}
+
+                <div style={styles.fieldHelp}>
+                  The training program this template belongs to.
+                </div>
               </div>
-              <div style={styles.summaryDescription}>
+
+              <div style={styles.formField}>
+                <label style={styles.formLabel}>Exam Type</label>
+
+                {isEditing ? (
+                  <select
+                    style={styles.formSelect}
+                    value={examType}
+                    onChange={(e) => {
+                      const selectedType = e.target.value as ExamType | "";
+
+                      setExamType(selectedType);
+
+                      if (selectedType === "basic_qualifying") {
+                        setProgram("Basic Training");
+                      } else if (selectedType === "act_final") {
+                        setProgram("ACT");
+                      } else if (selectedType === "specialization_final") {
+                        setProgram("Specialization");
+                      }
+                    }}
+                  >
+                    <option value="">Select an exam type</option>
+                    <option value="general">General / Other</option>
+                    <option value="basic_qualifying">Basic Qualifying Exam</option>
+                    <option value="act_final">ACT Final Exam</option>
+                    <option value="specialization_final">Specialization Final Exam</option>
+                  </select>
+                ) : (
+                  <div style={styles.fieldValue}>
+                    {template.exam_type === "general"
+                      ? "General / Other"
+                      : template.exam_type === "basic_qualifying"
+                      ? "Basic Qualifying Exam"
+                      : template.exam_type === "act_final"
+                      ? "ACT Final Exam"
+                      : template.exam_type === "specialization_final"
+                      ? "Specialization Final Exam"
+                      : "Not Classified"}
+                  </div>
+                )}
+
+                <div style={styles.fieldHelp}>
+                  The purpose of the exam, including whether it fulfills a WiRED
+                  credential requirement.
+                </div>
+              </div>
+              <div style={styles.formField}>
+                <label style={styles.formLabel}>Description</label>
+
                 {isEditing ? (
                   <textarea
                     value={description}
-                    onChange={(e) =>
-                      setDescription(e.target.value)
-                    }
+                    onChange={(e) => setDescription(e.target.value)}
                     style={styles.textarea}
+                    placeholder="Describe the purpose of this exam template..."
                   />
                 ) : (
-                  template.description || "No description provided"
+                  <div style={styles.fieldValue}>
+                    {template.description || "No description provided"}
+                  </div>
                 )}
               </div>
 
@@ -280,6 +330,8 @@ export default function ExamTemplateDetailsPage() {
                         setProgram(
                           template.program || "Basic Training"
                         );
+
+                        setExamType(template.exam_type || "");
 
                         setIsEditing(false);
 
@@ -763,6 +815,52 @@ const styles: {
   noDataBadge: {
     background: "#E5E7EB",
     color: "#4B5563",
+  },
+
+  formField: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
+    marginBottom: "18px",
+  },
+
+  formLabel: {
+    fontSize: "14px",
+    fontWeight: 600,
+    color: "#374151",
+  },
+
+  formSelect: {
+    width: "100%",
+    maxWidth: "420px",
+    padding: "10px 12px",
+    border: "1px solid #D1D5DB",
+    borderRadius: "6px",
+    backgroundColor: "#FFFFFF",
+    fontSize: "14px",
+    color: "#111827",
+  },
+
+  fieldValue: {
+    fontSize: "15px",
+    color: "#111827",
+  },
+
+  fieldHelp: {
+    fontSize: "13px",
+    color: "#64748B",
+    lineHeight: 1.5,
+  },
+
+  formInput: {
+    width: "100%",
+    maxWidth: "420px",
+    padding: "10px 12px",
+    border: "1px solid #D1D5DB",
+    borderRadius: "6px",
+    fontSize: "14px",
+    color: "#111827",
+    boxSizing: "border-box",
   },
     
 };

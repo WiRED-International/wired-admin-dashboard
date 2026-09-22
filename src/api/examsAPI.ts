@@ -59,16 +59,16 @@ export async function getUpcomingExams(): Promise<UpcomingExam[]> {
 // -----------------------------------------------------
 // Results for single exam + single org (legacy endpoint)
 // -----------------------------------------------------
-export async function getExamResultsForOrg(examId: number, orgId: number) {
-  const token = Auth.getToken();
+// export async function getExamResultsForOrg(examId: number, orgId: number) {
+//   const token = Auth.getToken();
 
-  const res = await axios.get(
-    `${apiPrefix}api/admin/exams/${examId}/organizations/${orgId}/results`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
+//   const res = await axios.get(
+//     `${apiPrefix}api/admin/exams/${examId}/organizations/${orgId}/results`,
+//     { headers: { Authorization: `Bearer ${token}` } }
+//   );
 
-  return res.data;
-}
+//   return res.data;
+// }
 
 // -----------------------------------------------------
 // All exams for dropdown
@@ -138,7 +138,7 @@ export async function scheduleExam(payload: {
   localEnd: string;
   timeZone: string;
   duration_minutes: number;
-  organizations: number[];
+  classes: number[];
   users: number[];
 }) {
 
@@ -169,10 +169,10 @@ export async function scheduleExam(payload: {
 
   const examId = createResponse.data.exam.id;
 
-  // 2️⃣ Assign organizations
-  for (const orgId of payload.organizations) {
+  // 2️⃣ Assign classes
+  for (const classId of payload.classes) {
     await axios.post(
-      `${apiPrefix}/api/admin/exams/${examId}/assign-org/${orgId}`,
+      `${apiPrefix}/api/admin/exams/${examId}/assign-class/${classId}`,
       {},
       {
         headers: {
@@ -210,9 +210,24 @@ export interface ScheduledExam {
   duration_minutes: number;
   participant_count: number;
   status: string;
-  organizations: {
+
+  classes: {
     id: number;
     name: string;
+    organization_id: number;
+    program_id: number;
+    status: string;
+
+    organization: {
+      id: number;
+      name: string;
+    };
+
+    program: {
+      id: number;
+      name: string;
+      training_type: string;
+    };
   }[];
 }
 
@@ -227,6 +242,8 @@ export async function getScheduledExams(params?: {
   status?: string;
   search?: string;
   organizationId?: number | null;
+  programId?: number | null;
+  classId?: number | null;
   page?: number;
   limit?: number;
   sortBy?: string;
@@ -248,6 +265,20 @@ export async function getScheduledExams(params?: {
     query.append(
       "organizationId",
       String(params.organizationId)
+    );
+  }
+
+  if (params?.programId) {
+    query.append(
+      "programId",
+      String(params.programId)
+    );
+  }
+
+  if (params?.classId) {
+    query.append(
+      "classId",
+      String(params.classId)
     );
   }
 
@@ -322,6 +353,7 @@ export async function updateExam(
     localEnd: string;
     timeZone: string;
     duration_minutes: number;
+    exam_template_id: number | null;
   }
 ) {
 
@@ -362,47 +394,84 @@ export async function deleteExam(
   return response.data;
 }
 
-export async function removeOrganizationFromExam(
+// export async function removeOrganizationFromExam(
+//   examId: number,
+//   orgId: number
+// ) {
+
+//   const token =
+//     Auth.getToken();
+
+//   const response =
+//     await axios.delete(
+//       `${apiPrefix}/api/admin/exams/${examId}/organizations/${orgId}`,
+//       {
+//         headers: {
+//           Authorization:
+//             `Bearer ${token}`,
+//         },
+//       }
+//     );
+
+//   return response.data;
+// }
+
+// export async function assignOrganizationToExam(
+//   examId: number,
+//   orgId: number
+// ) {
+
+//   const token =
+//     Auth.getToken();
+
+//   const response =
+//     await axios.post(
+//       `${apiPrefix}/api/admin/exams/${examId}/assign-org/${orgId}`,
+//       {},
+//       {
+//         headers: {
+//           Authorization:
+//             `Bearer ${token}`,
+//         },
+//       }
+//     );
+
+//   return response.data;
+// }
+
+export async function assignClassToExam(
   examId: number,
-  orgId: number
+  classId: number
 ) {
+  const token = Auth.getToken();
 
-  const token =
-    Auth.getToken();
-
-  const response =
-    await axios.delete(
-      `${apiPrefix}/api/admin/exams/${examId}/organizations/${orgId}`,
-      {
-        headers: {
-          Authorization:
-            `Bearer ${token}`,
-        },
-      }
-    );
+  const response = await axios.post(
+    `${apiPrefix}/api/admin/exams/${examId}/assign-class/${classId}`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 
   return response.data;
 }
 
-export async function assignOrganizationToExam(
+export async function removeClassFromExam(
   examId: number,
-  orgId: number
+  classId: number
 ) {
+  const token = Auth.getToken();
 
-  const token =
-    Auth.getToken();
-
-  const response =
-    await axios.post(
-      `${apiPrefix}/api/admin/exams/${examId}/assign-org/${orgId}`,
-      {},
-      {
-        headers: {
-          Authorization:
-            `Bearer ${token}`,
-        },
-      }
-    );
+  const response = await axios.delete(
+    `${apiPrefix}/api/admin/exams/${examId}/classes/${classId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 
   return response.data;
 }
@@ -576,6 +645,98 @@ export async function getQuestionAnalytics(
           `Bearer ${token}`
       }
     });
+
+  return response.data;
+}
+
+export interface HistoricalUnassignedExamSession {
+  id: number;
+  exam_id: number;
+  exam_title: string | null;
+  exam_template_id: number | null;
+  class_id: number | null;
+  attempt_number: number;
+  score: number | null;
+  submitted_at: string;
+}
+
+export interface HistoricalUnassignedExamResponse {
+  user: {
+    id: number;
+    wired_user_id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    organization_id: number | null;
+  };
+
+  sessions: HistoricalUnassignedExamSession[];
+}
+
+export async function getHistoricalUnassignedExams(
+  userId: number
+): Promise<HistoricalUnassignedExamResponse> {
+
+  const token = Auth.getToken();
+
+  if (!token) {
+    throw new Error("Not authenticated.");
+  }
+
+  const response = await axios.get(
+    `${apiPrefix}/api/admin/exams/historical-unassigned/${userId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return response.data;
+}
+
+export interface HistoricalExamAssignmentResponse {
+  message: string;
+
+  session: {
+    id: number;
+    exam_id: number;
+    user_id: number;
+    class_id: number;
+    attempt_number: number;
+    score: number | null;
+    submitted_at: string;
+  };
+
+  exam_class: {
+    exam_id: number;
+    class_id: number;
+  };
+}
+
+export async function assignHistoricalExamToClass(
+  sessionId: number,
+  classId: number
+): Promise<HistoricalExamAssignmentResponse> {
+
+  const token = Auth.getToken();
+
+  if (!token) {
+    throw new Error("Not authenticated.");
+  }
+
+  const response = await axios.post(
+    `${apiPrefix}/api/admin/exams/historical-assign`,
+    {
+      sessionId,
+      classId,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 
   return response.data;
 }

@@ -4,6 +4,10 @@ export interface AllExamResultItem {
   exam_title: string | null;
   organization_id: number | null;
   organization_name: string | null;
+  class_id: number | null;
+  class_name: string | null;
+  program_id: number | null;
+  program_name: string | null;
   attempt_number: number;
   score: number | null;
   submitted_at: string | null;
@@ -29,6 +33,8 @@ export interface ExamResultsQuery {
   limit?: number;
   examId?: number | null;
   orgId?: number | null;
+  programId?: number | null;
+  classId?: number | null;
   status?: string | null;
   dateFrom?: string | null;
   dateTo?: string | null;

@@ -96,6 +96,8 @@ export default function AllExamsTable({
               {renderHeader("submitted_at", "Date & Time Submitted")}
               {renderHeader("status", "Status", false)}
               {renderHeader("organization", "Organization")}
+              {renderHeader("class", "Class", false)}
+              {renderHeader("program", "Program", false)}
               <th style={styles.th}>Actions</th>
             </tr>
           </thead>
@@ -144,6 +146,10 @@ export default function AllExamsTable({
                   <td style={styles.td}>{renderStatusBadge(status)}</td>
 
                   <td style={styles.td}>{row.organization_name ?? "—"}</td>
+
+                  <td style={styles.td}>{row.class_name ?? "—"}</td>
+
+                  <td style={styles.td}>{row.program_name ?? "—"}</td>
 
                   <td style={styles.td}>
                     <button

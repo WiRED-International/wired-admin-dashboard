@@ -168,6 +168,17 @@ export default function ExamAttemptDetailsPage() {
           <strong>Organization:</strong>{" "}
           {data.organization ?? "—"}
         </p>
+
+        <p>
+          <strong>Class:</strong>{" "}
+          {data.class?.name ?? "—"}
+        </p>
+
+        <p>
+          <strong>Program:</strong>{" "}
+          {data.program?.name ?? "—"}
+        </p>
+
         <p>
           <strong>Status:</strong>{" "}
           {data.score >= 80 ? "Passed" : "Failed"}

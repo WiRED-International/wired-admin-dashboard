@@ -22,6 +22,16 @@ import ExamTemplatesPage from "./pages/ExamTemplatesPage.tsx";
 import ExamTemplateDetailsPage from "./pages/ExamTemplateDetailsPage.tsx";
 import ExamTemplateQuestionDetailsPage from "./pages/ExamTemplateQuestionDetailsPage.tsx";
 import UserDetailsPage from "./pages/UserDetailsPage.tsx";
+import ClassesPage from "./pages/ClassesPage.tsx";
+import ClassDetailsPage from "./pages/ClassDetailsPage.tsx";
+import CreateClassPage from "./pages/CreateClassPage.tsx";
+import EditClassPage from "./pages/EditClassPage.tsx";
+import ClassProgressPage from "./pages/ClassProgressPage.tsx";
+import StudentClassProgressPage from "./pages/StudentClassProgressPage.tsx";
+import CredentialLedgerPage from "./pages/CredentialLedgerPage.tsx";
+import CredentialDetailsPage from "./pages/CredentialDetailsPage.tsx";
+import OrganizationsPage from "./pages/OrganizationsPage.tsx";
+import LocationsPage from "./pages/LocationsPage.tsx";
 
 const router = createBrowserRouter(
   [
@@ -83,6 +93,98 @@ const router = createBrowserRouter(
           element: (
             <ProtectedRoute redirectTo="/login">
               <UserDetailsPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/credentials",
+          element: (
+            <ProtectedRoute
+              redirectTo="/login"
+              allow={() => Auth.isSuperAdmin()}
+            >
+              <CredentialLedgerPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/credentials/:credentialId",
+          element: (
+            <ProtectedRoute
+              redirectTo="/login"
+              allow={() => Auth.isSuperAdmin()}
+            >
+              <CredentialDetailsPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/admin/organizations",
+          element: (
+            <ProtectedRoute
+              redirectTo="/login"
+              allow={() => Auth.isSuperAdmin()}
+            >
+              <OrganizationsPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/admin/locations",
+          element: (
+            <ProtectedRoute
+              redirectTo="/login"
+              allow={() => Auth.isSuperAdmin()}
+            >
+              <LocationsPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/classes",
+          element: (
+            <ProtectedRoute redirectTo="/login">
+              <ClassesPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/classes/new",
+          element: (
+            <ProtectedRoute redirectTo="/login">
+              <CreateClassPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/classes/:classId",
+          element: (
+            <ProtectedRoute redirectTo="/login">
+              <ClassDetailsPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/classes/:classId/edit",
+          element: (
+            <ProtectedRoute redirectTo="/login">
+              <EditClassPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/classes/:classId/progress",
+          element: (
+            <ProtectedRoute redirectTo="/login">
+              <ClassProgressPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/classes/:classId/students/:studentId/progress",
+          element: (
+            <ProtectedRoute redirectTo="/login">
+              <StudentClassProgressPage />
             </ProtectedRoute>
           ),
         },

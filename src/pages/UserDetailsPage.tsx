@@ -1,7 +1,11 @@
 import { useNavigate, useParams } from "react-router-dom";
 import PageContainer from "../components/ui/PageContainer";
 import Panel from "../components/ui/Panel";
-import { fetchUserById } from "../api/usersAPI";
+import Auth from "../utils/auth";
+import {
+  fetchUserById,
+  updateUserById,
+} from "../api/usersAPI";
 import {
   UserDataInterface,
   TranscriptRecordInterface,
@@ -12,6 +16,20 @@ import LoadingSpinner from "../components/LoadingSpinner/LoadingSpinner";
 import { fetchTranscript } from "../api/transcriptAPI";
 import { getLearningProgress } from "../api/usersAPI";
 import LearningProgressCard from "../components/users/LearningProgressCard";
+import StudentCredentialsCard from "../components/users/StudentCredentialsCard";
+import {
+  fetchStudentCredentials,
+  fetchEarnedSpecializations,
+  StudentCredentialsResponse,
+  EarnedSpecializationsResponse,
+} from "../api/credentialsAPI";
+import { fetchAllOrganizations } from "../api/organizationsAPI";
+import { fetchAllCountries } from "../api/countriesAPI";
+import { fetchAllRoles } from "../api/rolesAPI";
+import { OrganizationInterface } from "../interfaces/OrganizationsInterface";
+import { CountryInterface } from "../interfaces/CountryInterface";
+import { RoleInterface } from "../interfaces/rolesInterface";
+import SearchableOrganizationPicker from "../components/Common/SearchableOrganizationPicker";
 
 const UserDetailsPage = () => {
   const navigate = useNavigate();
@@ -24,6 +42,16 @@ const UserDetailsPage = () => {
   const [selectedYear, setSelectedYear] = useState("");
   const [transcript, setTranscript] = useState<TranscriptRecordInterface[]>([]);
   const [learningProgress, setLearningProgress] = useState<LearningProgress | null>(null);
+  const [credentialData, setCredentialData] = useState<StudentCredentialsResponse | null>(null);
+  const [earnedSpecializations, setEarnedSpecializations] =
+  useState<EarnedSpecializationsResponse | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editRoleId, setEditRoleId] = useState<number | null>(null);
+  const [editOrganizationId, setEditOrganizationId] = useState<number | null>(null);
+  const [editCountryId, setEditCountryId] = useState<number | null>(null);
+  const [roles, setRoles] = useState<RoleInterface[]>([]);
+  const [organizations, setOrganizations] = useState<OrganizationInterface[]>([]);
+  const [countries, setCountries] = useState<CountryInterface[]>([]);
 
   useEffect(() => {
 
@@ -39,15 +67,27 @@ const UserDetailsPage = () => {
           userData,
           transcriptData,
           learningProgressData,
+          earnedSpecializationsData,
         ] = await Promise.all([
           fetchUserById(Number(userId)),
           fetchTranscript(Number(userId)),
-          getLearningProgress(Number(userId))
+          getLearningProgress(Number(userId)),
+          fetchEarnedSpecializations(Number(userId)),
         ]);
 
         setUser(userData);
         setTranscript(transcriptData || []);
         setLearningProgress(learningProgressData);
+        setEarnedSpecializations(earnedSpecializationsData);
+
+        if (Auth.isSuperAdmin()) {
+          const credentialsData =
+            await fetchStudentCredentials(Number(userId));
+
+          setCredentialData(credentialsData);
+        } else {
+          setCredentialData(null);
+        }
 
       } catch (err) {
 
@@ -64,6 +104,30 @@ const UserDetailsPage = () => {
     loadUser();
 
   }, [userId]);
+
+  useEffect(() => {
+    const loadEditOptions = async () => {
+      try {
+        const [
+          rolesData,
+          organizationsData,
+          countriesData,
+        ] = await Promise.all([
+          fetchAllRoles(),
+          fetchAllOrganizations(),
+          fetchAllCountries(),
+        ]);
+
+        setRoles(rolesData);
+        setOrganizations(organizationsData);
+        setCountries(countriesData);
+      } catch (err) {
+        console.error("Failed to load user edit options:", err);
+      }
+    };
+
+    loadEditOptions();
+  }, []);
 
   useEffect(() => {
     const years = Array.from(
@@ -111,6 +175,27 @@ const UserDetailsPage = () => {
         .filter(Boolean)
     )
   ).sort();
+
+  const handleSaveUser = async () => {
+    if (!userId) return;
+
+    try {
+      const response = await updateUserById(
+        Number(userId),
+        {
+          role_id: editRoleId ?? undefined,
+          organization_id: editOrganizationId,
+          country_id: editCountryId,
+        }
+      );
+
+      setUser(response.user);
+      setIsEditing(false);
+    } catch (err) {
+      console.error("Failed to update user:", err);
+    }
+  };
+
   return (
     <PageContainer>
 
@@ -141,9 +226,40 @@ const UserDetailsPage = () => {
 
           </div>
 
-          {/* <button style={styles.editButton}>
-            Edit User
-          </button> */}
+          {Auth.isSuperAdmin() && (
+            <>
+              {isEditing ? (
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    style={styles.cancelButton}
+                    onClick={() => setIsEditing(false)}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    style={styles.saveButton}
+                    type="button"
+                    onClick={handleSaveUser}
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              ) : (
+                <button
+                  style={styles.saveButton}
+                  onClick={() => {
+                    setEditRoleId(user?.role_id ?? null);
+                    setEditOrganizationId(user?.organization_id ?? null);
+                    setEditCountryId(user?.country_id ?? null);
+                    setIsEditing(true);
+                  }}
+                >
+                  Edit User
+                </button>
+              )}
+            </>
+          )}
 
         </div>
 
@@ -161,16 +277,89 @@ const UserDetailsPage = () => {
           <div style={styles.value}>{user?.email}</div>
 
           <div style={styles.label}>Role</div>
-          <div style={styles.value}>{user?.role?.name}</div>
+
+          <div style={styles.value}>
+            {isEditing ? (
+              <div style={styles.selectWrapper}>
+                <select
+                  value={editRoleId ?? ""}
+                  style={styles.editSelect}
+                  onChange={(e) =>
+                    setEditRoleId(Number(e.target.value))
+                  }
+                >
+                  {roles.map((role) => (
+                    <option
+                      key={role.id}
+                      value={role.id}
+                    >
+                      {role.name}
+                    </option>
+                  ))}
+                </select>
+
+                <span style={styles.selectChevron}>
+                  ▼
+                </span>
+              </div>
+            ) : (
+              user?.role?.name
+            )}
+          </div>
 
           <div style={styles.label}>Organization</div>
-          <div style={styles.value}>{user?.organization?.name}</div>
+
+          <div style={styles.value}>
+            {isEditing ? (
+              <SearchableOrganizationPicker
+                organizations={organizations}
+                selectedId={editOrganizationId}
+                onSelect={setEditOrganizationId}
+                placeholder="No Organization"
+                clearLabel="No Organization"
+                width="240px"
+              />
+            ) : (
+              user?.organization?.name ?? "None"
+            )}
+          </div>
 
           <div style={styles.label}>Country</div>
-          <div style={styles.value}>{user?.country?.name}</div>
 
-          <div style={styles.label}>City</div>
-          <div style={styles.value}>{user?.city?.name}</div>
+          <div style={styles.value}>
+            {isEditing ? (
+              <div style={styles.selectWrapper}>
+                <select
+                  value={editCountryId ?? ""}
+                  style={styles.editSelect}
+                  onChange={(e) =>
+                    setEditCountryId(
+                      e.target.value
+                        ? Number(e.target.value)
+                        : null
+                    )
+                  }
+                >
+                  <option value="">No Country</option>
+
+                  {countries.map((country) => (
+                    <option
+                      key={country.id}
+                      value={country.id}
+                    >
+                      {country.name}
+                    </option>
+                  ))}
+                </select>
+
+                <span style={styles.selectChevron}>
+                  ▼
+                </span>
+              </div>
+            ) : (
+              user?.country?.name ?? "None"
+            )}
+          </div>
 
         </div>
 
@@ -181,14 +370,14 @@ const UserDetailsPage = () => {
           Earned Specializations
         </h2>
 
-        {user?.specializations?.length ? (
+        {earnedSpecializations?.specializations.length ? (
           <div style={styles.specializationList}>
-            {user.specializations.map((specialization) => (
+            {earnedSpecializations.specializations.map((record) => (
               <span
-                key={specialization.id}
+                key={record.credential_id}
                 style={styles.specializationBadge}
               >
-                {specialization.name}
+                {record.specialization.name}
               </span>
             ))}
           </div>
@@ -200,6 +389,14 @@ const UserDetailsPage = () => {
       </Panel>
 
       <LearningProgressCard progress={learningProgress} />
+
+      {credentialData && (
+        <StudentCredentialsCard
+          userId={Number(userId)}
+          data={credentialData}
+          onRefresh={setCredentialData}
+        />
+      )}
 
       <Panel>
 
@@ -278,11 +475,11 @@ const UserDetailsPage = () => {
               </th>
 
               <th style={styles.tableHeader}>
-                Training
+                Program
               </th>
 
               <th style={styles.tableHeader}>
-                Specializations
+                Specialization Association
               </th>
 
               <th style={styles.tableHeader}>
@@ -316,7 +513,9 @@ const UserDetailsPage = () => {
                   </td>
 
                   <td style={styles.tableCell}>
-                    {record.type}
+                    {record.type === "Exam" && record.attemptNumber
+                      ? `${record.type} · Attempt ${record.attemptNumber}`
+                      : record.type}
                   </td>
 
                   <td style={styles.tableCell}>
@@ -492,5 +691,56 @@ const styles: Record<string, React.CSSProperties> = {
 
   moduleId: {
     fontWeight: 600,
+  },
+
+  editSelect: {
+    width: "240px",
+    padding: "10px 14px",
+    backgroundColor: "#F4F4F5",
+    borderRadius: "6px",
+    fontSize: "14px",
+    color: "#444",
+    border: "1px solid #ddd",
+    boxSizing: "border-box",
+    cursor: "pointer",
+    appearance: "none",
+    paddingRight: "36px",
+  },
+
+  selectWrapper: {
+    position: "relative",
+    width: "240px",
+  },
+
+  selectChevron: {
+    position: "absolute",
+    right: "14px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    fontSize: "10px",
+    color: "#666",
+    pointerEvents: "none",
+  },
+
+  cancelButton: {
+    padding: "9px 16px",
+    borderRadius: "6px",
+    border: "1px solid #d1d5db",
+    backgroundColor: "#ffffff",
+    color: "#374151",
+    fontSize: "14px",
+    fontWeight: 600,
+    cursor: "pointer",
+  },
+
+  saveButton: {
+    padding: "9px 16px",
+    borderRadius: "6px",
+    border: "1px solid #2563eb",
+    backgroundColor: "#2563eb",
+    color: "#ffffff",
+    fontSize: "14px",
+    fontWeight: 600,
+    cursor: "pointer",
   },
 };

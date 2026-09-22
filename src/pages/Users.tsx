@@ -5,10 +5,8 @@ import UserSearchControls from "../components/UserSearchControls";
 import UsersTable from "../components/UserTable/UsersTable";
 import { UserDataInterface, UserSearchBroadResponse } from "../interfaces/UserDataInterface";
 import { searchUsersBroad } from "../api/usersAPI";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import LoadingSpinner from "../components/LoadingSpinner/LoadingSpinner";
-
-
 
 const UsersPage = () => {
   const [users, setUsers] = useState<UserDataInterface[]>([]);
@@ -21,8 +19,9 @@ const UsersPage = () => {
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState<boolean>(false);
 
-  const fetchAllUsers = async () => {
+  const fetchAllUsers = useCallback(async () => {
     setLoading(true);
+
     try {
       const fetchedUsers: UserSearchBroadResponse = await searchUsersBroad(
         searchQuery,
@@ -31,8 +30,10 @@ const UsersPage = () => {
         sortBy,
         sortOrder
       );
+
       setUsers(fetchedUsers.users || []);
       setTotalPages(fetchedUsers.pageCount || 0);
+
       console.log(
         "📦 users fetched:",
         fetchedUsers.users?.length,
@@ -48,11 +49,17 @@ const UsersPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    searchQuery,
+    currentPage,
+    rowsPerPage,
+    sortBy,
+    sortOrder,
+  ]);
 
   useEffect(() => {
     fetchAllUsers();
-  }, [sortBy, sortOrder, currentPage, rowsPerPage]);
+  }, [fetchAllUsers]);
 
   
   return (

@@ -120,7 +120,7 @@ export const fetchUserById = async (userId: number): Promise<UserDataInterface> 
 //update user by ID
 export const updateUserById = async (userId: number, updatedData: Partial<UserDataInterface>): Promise<{message: string, user: UserDataInterface}> => {
     try {
-        const response = await fetch(`${apiPrefix}users/${userId}`, {
+        const response = await fetch(`${apiPrefix}/users/${userId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -129,11 +129,14 @@ export const updateUserById = async (userId: number, updatedData: Partial<UserDa
             body: JSON.stringify(updatedData),
         });
 
+        const data = await response.json();
+
         if (!response.ok) {
-            throw new Error('Failed to update user');
+            throw new Error(
+                data.message || 'Failed to update user'
+            );
         }
 
-        const data = await response.json();
         return data;
     } catch (error) {
         console.error('Error updating user:', error);
@@ -184,4 +187,32 @@ export const getLearningProgress = async (userId: number) => {
         console.error("Error fetching learning progress:", error);
         throw error;
     }
+};
+
+export interface AdminUser {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+}
+
+export const fetchAdminUsers = async (): Promise<AdminUser[]> => {
+  const response = await fetch(
+    `${apiPrefix}/api/users/search?roleId=2`,
+    {
+      headers: {
+        Authorization: `Bearer ${Auth.getToken()}`,
+      },
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || "Failed to fetch admin users."
+    );
+  }
+
+  return data;
 };

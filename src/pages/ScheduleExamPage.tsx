@@ -9,6 +9,8 @@ import PageHeader from "@/components/ui/PageHeader";
 import Panel from "@/components/ui/Panel";
 import SearchableTimeZonePicker from "@/components/Common/SearchableTimeZonePicker";
 import { useNavigate } from "react-router-dom";
+import { fetchClasses } from "@/api/classAPI";
+import { ClassItem } from "@/interfaces/Class";
 
 export default function ScheduleExamPage() {
   const [scheduling, setScheduling] = useState(false);
@@ -31,6 +33,8 @@ export default function ScheduleExamPage() {
       userCount: number;
     }[]
   >([]);
+  const [classes, setClasses] = useState<ClassItem[]>([]);
+  const [selectedClasses, setSelectedClasses] = useState<number[]>([]);
   const [selectedOrganizations, setSelectedOrganizations] = useState<number[]>([]);
 
   const [userSearch, setUserSearch] = useState("");
@@ -40,19 +44,39 @@ export default function ScheduleExamPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const successRef = useRef<HTMLDivElement>(null);
 
-  const organizationUserCount =
-    selectedOrganizations.reduce(
-      (total, orgId) => {
+  const filteredClasses = classes.filter(
+    (classItem) =>
+      selectedOrganizations.includes(classItem.organization_id) &&
+      classItem.status === "active"
+  );
 
-        const org = organizations.find(
-          (o) => o.id === orgId
+  useEffect(() => {
+    setSelectedClasses((current) =>
+      current.filter((classId) => {
+        const classItem = classes.find(
+          (item) => item.id === classId
         );
 
-        return total + (org?.userCount || 0);
-
-      },
-      0
+        return (
+          classItem &&
+          selectedOrganizations.includes(
+            classItem.organization_id
+          )
+        );
+      })
     );
+  }, [selectedOrganizations, classes]);
+
+  const classMemberCount = selectedClasses.reduce(
+    (total, classId) => {
+      const classItem = classes.find(
+        (item) => item.id === classId
+      );
+
+      return total + (classItem?.class_enrollments?.length ?? 0);
+    },
+    0
+  );
 
   useEffect(() => {
     if (successMessage) {
@@ -71,6 +95,10 @@ export default function ScheduleExamPage() {
 
         const orgs = await getAccessibleOrganizations();
         setOrganizations(orgs);
+
+        const classData = await fetchClasses();
+
+        setClasses(classData.classes);
       } catch (err) {
         console.error("Failed to load schedule exam data:", err);
       }
@@ -116,7 +144,7 @@ export default function ScheduleExamPage() {
     !!localStart &&
     !!localEnd &&
     (
-      selectedOrganizations.length > 0 ||
+      selectedClasses.length > 0 ||
       selectedUsers.length > 0
     );
 
@@ -272,7 +300,7 @@ export default function ScheduleExamPage() {
         </div>
       </Panel>
       <Panel>
-        <h2>Organization Access</h2>
+        <h2>Class Access</h2>
 
         <SearchableOrganizationMultiSelect
           organizations={organizations}
@@ -283,6 +311,73 @@ export default function ScheduleExamPage() {
           placeholder="Select Organizations"
           showSelectedList={true}
         />
+
+        {selectedOrganizations.length > 0 && (
+          <div style={{ marginTop: "20px" }}>
+            <h3>Select Classes</h3>
+
+            {filteredClasses.length === 0 ? (
+              <p>No classes found for the selected organization.</p>
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px",
+                }}
+              >
+                {filteredClasses.map((classItem) => (
+                  <label
+                    key={classItem.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      padding: "10px 12px",
+                      border: "1px solid #E5E7EB",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedClasses.includes(classItem.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedClasses([
+                            ...selectedClasses,
+                            classItem.id,
+                          ]);
+                        } else {
+                          setSelectedClasses(
+                            selectedClasses.filter(
+                              (id) => id !== classItem.id
+                            )
+                          );
+                        }
+                      }}
+                    />
+
+                    <div>
+                      <div style={{ fontWeight: 600 }}>
+                        {classItem.name}
+                      </div>
+
+                      <div
+                        style={{
+                          fontSize: "13px",
+                          color: "#666",
+                        }}
+                      >
+                        {classItem.program?.name ?? "Program not available"}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </Panel>
       <Panel>
         <h2>User Access</h2>
@@ -440,13 +535,13 @@ export default function ScheduleExamPage() {
           </div>
 
           <div>
-            <strong>Organizations:</strong>{" "}
-            {selectedOrganizations.length}
+            <strong>Classes:</strong>{" "}
+            {selectedClasses.length}
           </div>
 
           <div>
-            <strong>Organization Members:</strong>{" "}
-            {organizationUserCount}
+            <strong>Class Members:</strong>{" "}
+            {classMemberCount}
           </div>
 
           <div>
@@ -523,10 +618,10 @@ export default function ScheduleExamPage() {
                   <li>End Date</li>
                 )}
 
-                {selectedOrganizations.length === 0 &&
+                {selectedClasses.length === 0 &&
                   selectedUsers.length === 0 && (
                     <li>
-                      Organization or User Assignment
+                      Class or User Assignment
                     </li>
                   )}
               </ul>
@@ -578,7 +673,7 @@ export default function ScheduleExamPage() {
                 localEnd,
                 timeZone,
                 duration_minutes: durationMinutes,
-                organizations: selectedOrganizations,
+                classes: selectedClasses,
                 users: selectedUsers.map(u => u.id),
               });
 
@@ -594,6 +689,7 @@ export default function ScheduleExamPage() {
               setDurationMinutes(45);
 
               setSelectedOrganizations([]);
+              setSelectedClasses([]);
               setSelectedUsers([]);
               setUserResults([]);
               setUserSearch("");

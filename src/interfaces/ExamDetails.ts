@@ -1,6 +1,29 @@
-export interface ExamOrganization {
+export interface ExamClassOrganization {
   id: number;
   name: string;
+}
+
+export interface ExamClassProgram {
+  id: number;
+  name: string;
+  training_type: string;
+}
+
+export interface ExamClass {
+  id: number;
+  name: string;
+  organization_id: number;
+  program_id: number;
+  status: string;
+
+  organization: ExamClassOrganization;
+  program: ExamClassProgram;
+}
+
+export interface ExamDetailsTemplate {
+  id: number;
+  title: string;
+  description: string | null;
 }
 
 export interface ExamDetails {
@@ -19,7 +42,11 @@ export interface ExamDetails {
 
   time_zone: string;
 
-  organizations: ExamOrganization[];
+  exam_template_id: number | null;
+
+  exam_template: ExamDetailsTemplate | null;
+
+  classes: ExamClass[];
 
   exam_user_access: ExamAssignedUser[];
 }

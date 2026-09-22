@@ -18,6 +18,8 @@ export default function ExamsPage() {
   const [filters, setFilters] = useState<ExamFiltersType>({
     examId: null,
     orgId: null,
+    programId: null,
+    classId: null,
     status: null,
     limit: 50,
     dateFrom: null,

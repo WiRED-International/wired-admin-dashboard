@@ -148,8 +148,31 @@ export default function UpcomingExams() {
                 </div>
               </div>
 
-              <div style={styles.orgColumn}>
-                {item.org}
+              <div style={styles.classColumn}>
+                {item.classes.length > 0 ? (
+                  item.classes.map((classItem) => (
+                    <div key={classItem.id}>
+                      <div>
+                        {classItem.name}
+                      </div>
+
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "#64748B",
+                          fontWeight: 400,
+                          marginTop: "2px",
+                        }}
+                      >
+                        {classItem.organization?.name ?? "—"}
+                        {" • "}
+                        {classItem.program?.name ?? "—"}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <span>No classes assigned</span>
+                )}
               </div>
             </div>
 
@@ -279,9 +302,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: "#555",
   },
 
-  orgColumn: {
+  classColumn: {
     display: "flex",
+    flexDirection: "column",
     alignItems: "flex-end",
+    gap: "6px",
     fontSize: "14px",
     color: "#444",
     fontWeight: 500,

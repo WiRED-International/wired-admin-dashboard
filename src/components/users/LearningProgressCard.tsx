@@ -1,15 +1,5 @@
 import Panel from "../ui/Panel";
-
-type ProgressItem = {
-  completed: number;
-  total: number;
-  percent: number;
-};
-
-interface LearningProgress {
-  basicTraining: ProgressItem;
-  act: ProgressItem;
-}
+import { LearningProgress } from "../../interfaces/UserDataInterface";
 
 interface Props {
   progress: LearningProgress | null;
@@ -87,6 +77,16 @@ export default function LearningProgressCard({ progress }: Props) {
         total={progress.act.total}
         percent={progress.act.percent}
       />
+
+      {progress.specializations.map((specialization) => (
+        <ProgressRow
+          key={specialization.id}
+          label={specialization.name}
+          completed={specialization.completed}
+          total={specialization.total}
+          percent={specialization.percent}
+        />
+      ))}
 
     </Panel>
   );

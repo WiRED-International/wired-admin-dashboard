@@ -5,6 +5,17 @@ export interface ExamAttemptUser {
   email: string;
 }
 
+export interface ExamAttemptClass {
+  id: number;
+  name: string;
+}
+
+export interface ExamAttemptProgram {
+  id: number;
+  name: string;
+  training_type: string;
+}
+
 export interface ExamAttemptExam {
   id: number;
   title: string;
@@ -33,10 +44,20 @@ export interface ExamAttemptQuestion {
 
 export interface ExamAttemptResponse {
   user: ExamAttemptUser;
+
   exam: ExamAttemptExam;
+
   score: number;
+
   submitted_at: string;
+
   questions: ExamAttemptQuestion[];
+
   attempt_number: number;
+
   organization: string | null;
+
+  class: ExamAttemptClass | null;
+
+  program: ExamAttemptProgram | null;
 }

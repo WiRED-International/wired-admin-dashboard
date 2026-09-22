@@ -7,6 +7,16 @@ import SearchableOrganizationPicker from "@/components/Common/SearchableOrganiza
 import { useNavigate } from "react-router-dom";
 import Auth from "@/utils/auth";
 
+import {
+  fetchClasses,
+  fetchClassPrograms,
+} from "@/api/classAPI";
+
+import {
+  ClassItem,
+  ClassProgramOption,
+} from "@/interfaces/Class";
+
 type ExamFiltersProps = {
   filters: ExamFiltersType;
 
@@ -23,6 +33,8 @@ export default function ExamFilters({
   const {
     examId,
     orgId,
+    programId,
+    classId,
     status,
     limit,
     dateFrom,
@@ -39,6 +51,10 @@ export default function ExamFilters({
 
   const [orgOptions, setOrgOptions] = useState<OrganizationListItem[]>([]);
 
+  const [programOptions, setProgramOptions] = useState<ClassProgramOption[]>([]);
+
+  const [classOptions, setClassOptions] = useState<ClassItem[]>([]);
+
   // Filter logic
   const filteredExams = (examOptions ?? []).filter((exam) =>
     exam.title.toLowerCase().includes(examSearch.toLowerCase())
@@ -51,20 +67,31 @@ export default function ExamFilters({
     { value: "in-progress", label: "In Progress" },
   ];
 
-   // 1️⃣ Fetch exams + orgs
+  // 1️⃣ Fetch filter options
   useEffect(() => {
     const fetchFilters = async () => {
       try {
-        const [exams, orgs] = await Promise.all([
+        const [
+          exams,
+          orgs,
+          programsData,
+          classesData,
+        ] = await Promise.all([
           getAllExams(),
-          getAccessibleOrganizations()
+          getAccessibleOrganizations(),
+          fetchClassPrograms(),
+          fetchClasses(),
         ]);
+
         setExamOptions(exams);
         setOrgOptions(orgs);
+        setProgramOptions(programsData.programs);
+        setClassOptions(classesData.classes);
       } catch (err) {
         console.error("Failed to load filter data:", err);
-      } 
+      }
     };
+
     fetchFilters();
   }, []);
 
@@ -223,9 +250,86 @@ export default function ExamFilters({
             setFilters((prev) => ({
               ...prev,
               orgId: id,
+              programId: null,
+              classId: null,
             }));
           }}
         />
+
+        {/* Program Dropdown */}
+        <select
+          style={styles.dropdown}
+          value={programId ?? ""}
+          onChange={(e) => {
+            const value =
+              e.target.value === ""
+                ? null
+                : Number(e.target.value);
+
+            setFilters((prev) => ({
+              ...prev,
+              programId: value,
+              classId: null,
+            }));
+          }}
+        >
+          <option value="">All Programs</option>
+
+          {programOptions.map((program) => (
+            <option
+              key={program.id}
+              value={program.id}
+            >
+              {program.name}
+            </option>
+          ))}
+        </select>
+
+        {/* Class Dropdown */}
+        <select
+          style={styles.dropdown}
+          value={classId ?? ""}
+          onChange={(e) => {
+            const value =
+              e.target.value === ""
+                ? null
+                : Number(e.target.value);
+
+            setFilters((prev) => ({
+              ...prev,
+              classId: value,
+            }));
+          }}
+        >
+          <option value="">All Classes</option>
+
+          {classOptions
+            .filter((classItem) => {
+              if (
+                orgId &&
+                classItem.organization_id !== orgId
+              ) {
+                return false;
+              }
+
+              if (
+                programId &&
+                classItem.program_id !== programId
+              ) {
+                return false;
+              }
+
+              return true;
+            })
+            .map((classItem) => (
+              <option
+                key={classItem.id}
+                value={classItem.id}
+              >
+                {classItem.name}
+              </option>
+            ))}
+        </select>
 
         {/* Status Dropdown */}
         <select
@@ -298,11 +402,13 @@ export default function ExamFilters({
             setFilters({
               examId: null,
               orgId: null,
+              programId: null,
+              classId: null,
               status: null,
               limit: 50,
               dateFrom: null,
               dateTo: null,
-            });           
+            });          
           }}
           >
           Clear Filters

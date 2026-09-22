@@ -1,26 +1,28 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-type Organization = {
+export type SearchablePickerOption = {
   id: number;
   name: string;
 };
 
 type Props = {
-  organizations: Organization[];
+  options: SearchablePickerOption[];
   selectedId: number | null;
   onSelect: (id: number | null) => void;
-  placeholder?: string;
-  clearLabel?: string;
-  width?: string;
+  placeholder: string;
+  searchPlaceholder: string;
+  clearLabel: string;
+  noResultsLabel?: string;
 };
 
-export default function SearchableOrganizationPicker({
-  organizations,
+export default function SearchablePicker({
+  options,
   selectedId,
   onSelect,
-  placeholder = "All Organizations",
-  clearLabel = "Clear Organization Filter",
-  width,
+  placeholder,
+  searchPlaceholder,
+  clearLabel,
+  noResultsLabel = "No results found",
 }: Props) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -28,29 +30,25 @@ export default function SearchableOrganizationPicker({
   const wrapperRef =
     useRef<HTMLDivElement>(null);
 
-  const filteredOrganizations =
+  const filteredOptions =
     useMemo(() => {
-
-      return organizations.filter(
-        org =>
-          org.name
+      return options.filter(
+        (option) =>
+          option.name
             .toLowerCase()
             .includes(
               search.toLowerCase()
             )
       );
-
     }, [
-      organizations,
+      options,
       search,
     ]);
 
   useEffect(() => {
-
     function handleClickOutside(
       event: MouseEvent
     ) {
-
       if (
         wrapperRef.current &&
         !wrapperRef.current.contains(
@@ -59,7 +57,6 @@ export default function SearchableOrganizationPicker({
       ) {
         setOpen(false);
       }
-
     }
 
     document.addEventListener(
@@ -72,44 +69,34 @@ export default function SearchableOrganizationPicker({
         "mousedown",
         handleClickOutside
       );
-
   }, []);
+
+  const selectedOption =
+    options.find(
+      (option) =>
+        option.id === selectedId
+    );
 
   return (
     <div
       style={styles.wrapper}
       ref={wrapperRef}
     >
-
       <div
-        style={{
-          ...styles.dropdown,
-          ...(width ? { width, minWidth: width } : {}),
-        }}
+        style={styles.dropdown}
         onClick={() =>
           setOpen(!open)
         }
       >
-        <span>
-          {selectedId
-            ? organizations.find(
-                o =>
-                  o.id === selectedId
-              )?.name
-            : placeholder}
-        </span>
-
-        <span style={styles.chevron}>
-          {open ? "▲" : "▼"}
-        </span>
+        {selectedOption?.name ??
+          placeholder}
       </div>
 
       {open && (
         <div style={styles.panel}>
-
           <input
             type="text"
-            placeholder="Search organizations..."
+            placeholder={searchPlaceholder}
             value={search}
             onChange={(e) =>
               setSearch(e.target.value)
@@ -119,29 +106,27 @@ export default function SearchableOrganizationPicker({
           />
 
           <div style={styles.listContainer}>
-
-            {filteredOrganizations.length === 0 && (
+            {filteredOptions.length === 0 && (
               <div style={styles.noResults}>
-                No organizations found
+                {noResultsLabel}
               </div>
             )}
 
-            {filteredOrganizations.map(
-              (org) => (
+            {filteredOptions.map(
+              (option) => (
                 <div
-                  key={org.id}
+                  key={option.id}
                   style={styles.listItem}
                   onClick={() => {
-                    onSelect(org.id);
+                    onSelect(option.id);
                     setOpen(false);
                     setSearch("");
                   }}
                 >
-                  {org.name}
+                  {option.name}
                 </div>
               )
             )}
-
           </div>
 
           <div
@@ -154,10 +139,8 @@ export default function SearchableOrganizationPicker({
           >
             {clearLabel}
           </div>
-
         </div>
       )}
-
     </div>
   );
 }
@@ -166,7 +149,6 @@ const styles: {
   [key: string]:
     React.CSSProperties;
 } = {
-
   wrapper: {
     position: "relative",
   },
@@ -174,17 +156,12 @@ const styles: {
   dropdown: {
     minWidth: "220px",
     padding: "10px 14px",
-    backgroundColor:
-      "#F4F4F5",
+    backgroundColor: "#F4F4F5",
     borderRadius: "6px",
     fontSize: "14px",
     color: "#444",
     border: "1px solid #ddd",
     cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    boxSizing: "border-box",
   },
 
   panel: {
@@ -234,11 +211,4 @@ const styles: {
     color: "#B91C1C",
     fontWeight: 600,
   },
-
-  chevron: {
-    marginLeft: "12px",
-    fontSize: "10px",
-    color: "#666",
-  },
-
 };

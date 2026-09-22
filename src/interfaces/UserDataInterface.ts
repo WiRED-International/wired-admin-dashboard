@@ -39,6 +39,8 @@ export interface TranscriptRecordInterface {
     title: string;
     type: string;
 
+    attemptNumber?: number;
+
     training: string;
 
     specializations: string[];
@@ -57,9 +59,15 @@ export interface QuizScoreUpdateResponseInterface {
 
 export interface UserDataInterface {
   id: number;
+  wired_user_id: string;
   first_name: string;
   last_name: string;
   email: string;
+
+  role_id?: number;
+  country_id?: number | null;
+  city_id?: number | null;
+  organization_id?: number | null;
 
   CME_Credits?: number;
   basicCompletionPercent?: number;
@@ -79,16 +87,19 @@ export interface UserSearchBroadResponse {
   pageCount: number;
 }
 
-export interface LearningProgress {
-  basicTraining: {
-    completed: number;
-    total: number;
-    percent: number;
-  };
+export interface ProgressItem {
+  completed: number;
+  total: number;
+  percent: number;
+}
 
-  act: {
-    completed: number;
-    total: number;
-    percent: number;
-  };
+export interface SpecializationProgress extends ProgressItem {
+  id: number;
+  name: string;
+}
+
+export interface LearningProgress {
+  basicTraining: ProgressItem;
+  act: ProgressItem;
+  specializations: SpecializationProgress[];
 }

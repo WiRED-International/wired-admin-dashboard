@@ -1,7 +1,11 @@
 import axios from "axios";
 import Auth from "@/utils/auth";
 import { apiPrefix } from "@/utils/globalVariables";
-import { ExamTemplate, ExamTemplateQuestion } from "@/interfaces/ExamTemplate";
+import {
+  ExamTemplate,
+  ExamTemplateQuestion,
+  ExamType,
+} from "@/interfaces/ExamTemplate";
 
 const getAuthHeaders = () => ({
   Authorization: `Bearer ${Auth.getToken()}`,
@@ -51,6 +55,8 @@ export async function getExamTemplateQuestions(
 export async function createExamTemplate(data: {
   title: string;
   description?: string;
+  program?: string;
+  exam_type?: ExamType | null;
 }) {
   const response = await axios.post(
     `${apiPrefix}/api/admin/exams/templates`,
@@ -69,6 +75,7 @@ export async function updateExamTemplate(
     title: string;
     description: string;
     program: string;
+    exam_type?: ExamType | null;
   }
 ) {
 

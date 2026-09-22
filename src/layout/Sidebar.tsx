@@ -6,6 +6,10 @@ import {
   Users,
   Download,
   FileText,
+  GraduationCap,
+  Award,
+  Building2,
+  MapPin,
   LogOut,
   Menu,
   ChevronLeft,
@@ -34,6 +38,17 @@ export default function Sidebar({
   */
   const canAccessExams = Auth.isSuperAdmin() || Auth.isInstructor();
 
+  const isNavItemActive = (path: string) => {
+    if (path === "/") {
+      return location.pathname === "/";
+    }
+
+    return (
+      location.pathname === path ||
+      location.pathname.startsWith(`${path}/`)
+    );
+  };
+
   const navItems = [
     {
       name: "Downloads",
@@ -46,6 +61,32 @@ export default function Sidebar({
       path: "/userview",
       icon: <Users size={20} />,
     },
+
+    {
+      name: "Classes",
+      path: "/classes",
+      icon: <GraduationCap size={20} />,
+    },
+
+    ...(Auth.isSuperAdmin()
+      ? [
+          {
+            name: "Organizations",
+            path: "/admin/organizations",
+            icon: <Building2 size={20} />,
+          },
+          {
+            name: "Locations",
+            path: "/admin/locations",
+            icon: <MapPin size={20} />,
+          },
+          {
+            name: "Credentials",
+            path: "/credentials",
+            icon: <Award size={20} />,
+          },
+        ]
+      : []),
 
     ...(canAccessExams
       ? [
@@ -119,7 +160,7 @@ export default function Sidebar({
                   ? "center"
                   : "flex-start",
 
-              ...(location.pathname === item.path
+              ...(isNavItemActive(item.path)
                 ? styles.activeNav
                 : {}),
             }}

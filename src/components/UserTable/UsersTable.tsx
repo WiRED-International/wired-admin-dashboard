@@ -27,7 +27,6 @@ const columns = [
     { key: "first_name", label: "First Name" },
     { key: "email", label: "Email" },
     { key: "CME_Credits", label: "CME" },
-    { key: "basicCompletionPercent", label: "Basic Training" },
     { key: "organization", label: "Organization" },
     //specializations has been removed for now due it causing issues with sorting and pagination
     // { key: "specializations", label: "Specializations" },
@@ -37,7 +36,7 @@ const columns = [
     
 ];
 
-const nonSortableColumns = ['actions', 'row_number', 'specializations', 'basicCompletionPercent', ];
+const nonSortableColumns = ['actions', 'row_number', 'specializations'];
 
 const evenGray = "#FFFEFE";
 const oddGray = "#F5F5F5";
@@ -83,11 +82,6 @@ const UsersTable: React.FC<UsersTableProps> = ({
 
         if (columnKey === "CME_Credits") {
             return user.CME_Credits ?? 0;
-        }
-
-        if (columnKey === "basicCompletionPercent") {
-            const percent = user.basicCompletionPercent ?? 0;
-            return `${percent.toFixed(2)}%`;
         }
 
       //if specializations were to be added back in
@@ -146,8 +140,6 @@ const UsersTable: React.FC<UsersTableProps> = ({
                         ? "220px"
                         : column.key === "CME_Credits"
                         ? "110px"
-                        : column.key === "basic_training"
-                        ? "140px"
                         : column.key === "role"
                         ? "90px"
                         : column.key === "country"

@@ -4,11 +4,21 @@ import {
   getAccessibleOrganizations,
   ScheduledExam
 } from "@/api/examsAPI";
+import {
+  fetchClassPrograms,
+  fetchClasses,
+} from "@/api/classAPI";
+
+import {
+  ClassProgramOption,
+  ClassItem,
+} from "@/interfaces/Class";
 import { useNavigate } from "react-router-dom";
 import PageContainer from "@/components/ui/PageContainer";
 import PageHeader from "@/components/ui/PageHeader";
 import Panel from "@/components/ui/Panel";
 import SearchableOrganizationPicker from "@/components/Common/SearchableOrganizationPicker";
+import SearchablePicker from "@/components/Common/SearchablePicker";
 
 function renderStatusBadge(status: string) {
   const base: React.CSSProperties = {
@@ -75,7 +85,14 @@ export default function ScheduledExamsPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [organizationFilter, setOrganizationFilter] = useState<number | null>(null);
-  const [organizations, setOrganizations] = useState <{ id: number; name: string }[]> ([]);
+  const [organizations, setOrganizations] = useState<{ id: number; name: string }[]>([]);
+
+  const [programFilter, setProgramFilter] = useState<number | null>(null);
+  const [programs, setPrograms] = useState<ClassProgramOption[]>([]);
+
+  const [classFilter, setClassFilter] = useState<number | null>(null);
+  const [classes, setClasses] = useState<ClassItem[]>([]);
+
   const [page, setPage] = useState(1);
 
   const [pageCount, setPageCount] = useState(1);
@@ -84,6 +101,18 @@ export default function ScheduledExamsPage() {
   const [sortBy, setSortBy] = useState("available_from");
 
   const [sortOrder, setSortOrder] = useState <"ASC" | "DESC"> ("DESC");
+
+  const filteredClasses = classes.filter((classItem) => {
+    const matchesOrganization =
+      organizationFilter === null ||
+      classItem.organization_id === organizationFilter;
+
+    const matchesProgram =
+      programFilter === null ||
+      classItem.program_id === programFilter;
+
+    return matchesOrganization && matchesProgram;
+  });
 
   useEffect(() => {
     const loadOrganizations = async () => {
@@ -100,6 +129,32 @@ export default function ScheduledExamsPage() {
         }
     };
 
+    const loadPrograms = async () => {
+      try {
+        const data = await fetchClassPrograms();
+
+        setPrograms(data.programs);
+      } catch (err) {
+        console.error(
+          "Failed to load programs:",
+          err
+        );
+      }
+    };
+
+    const loadClasses = async () => {
+      try {
+        const data = await fetchClasses();
+
+        setClasses(data.classes);
+      } catch (err) {
+        console.error(
+          "Failed to load classes:",
+          err
+        );
+      }
+    };
+
     const loadExams = async () => {
 
       try {
@@ -110,6 +165,10 @@ export default function ScheduledExamsPage() {
             search: searchTerm,
             organizationId:
               organizationFilter,
+            programId:
+              programFilter,
+            classId:
+              classFilter,
             page,
             limit: 10,
             sortBy,
@@ -138,11 +197,14 @@ export default function ScheduledExamsPage() {
 
     loadExams();
     loadOrganizations();
-
+    loadPrograms();
+    loadClasses();
   }, [
     statusFilter,
     searchTerm,
     organizationFilter,
+    programFilter,
+    classFilter,
     page,
     sortBy,
     sortOrder,
@@ -240,8 +302,15 @@ export default function ScheduledExamsPage() {
             }}
           />
 
-          <div>
-            <label style={{ marginRight: "8px" }}> Status </label>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              flexShrink: 0,
+            }}
+          >
+            <label>Status</label>
 
             <select
               style={{
@@ -281,8 +350,81 @@ export default function ScheduledExamsPage() {
               selectedId={organizationFilter}
               onSelect={(id) => {
                 setOrganizationFilter(id);
+                setProgramFilter(null);
+                setClassFilter(null);
                 setPage(1);
               }}
+            />
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <label>
+              Program
+            </label>
+
+            <select
+              value={programFilter ?? ""}
+              onChange={(e) => {
+                setProgramFilter(
+                  e.target.value
+                    ? Number(e.target.value)
+                    : null
+                );
+                setClassFilter(null);
+                setPage(1);
+              }}
+              style={{
+                minWidth: "160px",
+                padding: "10px 14px",
+                backgroundColor: "#F4F4F5",
+                borderRadius: "6px",
+                fontSize: "14px",
+                color: "#444",
+                border: "1px solid #ddd",
+              }}
+            >
+              <option value="">All Programs</option>
+
+              {programs.map((program) => (
+                <option
+                  key={program.id}
+                  value={program.id}
+                >
+                  {program.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <label>
+              Class
+            </label>
+
+            <SearchablePicker
+              options={filteredClasses.map((classItem) => ({
+                id: classItem.id,
+                name: classItem.name,
+              }))}
+              selectedId={classFilter}
+              onSelect={(id) => {
+                setClassFilter(id);
+                setPage(1);
+              }}
+              placeholder="All Classes"
+              searchPlaceholder="Search classes..."
+              clearLabel="Clear Class Filter"
+              noResultsLabel="No classes found"
             />
           </div>
         </div>
@@ -354,7 +496,7 @@ export default function ScheduledExamsPage() {
                     : "▼"
                   : ""}
               </th>
-              <th style={styles.th}>Organizations</th>
+              <th style={styles.th}>Classes</th>
               <th
                 onClick={() =>
                   handleSort("participant_count")
@@ -415,7 +557,11 @@ export default function ScheduledExamsPage() {
                     {exam.time_zone}
                   </small>
                 </td>
-                <td style={styles.td}>{exam.organizations.map(o => o.name).join(", ")}</td>
+                <td style={styles.td}>
+                  {exam.classes.length > 0
+                    ? exam.classes.map((classItem) => classItem.name).join(", ")
+                    : "—"}
+                </td>
                 <td style={styles.td}>{exam.participant_count}</td>
                 <td style={styles.td}>
                   <button
