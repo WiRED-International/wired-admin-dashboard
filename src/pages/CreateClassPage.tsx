@@ -37,7 +37,6 @@ export default function CreateClassPage() {
 
   const isSuperAdmin = Auth.isSuperAdmin();
   const isAdmin = Auth.hasRole(2);
-  const isInstructor = Auth.isInstructor();
   const navigate = useNavigate();
 
   useEffect(() => {

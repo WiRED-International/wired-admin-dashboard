@@ -63,6 +63,7 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
 
   const [formState, setFormState] = useState<UserDataInterface>({
   id: 0,
+  wired_user_id: "",
   first_name: "",
   last_name: "",
   email: "",
@@ -179,6 +180,7 @@ const SingleUserView = ({ user, setIsSingleUserViewOpen, viewMode, setViewMode }
 
         setFormState({
           id: fetchedUser.id,
+          wired_user_id: fetchedUser.wired_user_id,
           first_name: fetchedUser.first_name,
           last_name: fetchedUser.last_name,
           email: fetchedUser.email,
