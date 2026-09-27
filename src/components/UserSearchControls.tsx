@@ -1,10 +1,14 @@
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import Select from "../components/ui/Select";
-import React, { ChangeEvent } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import Toolbar from "../components/ui/Toolbar";
-import { UserDataInterface } from "../interfaces/UserDataInterface";
-import { searchUsersBroad } from '../api/usersAPI';
+import SearchableOrganizationPicker from "./Common/SearchableOrganizationPicker";
+
+type OrganizationOption = {
+    id: number;
+    name: string;
+};
 
 interface UserSearchControlsProps {
     currentPage: number;
@@ -12,36 +16,37 @@ interface UserSearchControlsProps {
     totalPages: number;
     setCurrentPage: (page: number) => void;
     setRowsPerPage: (rows: number) => void;
-    setTotalPages: (total: number) => void;
-    setUsers: (users: UserDataInterface[]) => void;
     searchQuery: string;
     setSearchQuery: (query: string) => void;
-    sortBy: string | null;
-    sortOrder: 'ASC' | 'DESC';
+    organizationId: number | null;
+    setOrganizationId: (id: number | null) => void;
+    organizations: OrganizationOption[];
 }
 
-const UserSearchControls: React.FC<UserSearchControlsProps> = ({ currentPage, rowsPerPage, totalPages, setCurrentPage, setRowsPerPage, setTotalPages, setUsers, searchQuery, setSearchQuery, sortBy, sortOrder }) => {
+const UserSearchControls: React.FC<UserSearchControlsProps> = ({
+  currentPage,
+  rowsPerPage,
+  totalPages,
+  setCurrentPage,
+  setRowsPerPage,
+  searchQuery,
+  setSearchQuery,
+  organizationId,
+  setOrganizationId,
+  organizations,
+}) => {
+
+    const [searchInput, setSearchInput] = useState(searchQuery);
 
     const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setSearchQuery(e.target.value);
+        setSearchInput(e.target.value);
     };
 
 
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setCurrentPage(1); // Reset to first page on search
-        const searchInput = (e.target as HTMLFormElement).elements.namedItem('search') as HTMLInputElement;
-        const searchQuery = searchInput.value.trim();
-        {
-            searchUsersBroad(searchQuery, 1, Number(rowsPerPage), sortBy, sortOrder)
-                .then((results) => {
-                    setUsers(results.users || []);
-                    setTotalPages(results.pageCount || 0);
-                })
-                .catch((error) => {
-                    console.error('Error searching users:', error);
-                });
-        }
+        setCurrentPage(1);
+        setSearchQuery(searchInput.trim());
     };
 
     const handlePaginationChange = (
@@ -51,23 +56,16 @@ const UserSearchControls: React.FC<UserSearchControlsProps> = ({ currentPage, ro
         const page = newPage ?? currentPage;
         const rows = newRowsPerPage ?? rowsPerPage;
 
+        const clampedPage = Math.max(
+            1,
+            Math.min(page, Math.max(totalPages, 1))
+        );
 
-        const clampedPage = Math.max(1, Math.min(page, totalPages));
         const clampedRows = Math.max(1, rows);
 
         setCurrentPage(clampedPage);
         setRowsPerPage(clampedRows);
-
-        searchUsersBroad(searchQuery, clampedPage, clampedRows)
-            .then((results) => {
-                setUsers(results.users || []);
-                setTotalPages(results.pageCount || 0);
-            })
-            .catch((error) => {
-                console.error("Error searching users:", error);
-            });
     };
-
 
     return (
         <Toolbar>
@@ -131,6 +129,21 @@ const UserSearchControls: React.FC<UserSearchControlsProps> = ({ currentPage, ro
                 </Select>
             </div>
             <div style={styles.pageControls}>
+                <h3 style={styles.label}>Organization:</h3>
+
+                <SearchableOrganizationPicker
+                    organizations={organizations}
+                    selectedId={organizationId}
+                    onSelect={(id) => {
+                        setOrganizationId(id);
+                        setCurrentPage(1);
+                    }}
+                    placeholder="All Organizations"
+                    clearLabel="All Organizations"
+                    width="220px"
+                />
+            </div>
+            <div style={styles.pageControls}>
                 <form
                     onSubmit={handleSearchSubmit}
                     style={{
@@ -143,7 +156,7 @@ const UserSearchControls: React.FC<UserSearchControlsProps> = ({ currentPage, ro
                     <Input
                         type="text"
                         placeholder="Search by name or email"
-                        value={searchQuery}
+                        value={searchInput}
                         onChange={handleSearchChange}
                         style={{ width: "240px" }}
                         name="search"

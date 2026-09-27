@@ -57,7 +57,14 @@ export const searchUsers = async (searchQuery: string): Promise<UserDataInterfac
 }
 
 //search users by first name, last name, email, using one broad search query
-export const searchUsersBroad = async (searchQuery: string, page: number, rowsPerPage: number, sortBy: string | null = null, sortOrder: 'ASC' | 'DESC' = 'ASC'): Promise<UserSearchBroadResponse> => {
+export const searchUsersBroad = async (
+    searchQuery: string,
+    page: number,
+    rowsPerPage: number,
+    sortBy: string | null = null,
+    sortOrder: 'ASC' | 'DESC' = 'ASC',
+    organizationId: number | null = null
+): Promise<UserSearchBroadResponse> => {
     if(!searchQuery) {
         searchQuery = '';
     }
@@ -74,8 +81,11 @@ export const searchUsersBroad = async (searchQuery: string, page: number, rowsPe
 
     const query = encodeURIComponent(searchQuery);
     const sortQuery = sortBy ? `&sortBy=${encodeURIComponent(sortBy)}&sortOrder=${sortOrder}` : '';
+    const organizationQuery = organizationId
+        ? `&organizationId=${organizationId}`
+        : '';
     // const sortQuery = ''
-    const url = `${apiPrefix}/users/search/broad?query=${query}&pageNumber=${page}&rowsPerPage=${rowsPerPage}${sortQuery}&_=${Date.now()}`;
+    const url = `${apiPrefix}/users/search/broad?query=${query}&pageNumber=${page}&rowsPerPage=${rowsPerPage}${sortQuery}${organizationQuery}&_=${Date.now()}`;
 
     try {
         const response = await fetch(url, {

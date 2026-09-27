@@ -7,6 +7,7 @@ import { UserDataInterface, UserSearchBroadResponse } from "../interfaces/UserDa
 import { searchUsersBroad } from "../api/usersAPI";
 import { useCallback, useEffect, useState } from "react";
 import LoadingSpinner from "../components/LoadingSpinner/LoadingSpinner";
+import { fetchAdminOrganizations, AdminOrganization } from "../api/organizationsAPI";
 
 const UsersPage = () => {
   const [users, setUsers] = useState<UserDataInterface[]>([]);
@@ -15,7 +16,9 @@ const UsersPage = () => {
   const [rowsPerPage, setRowsPerPage] = useState<number>(50);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [sortBy, setSortBy] = useState<string | null>('last_name');
+  const [organizationId, setOrganizationId] = useState<number | null>(null);
+  const [organizations, setOrganizations] = useState<AdminOrganization[]>([]);
+  const [sortBy, setSortBy] = useState<string | null>('first_name');
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState<boolean>(false);
 
@@ -28,7 +31,8 @@ const UsersPage = () => {
         Number(currentPage),
         Number(rowsPerPage),
         sortBy,
-        sortOrder
+        sortOrder,
+        organizationId
       );
 
       setUsers(fetchedUsers.users || []);
@@ -55,11 +59,25 @@ const UsersPage = () => {
     rowsPerPage,
     sortBy,
     sortOrder,
+    organizationId,
   ]);
 
   useEffect(() => {
     fetchAllUsers();
   }, [fetchAllUsers]);
+
+  useEffect(() => {
+    const loadOrganizations = async () => {
+      try {
+        const response = await fetchAdminOrganizations();
+        setOrganizations(response.organizations || []);
+      } catch (error) {
+        console.error("Error fetching organizations:", error);
+      }
+    };
+
+    loadOrganizations();
+  }, []);
 
   
   return (
@@ -82,12 +100,11 @@ const UsersPage = () => {
           setCurrentPage={setCurrentPage}
           setRowsPerPage={setRowsPerPage}
           totalPages={totalPages}
-          setTotalPages={setTotalPages}
-          setUsers={setUsers}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
-          sortBy={sortBy}
-          sortOrder={sortOrder}
+          organizationId={organizationId}
+          setOrganizationId={setOrganizationId}
+          organizations={organizations}
         />
         <UsersTable
           users={users}

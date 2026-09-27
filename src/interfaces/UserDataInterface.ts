@@ -69,7 +69,9 @@ export interface UserDataInterface {
   city_id?: number | null;
   organization_id?: number | null;
 
-  CME_Credits?: number;
+  previousYearCmeCredits?: number;
+  currentYearCmeCredits?: number;
+
   basicCompletionPercent?: number;
   quizScores?: QuizScoreInterface[];
   specializations: {name: string, id: number}[];
