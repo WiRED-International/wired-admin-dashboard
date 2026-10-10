@@ -32,6 +32,9 @@ import CredentialLedgerPage from "./pages/CredentialLedgerPage.tsx";
 import CredentialDetailsPage from "./pages/CredentialDetailsPage.tsx";
 import OrganizationsPage from "./pages/OrganizationsPage.tsx";
 import LocationsPage from "./pages/LocationsPage.tsx";
+import ModulesPage from "./pages/ModulesPage.tsx";
+import EditModulePage from "./pages/EditModulePage.tsx";
+import AddModulePage from "./pages/AddModulePage.tsx";
 
 const router = createBrowserRouter(
   [
@@ -137,6 +140,39 @@ const router = createBrowserRouter(
               allow={() => Auth.isSuperAdmin()}
             >
               <LocationsPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/admin/modules",
+          element: (
+            <ProtectedRoute
+              redirectTo="/login"
+              allow={() => Auth.isSuperAdmin()}
+            >
+              <ModulesPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/admin/modules/:moduleId/edit",
+          element: (
+            <ProtectedRoute
+              redirectTo="/login"
+              allow={() => Auth.isSuperAdmin()}
+            >
+              <EditModulePage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/admin/modules/new",
+          element: (
+            <ProtectedRoute
+              redirectTo="/login"
+              allow={() => Auth.isSuperAdmin()}
+            >
+              <AddModulePage />
             </ProtectedRoute>
           ),
         },

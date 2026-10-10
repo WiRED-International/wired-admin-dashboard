@@ -10,6 +10,7 @@ import {
   Award,
   Building2,
   MapPin,
+  Package,
   LogOut,
   Menu,
   ChevronLeft,
@@ -79,6 +80,11 @@ export default function Sidebar({
             name: "Locations",
             path: "/admin/locations",
             icon: <MapPin size={20} />,
+          },
+          {
+            name: "Modules",
+            path: "/admin/modules",
+            icon: <Package size={20} />,
           },
           {
             name: "Credentials",
