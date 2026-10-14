@@ -66,6 +66,7 @@ export type ModuleRecord = {
   type: "module" | "animation";
 
   has_quiz: boolean;
+  is_archived: boolean;
 
   credit_type: "none" | "cme";
   cme_credits: number | null;
@@ -123,10 +124,42 @@ export type CreateModulePayload = {
   keyword_ids?: number[];
 };
 
+export const archiveModule = async (moduleId: number): Promise<void> => {
+  const response = await fetch(
+    `${apiPrefix}/api/admin/modules/${moduleId}/archive`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${Auth.getToken()}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to archive module.");
+  }
+};
+
+export const restoreModule = async (moduleId: number): Promise<void> => {
+  const response = await fetch(
+    `${apiPrefix}/api/admin/modules/${moduleId}/restore`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${Auth.getToken()}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to restore module.");
+  }
+};
+
 export const fetchModules = async (): Promise<ModuleRecord[]> => {
   try {
     const response = await fetch(
-      `${apiPrefix}/modules`,
+      `${apiPrefix}/api/admin/modules`,
       {
         headers: {
           Authorization: `Bearer ${Auth.getToken()}`,

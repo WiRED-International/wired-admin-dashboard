@@ -32,6 +32,7 @@ import CredentialLedgerPage from "./pages/CredentialLedgerPage.tsx";
 import CredentialDetailsPage from "./pages/CredentialDetailsPage.tsx";
 import OrganizationsPage from "./pages/OrganizationsPage.tsx";
 import LocationsPage from "./pages/LocationsPage.tsx";
+import CategoriesPage from "./pages/CategoriesPage.tsx";
 import ModulesPage from "./pages/ModulesPage.tsx";
 import EditModulePage from "./pages/EditModulePage.tsx";
 import AddModulePage from "./pages/AddModulePage.tsx";
@@ -140,6 +141,17 @@ const router = createBrowserRouter(
               allow={() => Auth.isSuperAdmin()}
             >
               <LocationsPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/admin/categories",
+          element: (
+            <ProtectedRoute
+              redirectTo="/login"
+              allow={() => Auth.isSuperAdmin()}
+            >
+              <CategoriesPage />
             </ProtectedRoute>
           ),
         },

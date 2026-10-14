@@ -11,6 +11,7 @@ import {
   Building2,
   MapPin,
   Package,
+  FolderTree,
   LogOut,
   Menu,
   ChevronLeft,
@@ -85,6 +86,11 @@ export default function Sidebar({
             name: "Modules",
             path: "/admin/modules",
             icon: <Package size={20} />,
+          },
+          {
+            name: "Categories & Subcategories",
+            path: "/admin/categories",
+            icon: <FolderTree size={20} />,
           },
           {
             name: "Credentials",
@@ -238,7 +244,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: "center",
     gap: "12px",
     paddingInline: "14px",
-    whiteSpace: "nowrap",
+    whiteSpace: "normal",
+    lineHeight: "1.3",
   },
   activeNav: {
     backgroundColor: "#DBEAFE",

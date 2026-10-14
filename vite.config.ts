@@ -46,6 +46,11 @@ export default defineConfig(({ mode }) => ({
         changeOrigin: true,
         secure: false,
       },
+      "/subCategories": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+        secure: false,
+      },
       "/keywords": {
         target: "http://localhost:3000",
         changeOrigin: true,

@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   fetchModules,
+  archiveModule,
+  restoreModule,
   fetchPrograms,
   ModuleRecord,
   ModuleProgram,
@@ -13,6 +15,10 @@ import {
 
 export default function ModulesPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const successMessage =
+    (location.state as { successMessage?: string } | null)?.successMessage;
   const [modules, setModules] = useState<ModuleRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,6 +26,9 @@ export default function ModulesPage() {
   const [programs, setPrograms] = useState<ModuleProgram[]>([]);
   const [selectedProgramId, setSelectedProgramId] = useState("");
   const [selectedType, setSelectedType] = useState("");
+  const [archiveFilter, setArchiveFilter] = useState<
+    "active" | "archived" | "all"
+  >("active");
   const [letters, setLetters] = useState<LetterOption[]>([]);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
 
@@ -35,6 +44,45 @@ export default function ModulesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(50);
 
+  const [updatingModuleId, setUpdatingModuleId] = useState<number | null>(null);
+
+  const handleArchiveToggle = async (module: ModuleRecord) => {
+    const action = module.is_archived ? "restore" : "archive";
+
+    const confirmed = window.confirm(
+      `Are you sure you want to ${action} "${module.name}"?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setUpdatingModuleId(module.id);
+      setError(null);
+
+      if (module.is_archived) {
+        await restoreModule(module.id);
+      } else {
+        await archiveModule(module.id);
+      }
+
+      setModules((currentModules) =>
+        currentModules.map((item) =>
+          item.id === module.id
+            ? { ...item, is_archived: !module.is_archived }
+            : item
+        )
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : `Failed to ${action} module.`
+      );
+    } finally {
+      setUpdatingModuleId(null);
+    }
+  };
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection((current) =>
@@ -45,6 +93,18 @@ export default function ModulesPage() {
       setSortDirection("asc");
     }
   };
+
+  useEffect(() => {
+    if (!successMessage) return;
+
+    window.scrollTo({ top: 0, behavior: "instant" });
+
+    // Clear the navigation message so it does not reappear later.
+    window.history.replaceState(
+      { ...window.history.state, usr: null },
+      ""
+    );
+  }, [successMessage]);
 
   useEffect(() => {
     const loadModules = async () => {
@@ -107,6 +167,11 @@ export default function ModulesPage() {
     const matchesType =
       !selectedType || module.type === selectedType;
 
+    const matchesArchiveStatus =
+      archiveFilter === "all" ||
+      (archiveFilter === "active" && !module.is_archived) ||
+      (archiveFilter === "archived" && module.is_archived);
+
     const matchesLetter =
       !selectedLetterId ||
       module.letters?.some(
@@ -131,6 +196,7 @@ export default function ModulesPage() {
       matchesSearch &&
       matchesProgram &&
       matchesType &&
+      matchesArchiveStatus &&
       matchesLetter &&
       matchesCategory &&
       matchesSubcategory
@@ -230,14 +296,53 @@ export default function ModulesPage() {
           </p>
         </div>
 
-        <button
-          type="button"
-          style={styles.addButton}
-          onClick={() => navigate("/admin/modules/new")}
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
         >
-          + Add Module
-        </button>
+          <button
+            type="button"
+            style={{
+              ...styles.addButton,
+              backgroundColor: "#FFFFFF",
+              color: "#2563EB",
+              border: "1px solid #2563EB",
+            }}
+            onClick={() => navigate("/admin/categories")}
+          >
+            Manage Categories
+          </button>
+
+          <button
+            type="button"
+            style={styles.addButton}
+            onClick={() => navigate("/admin/modules/new")}
+          >
+            + Add Module
+          </button>
+        </div>
       </div>
+
+      {successMessage && (
+        <div
+          role="status"
+          style={{
+            padding: "14px 18px",
+            borderRadius: "8px",
+            backgroundColor: "#DCFCE7",
+            border: "1px solid #86EFAC",
+            color: "#166534",
+            fontSize: "14px",
+            fontWeight: 600,
+          }}
+        >
+          ✓ {successMessage}
+        </div>
+      )}
 
       {error && (
         <div style={styles.errorBox}>
@@ -276,6 +381,20 @@ export default function ModulesPage() {
           <option value="">All Types</option>
           <option value="module">Module</option>
           <option value="animation">Animation</option>
+        </select>
+
+        <select
+          value={archiveFilter}
+          onChange={(event) =>
+            setArchiveFilter(
+              event.target.value as "active" | "archived" | "all"
+            )
+          }
+          style={styles.filterSelect}
+        >
+          <option value="active">Active Modules</option>
+          <option value="archived">Archived Modules</option>
+          <option value="all">All Modules</option>
         </select>
 
         <select
@@ -501,15 +620,36 @@ export default function ModulesPage() {
                   </td>
 
                   <td style={styles.td}>
-                    <button
-                      type="button"
-                      style={styles.editButton}
-                      onClick={() =>
-                        navigate(`/admin/modules/${module.id}/edit`)
-                      }
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "8px",
+                        alignItems: "center",
+                      }}
                     >
-                      Edit
-                    </button>
+                      <button
+                        type="button"
+                        style={styles.editButton}
+                        onClick={() =>
+                          navigate(`/admin/modules/${module.id}/edit`)
+                        }
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        type="button"
+                        style={styles.editButton}
+                        disabled={updatingModuleId === module.id}
+                        onClick={() => handleArchiveToggle(module)}
+                      >
+                        {updatingModuleId === module.id
+                          ? "Updating..."
+                          : module.is_archived
+                            ? "Restore"
+                            : "Archive"}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

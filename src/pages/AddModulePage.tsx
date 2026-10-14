@@ -330,7 +330,7 @@ export default function AddModulePage() {
       setCreating(true);
       setCreateError(null);
 
-      const newModule = await createModule({
+      await createModule({
         name: trimmedName,
         module_id: moduleId.trim(),
         version: version.trim() || null,
@@ -354,7 +354,11 @@ export default function AddModulePage() {
         specialization_ids: selectedSpecializationIds,
       });
 
-      navigate(`/admin/modules/${newModule.id}/edit`);
+      navigate("/admin/modules", {
+        state: {
+          successMessage: `Module "${trimmedName}" was created successfully.`,
+        },
+      });
     } catch (err) {
       setCreateError(
         err instanceof Error
