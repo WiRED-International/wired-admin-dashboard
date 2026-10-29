@@ -92,6 +92,9 @@ export default function ClassProgressPage() {
 
   const isSuperAdmin = AuthService.isSuperAdmin();
 
+  const canViewProgramExam =
+    AuthService.isInstructor() || isSuperAdmin;
+
   const handleHistoricalExamClick = async (
     studentId: number
   ) => {
@@ -208,9 +211,11 @@ export default function ClassProgressPage() {
                   </th>
                 )}
 
-                <th style={styles.progressHeader}>
-                  Program Exam
-                </th>
+                {canViewProgramExam && (
+                  <th style={styles.progressHeader}>
+                    Program Exam
+                  </th>
+                )}
 
                 {!isSpecializationClass &&
                   progress.modules.map((module) => (
@@ -298,80 +303,81 @@ export default function ClassProgressPage() {
                         : "—"}
                     </td>
                   )}
+                  {canViewProgramExam && (
+                    <td style={styles.progressCell}>
+                      <StudentExamStatus
+                        studentId={student.id}
+                        exams={progress.exams}
+                      />
 
-                  <td style={styles.progressCell}>
-                    <StudentExamStatus
-                      studentId={student.id}
-                      exams={progress.exams}
-                    />
+                      {isSuperAdmin && (
+                        <>
+                          <button
+                            type="button"
+                            style={styles.historicalExamButton}
+                            onClick={() =>
+                              handleHistoricalExamClick(student.id)
+                            }
+                          >
+                            {historicalLoading &&
+                            historicalStudentId === student.id
+                              ? "Loading..."
+                              : "Historical Exam"}
+                          </button>
 
-                    {isSuperAdmin && (
-                      <>
-                        <button
-                          type="button"
-                          style={styles.historicalExamButton}
-                          onClick={() =>
-                            handleHistoricalExamClick(student.id)
-                          }
-                        >
-                          {historicalLoading &&
-                          historicalStudentId === student.id
-                            ? "Loading..."
-                            : "Historical Exam"}
-                        </button>
+                          {historicalStudentId === student.id &&
+                            !historicalLoading && (
+                              <div style={styles.historicalExamList}>
+                                {historicalSessions.length === 0 ? (
+                                  <div style={styles.historicalExamEmpty}>
+                                    No unassigned exams
+                                  </div>
+                                ) : (
+                                  <>
+                                    {historicalSessions.map((session) => (
+                                      <label
+                                        key={session.id}
+                                        style={styles.historicalExamItem}
+                                      >
+                                        <input
+                                          type="radio"
+                                          name={`historical-exam-${student.id}`}
+                                          checked={
+                                            selectedHistoricalSessionId === session.id
+                                          }
+                                          onChange={() =>
+                                            setSelectedHistoricalSessionId(session.id)
+                                          }
+                                        />
 
-                        {historicalStudentId === student.id &&
-                          !historicalLoading && (
-                            <div style={styles.historicalExamList}>
-                              {historicalSessions.length === 0 ? (
-                                <div style={styles.historicalExamEmpty}>
-                                  No unassigned exams
-                                </div>
-                              ) : (
-                                <>
-                                  {historicalSessions.map((session) => (
-                                    <label
-                                      key={session.id}
-                                      style={styles.historicalExamItem}
-                                    >
-                                      <input
-                                        type="radio"
-                                        name={`historical-exam-${student.id}`}
-                                        checked={
-                                          selectedHistoricalSessionId === session.id
-                                        }
-                                        onChange={() =>
-                                          setSelectedHistoricalSessionId(session.id)
-                                        }
-                                      />
+                                        <span>
+                                          {session.exam_title ??
+                                            `Exam ${session.exam_id}`}{" "}
+                                          —{" "}
+                                          {session.score == null
+                                            ? "No score"
+                                            : `${formatScore(session.score)}%`}
+                                        </span>
+                                      </label>
+                                    ))}
 
-                                      <span>
-                                        {session.exam_title ??
-                                          `Exam ${session.exam_id}`}{" "}
-                                        —{" "}
-                                        {session.score == null
-                                          ? "No score"
-                                          : `${formatScore(session.score)}%`}
-                                      </span>
-                                    </label>
-                                  ))}
-
-                                  {selectedHistoricalSessionId !== null && (
-                                    <button
-                                      type="button"
-                                      style={styles.assignHistoricalButton}
-                                      onClick={handleAssignHistoricalExam}
-                                    >
-                                      Assign to Class
-                                    </button>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                          )}
-                      </>
-                    )}
-                  </td>
+                                    {selectedHistoricalSessionId !== null && (
+                                      <button
+                                        type="button"
+                                        style={styles.assignHistoricalButton}
+                                        onClick={handleAssignHistoricalExam}
+                                      >
+                                        Assign to Class
+                                      </button>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            )}
+                        </>
+                      )}
+                    </td>
+                  )}
 
                   {!isSpecializationClass &&
                     progress.modules.map((module) => {
@@ -541,11 +547,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "20px",
     borderRadius: "10px",
     boxShadow: "0 2px 4px rgba(0,0,0,0.08)",
+    width: "max-content",
+    minWidth: "100%",
+    boxSizing: "border-box",
   },
 
   tableWrapper: {
     width: "100%",
-    overflowX: "auto",
+    overflow: "visible",
   },
 
   table: {
@@ -559,6 +568,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "12px",
     borderBottom: "2px solid #ddd",
     whiteSpace: "nowrap",
+    position: "sticky",
+    top: 0,
+    left: 0,
+    zIndex: 20,
+    backgroundColor: "#F8FAFC",
   },
 
   moduleHeader: {
@@ -566,12 +580,20 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "12px",
     borderBottom: "2px solid #ddd",
     whiteSpace: "nowrap",
+    position: "sticky",
+    top: 0,
+    zIndex: 10,
+    backgroundColor: "#F8FAFC",
   },
 
   studentCell: {
     padding: "12px",
     borderBottom: "1px solid #eee",
     whiteSpace: "nowrap",
+    position: "sticky",
+    left: 0,
+    zIndex: 5,
+    backgroundColor: "#FFFFFF",
   },
 
   studentName: {
@@ -633,6 +655,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "12px",
     borderBottom: "2px solid #ddd",
     whiteSpace: "nowrap",
+    position: "sticky",
+    top: 0,
+    zIndex: 10,
+    backgroundColor: "#F8FAFC",
   },
 
   progressCell: {
