@@ -5,8 +5,10 @@ import {
   archiveModule,
   restoreModule,
   fetchPrograms,
+  fetchSpecializations,
   ModuleRecord,
   ModuleProgram,
+  ModuleSpecialization,
   fetchLetters,
   fetchCategories,
   LetterOption,
@@ -25,6 +27,8 @@ export default function ModulesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [programs, setPrograms] = useState<ModuleProgram[]>([]);
   const [selectedProgramId, setSelectedProgramId] = useState("");
+  const [specializations, setSpecializations] = useState<ModuleSpecialization[]>([]);
+  const [selectedSpecializationId, setSelectedSpecializationId] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [archiveFilter, setArchiveFilter] = useState<
     "active" | "archived" | "all"
@@ -115,17 +119,20 @@ export default function ModulesPage() {
         const [
           modulesData,
           programsData,
+          specializationsData,
           lettersData,
           categoriesData,
         ] = await Promise.all([
           fetchModules(),
           fetchPrograms(),
+          fetchSpecializations(),
           fetchLetters(),
           fetchCategories(),
         ]);
 
         setModules(modulesData);
         setPrograms(programsData);
+        setSpecializations(specializationsData);
         setLetters(lettersData);
         setCategories(categoriesData);
       } catch (err) {
@@ -164,6 +171,12 @@ export default function ModulesPage() {
         (program) => String(program.id) === selectedProgramId
       );
 
+    const matchesSpecialization =
+      !selectedSpecializationId ||
+      module.specializations?.some(
+        (specialization) => String(specialization.id) === selectedSpecializationId
+      );
+
     const matchesType =
       !selectedType || module.type === selectedType;
 
@@ -195,6 +208,7 @@ export default function ModulesPage() {
     return (
       matchesSearch &&
       matchesProgram &&
+      matchesSpecialization &&
       matchesType &&
       matchesArchiveStatus &&
       matchesLetter &&
@@ -262,6 +276,7 @@ export default function ModulesPage() {
   const handleClearFilters = () => {
     setSearchQuery("");
     setSelectedProgramId("");
+    setSelectedSpecializationId("");
     setSelectedType("");
     setSelectedLetterId("");
     setSelectedCategoryId("");
@@ -273,6 +288,7 @@ export default function ModulesPage() {
   }, [
     searchQuery,
     selectedProgramId,
+    selectedSpecializationId,
     selectedType,
     selectedLetterId,
     selectedCategoryId,
@@ -374,6 +390,19 @@ export default function ModulesPage() {
         </select>
 
         <select
+          value={selectedSpecializationId}
+          onChange={(event) => setSelectedSpecializationId(event.target.value)}
+          style={styles.filterSelect}
+        >
+          <option value="">All Specializations</option>
+          {specializations.map((specialization) => (
+            <option key={specialization.id} value={String(specialization.id)}>
+              {specialization.name}
+            </option>
+          ))}
+        </select>
+
+        <select
           value={selectedType}
           onChange={(event) => setSelectedType(event.target.value)}
           style={styles.filterSelect}
@@ -453,6 +482,7 @@ export default function ModulesPage() {
           disabled={
             !searchQuery &&
             !selectedProgramId &&
+            !selectedSpecializationId &&
             !selectedType &&
             !selectedLetterId &&
             !selectedCategoryId &&
@@ -520,6 +550,10 @@ export default function ModulesPage() {
                   : "↕"}
               </th>
 
+              <th style={styles.th}>
+                Specializations
+              </th>
+
               <th
                 style={styles.sortableTh}
                 onClick={() => handleSort("content_updated_at")}
@@ -539,7 +573,7 @@ export default function ModulesPage() {
             {loading ? (
               <tr>
                 <td
-                  colSpan={9}
+                  colSpan={10}
                   style={styles.emptyCell}
                 >
                   Loading modules...
@@ -548,7 +582,7 @@ export default function ModulesPage() {
             ) : filteredModules.length === 0 ? (
               <tr>
                 <td
-                  colSpan={9}
+                  colSpan={10}
                   style={styles.emptyCell}
                 >
                   No modules found.
@@ -607,6 +641,14 @@ export default function ModulesPage() {
                     {module.programs?.length
                       ? module.programs
                           .map((program) => program.name)
+                          .join(", ")
+                      : "—"}
+                  </td>
+
+                  <td style={styles.td}>
+                    {module.specializations?.length
+                      ? module.specializations
+                          .map((specialization) => specialization.name)
                           .join(", ")
                       : "—"}
                   </td>
