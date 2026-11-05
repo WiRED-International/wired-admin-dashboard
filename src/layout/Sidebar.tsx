@@ -15,6 +15,7 @@ import {
   LogOut,
   Menu,
   ChevronLeft,
+  Newspaper,
 } from "lucide-react";
 
 type SidebarProps = {
@@ -86,6 +87,11 @@ export default function Sidebar({
             name: "Modules",
             path: "/admin/modules",
             icon: <Package size={20} />,
+          },
+          {
+            name: "News & Updates",
+            path: "/admin/announcements",
+            icon: <Newspaper size={20} />,
           },
           {
             name: "Categories & Subcategories",

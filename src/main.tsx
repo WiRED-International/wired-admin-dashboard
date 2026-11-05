@@ -36,6 +36,7 @@ import CategoriesPage from "./pages/CategoriesPage.tsx";
 import ModulesPage from "./pages/ModulesPage.tsx";
 import EditModulePage from "./pages/EditModulePage.tsx";
 import AddModulePage from "./pages/AddModulePage.tsx";
+import AnnouncementsPage from "./pages/AnnouncementsPage.tsx";
 
 const router = createBrowserRouter(
   [
@@ -163,6 +164,17 @@ const router = createBrowserRouter(
               allow={() => Auth.isSuperAdmin()}
             >
               <ModulesPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/admin/announcements",
+          element: (
+            <ProtectedRoute
+              redirectTo="/login"
+              allow={() => Auth.isSuperAdmin()}
+            >
+              <AnnouncementsPage />
             </ProtectedRoute>
           ),
         },
