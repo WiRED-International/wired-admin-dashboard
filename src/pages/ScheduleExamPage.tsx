@@ -1,3 +1,4 @@
+import { formatExamSchedulePreview, examScheduleValue, requireExamTimeZone } from "@/utils/examDateTime";
 import { useEffect, useRef, useState } from "react";
 import { getExamTemplates, getAccessibleOrganizations, scheduleExam } from "@/api/examsAPI";
 import { ExamTemplate } from "@/interfaces/ExamTemplate";
@@ -127,17 +128,6 @@ export default function ScheduleExamPage() {
     return () => clearTimeout(timeout);
   }, [userSearch]);
 
-  const formatDateTime = (value: string) => {
-    if (!value) return "Not Set";
-
-    return new Date(value).toLocaleString(
-      "en-US",
-      {
-        dateStyle: "long",
-        timeStyle: "short",
-      }
-    );
-  };
   const isValid =
     !!selectedTemplateId &&
     !!title.trim() &&
@@ -551,12 +541,12 @@ export default function ScheduleExamPage() {
 
           <div>
             <strong>Start:</strong>{" "}
-            {formatDateTime(localStart)}
+            {formatExamSchedulePreview(localStart, timeZone)}
           </div>
 
           <div>
             <strong>End:</strong>{" "}
-            {formatDateTime(localEnd)}
+            {formatExamSchedulePreview(localEnd, timeZone)}
           </div>
 
           <div>
@@ -669,9 +659,9 @@ export default function ScheduleExamPage() {
                 exam_template_id: Number(selectedTemplateId),
                 title,
                 description,
-                localStart,
-                localEnd,
-                timeZone,
+                localStart: examScheduleValue(localStart, timeZone),
+                localEnd: examScheduleValue(localEnd, timeZone),
+                timeZone: requireExamTimeZone(timeZone),
                 duration_minutes: durationMinutes,
                 classes: selectedClasses,
                 users: selectedUsers.map(u => u.id),
@@ -696,6 +686,7 @@ export default function ScheduleExamPage() {
 
             } catch (err) {
 
+              alert(err instanceof Error ? err.message : "Failed to schedule exam");
               console.error(
                 "❌ Failed to schedule exam:",
                 err

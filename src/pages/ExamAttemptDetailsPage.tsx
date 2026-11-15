@@ -486,17 +486,21 @@ export default function ExamAttemptDetailsPage() {
                       ))}
                     </div>
 
-                    <p>
-                      <strong>Correct Answer:</strong>
-                    </p>
+                    {Array.isArray(question.correct_answers) && (
+                      <>
+                        <p>
+                          <strong>Correct Answer:</strong>
+                        </p>
 
-                    <div>
-                      {question.correct_answers.map(optionId => (
-                        <div key={optionId}>
-                          {optionId}) {question.options[optionId]}
+                        <div>
+                          {question.correct_answers.map(optionId => (
+                            <div key={optionId}>
+                              {optionId}) {question.options[optionId]}
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </>
+                    )}
                   </>
                 </div>
               )}

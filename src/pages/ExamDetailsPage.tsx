@@ -1,3 +1,4 @@
+import { examDateTimeInput, formatExamDateTime, examScheduleValue, requireExamTimeZone, examDisplayTimeZone } from "@/utils/examDateTime";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -89,9 +90,9 @@ ExamDetailsPage() {
 
           description: data.description || "",
 
-          localStart: data.available_from.slice(0, 16),
+          localStart: examDateTimeInput(data.available_from, data.time_zone),
 
-          localEnd: data.available_until.slice(0, 16),
+          localEnd: examDateTimeInput(data.available_until, data.time_zone),
 
           duration_minutes: data.duration_minutes,
 
@@ -248,8 +249,9 @@ ExamDetailsPage() {
                     Number(id),
                     {
                       ...formData,
-                      timeZone:
-                        formData.time_zone,
+                      localStart: examScheduleValue(formData.localStart, formData.time_zone, { utc: exam.available_from, timeZone: exam.time_zone }),
+                      localEnd: examScheduleValue(formData.localEnd, formData.time_zone, { utc: exam.available_until, timeZone: exam.time_zone }),
+                      timeZone: requireExamTimeZone(formData.time_zone),
                     }
                   );
 
@@ -259,6 +261,12 @@ ExamDetailsPage() {
                     );
 
                   setExam(updated);
+                  setFormData({
+                    ...formData,
+                    localStart: examDateTimeInput(updated.available_from, updated.time_zone),
+                    localEnd: examDateTimeInput(updated.available_until, updated.time_zone),
+                    time_zone: updated.time_zone || "",
+                  });
 
                   setEditing(false);
 
@@ -272,16 +280,6 @@ ExamDetailsPage() {
 
                   console.error(err);
 
-                  setFormData({
-                    title: exam.title,
-                    description: exam.description || "",
-                    localStart: exam.available_from.slice(0, 16),
-                    localEnd: exam.available_until.slice(0, 16),
-                    duration_minutes: exam.duration_minutes,
-                    time_zone: exam.time_zone || "",
-                    exam_template_id: exam.exam_template_id,
-                  });
-
                   if (axios.isAxiosError(err)) {
                     alert(
                       err.response?.data?.message ||
@@ -289,7 +287,7 @@ ExamDetailsPage() {
                     );
                   } else {
                     alert(
-                      "Failed to save exam"
+                      err instanceof Error ? err.message : "Failed to save exam"
                     );
                   }
 
@@ -319,9 +317,9 @@ ExamDetailsPage() {
 
                   description: exam.description || "",
 
-                  localStart: exam.available_from.slice(0, 16),
+                  localStart: examDateTimeInput(exam.available_from, exam.time_zone),
 
-                  localEnd: exam.available_until.slice(0, 16),
+                  localEnd: examDateTimeInput(exam.available_until, exam.time_zone),
 
                   duration_minutes: exam.duration_minutes,
 
@@ -389,6 +387,7 @@ ExamDetailsPage() {
           {editing ? (
             <input
               type="datetime-local"
+              step="any"
               value={formData.localStart}
               onChange={(e) =>
                 setFormData({
@@ -405,7 +404,7 @@ ExamDetailsPage() {
               }}
             />
           ) : (
-            new Date(exam.available_from).toLocaleString()
+            formatExamDateTime(exam.available_from, exam.time_zone)
           )}
         </div>
 
@@ -448,6 +447,7 @@ ExamDetailsPage() {
           {editing ? (
             <input
               type="datetime-local"
+              step="any"
               value={formData.localEnd}
               onChange={(e) =>
                 setFormData({
@@ -465,7 +465,7 @@ ExamDetailsPage() {
               }}
             />
           ) : (
-            new Date(exam.available_until).toLocaleString()
+            formatExamDateTime(exam.available_until, exam.time_zone)
           )}
         </div>
         
@@ -486,7 +486,7 @@ ExamDetailsPage() {
 
           ) : (
 
-            exam.time_zone
+            examDisplayTimeZone(exam.time_zone)
 
           )}
         </div>

@@ -1,3 +1,4 @@
+import { formatExamDateTime, examDisplayTimeZone } from "@/utils/examDateTime";
 import { useEffect, useState } from "react";
 import { getUpcomingExams } from "@/api/examsAPI";
 import LoadingSpinner from "@/components/LoadingSpinner/LoadingSpinner";
@@ -11,21 +12,6 @@ export default function UpcomingExams() {
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const navigate = useNavigate();
-  const formatDate = (
-    value: string
-  ) => {
-
-    return new Date(value)
-      .toLocaleString(
-        "en-US",
-        {
-          dateStyle: "medium",
-          timeStyle: "short",
-        }
-      );
-
-  };
-
   useEffect(() => {
     const fetchExams = async () => {
       setLoading(true);
@@ -130,17 +116,17 @@ export default function UpcomingExams() {
                 <div>
                   <strong>From:</strong>
                   {" "}
-                  {formatDate(item.from)}
+                  {formatExamDateTime(item.from, item.timeZone)}
                   {" "}
-                  ({item.timeZone})
+                  ({examDisplayTimeZone(item.timeZone)})
                 </div>
 
                 <div>
                   <strong>To:</strong>
                   {" "}
-                  {formatDate(item.to)}
+                  {formatExamDateTime(item.to, item.timeZone)}
                   {" "}
-                  ({item.timeZone})
+                  ({examDisplayTimeZone(item.timeZone)})
                 </div>
 
                 <div style={styles.enrolledText}>

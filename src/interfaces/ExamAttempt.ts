@@ -37,7 +37,7 @@ export interface ExamAttemptQuestion {
   question_id: number;
   question_text: string;
   options: Record<string, string>;
-  correct_answers: string[];
+  correct_answers?: string[];
   user_answer: ExamAttemptAnswer | null;
   is_correct?: boolean;
 }

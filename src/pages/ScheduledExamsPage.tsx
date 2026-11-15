@@ -1,3 +1,4 @@
+import { formatExamDateTime, examDisplayTimeZone } from "@/utils/examDateTime";
 import { useEffect, useState } from "react";
 import {
   getScheduledExams,
@@ -210,17 +211,6 @@ export default function ScheduledExamsPage() {
     sortOrder,
   ]);
 
-    const formatDate = (value: string) => {
-
-      return new Date(value).toLocaleString(
-          "en-US",
-          {
-          dateStyle: "medium",
-          timeStyle: "short",
-          }
-      );
-    };
-    
     const handleSort = (
       field: string
     ) => {
@@ -540,21 +530,21 @@ export default function ScheduledExamsPage() {
                   {renderStatusBadge(exam.status)}
                 </td>
                 <td style={styles.td}>
-                  {formatDate(
-                    exam.available_from
+                  {formatExamDateTime(
+                    exam.available_from, exam.time_zone
                   )}
                   <br />
                   <small>
-                    {exam.time_zone}
+                    {examDisplayTimeZone(exam.time_zone)}
                   </small>
                 </td>
                 <td style={styles.td}>
-                  {formatDate(
-                    exam.available_until
+                  {formatExamDateTime(
+                    exam.available_until, exam.time_zone
                   )}
                   <br />
                   <small>
-                    {exam.time_zone}
+                    {examDisplayTimeZone(exam.time_zone)}
                   </small>
                 </td>
                 <td style={styles.td}>
