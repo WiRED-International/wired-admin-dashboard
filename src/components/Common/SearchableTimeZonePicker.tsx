@@ -6,12 +6,14 @@ type Props = {
   value: string;
   onChange: (timeZone: string) => void;
   placeholder?: string;
+  filterTimeZone?: (timeZone: string) => boolean;
 };
 
 export default function SearchableTimeZonePicker({
   value,
   onChange,
   placeholder = "Select Time Zone",
+  filterTimeZone,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -40,7 +42,7 @@ const allTimeZones =
             "Asia/Dubai",
             "Asia/Tokyo",
             "UTC",
-        ];
+        ].filter((zone) => !filterTimeZone || filterTimeZone(zone));
         }
 
       const aliasMatches =
@@ -70,8 +72,8 @@ const allTimeZones =
           ...aliasMatches,
           ...timezoneMatches,
         ]),
-      ].slice(0, 100);
-    }, [allTimeZones, search]);
+      ].filter((zone) => !filterTimeZone || filterTimeZone(zone)).slice(0, 100);
+    }, [allTimeZones, search, filterTimeZone]);
 
   useEffect(() => {
     function handleClickOutside(

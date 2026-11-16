@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   fetchClassById,
   fetchClassEnrollments,
+  deleteClass,
 } from "../api/classAPI";
 
 import {
@@ -23,6 +24,9 @@ export default function ClassDetailsPage() {
   const [error, setError] = useState<string | null>(null);
   const [enrollments, setEnrollments] = useState<ClassEnrollment[]>([]);
   const [rosterLoading, setRosterLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const deletionPending = useRef(false);
 
   useEffect(() => {
     const loadClass = async () => {
@@ -147,8 +151,37 @@ export default function ClassDetailsPage() {
               Edit Class
             </button>
           )}
+          {Auth.isSuperAdmin() && classItem.status === "draft" && (
+            <button
+              type="button"
+              style={{ ...styles.editButton, backgroundColor: "#B91C1C" }}
+              disabled={deleting}
+              onClick={async () => {
+                if (deletionPending.current || !Auth.isSuperAdmin() || classItem.status !== "draft") return;
+                if (!window.confirm(`Permanently delete class "${classItem.name}" (#${classItem.id})? This deletion is permanent and cannot be undone.`)) return;
+                deletionPending.current = true;
+                setDeleting(true);
+                setDeleteError(null);
+                try {
+                  await deleteClass(classItem.id);
+                  navigate("/classes", {
+                    state: { successMessage: `Class "${classItem.name}" (#${classItem.id}) was permanently deleted.` },
+                  });
+                } catch (err) {
+                  setDeleteError(err instanceof Error ? err.message : "Failed to delete class. Please try again.");
+                } finally {
+                  deletionPending.current = false;
+                  setDeleting(false);
+                }
+              }}
+            >
+              {deleting ? "Deleting..." : "Delete Class"}
+            </button>
+          )}
         </div>
       </div>
+
+      {deleteError && <div role="alert" style={styles.error}>{deleteError}</div>}
 
       <div style={styles.card}>
         <h3 style={styles.title}>Class Details</h3>

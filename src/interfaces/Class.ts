@@ -19,6 +19,7 @@ export interface ClassLocation {
   country_id: number;
   location_type: string;
   parent_location_id: number | null;
+  time_zone: string | null;
 }
 
 export interface ClassCreator {

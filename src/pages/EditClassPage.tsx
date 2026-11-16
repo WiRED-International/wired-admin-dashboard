@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Auth from "../utils/auth";
+import { getAccessibleOrganizations } from "../api/examsAPI";
 
 import {
   fetchClassById,
@@ -28,6 +29,8 @@ export default function EditClassPage() {
   const [error, setError] = useState<string | null>(null);
   const [programs, setPrograms] = useState<ClassProgramOption[]>([]);
   const [locations, setLocations] = useState<ClassLocation[]>([]);
+  const [organizations, setOrganizations] = useState<{ id: number; name: string }[]>([]);
+  const [organizationId, setOrganizationId] = useState<number | "">("");
 
   const [programId, setProgramId] = useState<number | "">("");
   const [locationId, setLocationId] = useState<number | "">("");
@@ -39,6 +42,8 @@ export default function EditClassPage() {
 
   const [status, setStatus] = useState<"draft" | "active" | "completed" | "archived">("draft");
   const [submitting, setSubmitting] = useState(false);
+  const savePending = useRef(false);
+  const isSuperAdmin = Auth.isSuperAdmin();
 
   useEffect(() => {
     const loadClass = async () => {
@@ -52,10 +57,11 @@ export default function EditClassPage() {
         setLoading(true);
         setError(null);
 
-        const [classData, programData, locationData] = await Promise.all([
+        const [classData, programData, locationData, organizationData] = await Promise.all([
           fetchClassById(Number(classId)),
           fetchClassPrograms(),
           fetchClassLocations(),
+          isSuperAdmin ? getAccessibleOrganizations() : Promise.resolve([]),
         ]);
 
         const currentClass = classData.class;
@@ -63,6 +69,8 @@ export default function EditClassPage() {
         setClassItem(currentClass);
         setPrograms(programData.programs);
         setLocations(locationData);
+        setOrganizations(organizationData);
+        setOrganizationId(currentClass.organization_id);
 
         setProgramId(currentClass.program_id);
         setLocationId(currentClass.location_id ?? "");
@@ -93,17 +101,22 @@ export default function EditClassPage() {
     };
 
     loadClass();
-  }, [classId]);
+  }, [classId, isSuperAdmin]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!classItem) return;
+    if (!classItem || savePending.current) return;
 
     setError(null);
 
     if (!programId) {
       setError("Please select a program.");
+      return;
+    }
+
+    if (isSuperAdmin && !organizationId) {
+      setError("Please select an organization.");
       return;
     }
 
@@ -140,10 +153,13 @@ export default function EditClassPage() {
       }
     }
 
+    savePending.current = true;
     try {
       setSubmitting(true);
 
       await updateClass(classItem.id, {
+        ...(isSuperAdmin && organizationId !== classItem.organization_id
+          ? { organization_id: Number(organizationId) } : {}),
         program_id: programId,
         location_id: locationId === "" ? null : locationId,
         name: name.trim(),
@@ -164,6 +180,7 @@ export default function EditClassPage() {
           : "Failed to update class."
       );
     } finally {
+      savePending.current = false;
       setSubmitting(false);
     }
   };
@@ -179,7 +196,7 @@ export default function EditClassPage() {
   if (!classItem) {
     return (
       <div style={styles.container}>
-        <p>Class not found.</p>
+        <p role="alert">{error || "Class not found."}</p>
       </div>
     );
   }
@@ -227,7 +244,7 @@ export default function EditClassPage() {
         <h3 style={styles.title}>Class Details</h3>
 
         {error && (
-          <div style={styles.error}>
+          <div role="alert" style={styles.error}>
             {error}
           </div>
         )}
@@ -237,6 +254,20 @@ export default function EditClassPage() {
           onSubmit={handleSubmit}
         >
           <div style={styles.formGrid}>
+            {isSuperAdmin && (
+              <div style={styles.field}>
+                <label style={styles.label}>Organization</label>
+                <Select
+                  value={organizationId}
+                  onChange={(e) => setOrganizationId(e.target.value === "" ? "" : Number(e.target.value))}
+                  options={[
+                    { label: "Select an organization", value: "" },
+                    ...organizations.map((organization) => ({ label: organization.name, value: organization.id })),
+                  ]}
+                  style={styles.control}
+                />
+              </div>
+            )}
             <div style={styles.field}>
               <label style={styles.label}>Program</label>
 

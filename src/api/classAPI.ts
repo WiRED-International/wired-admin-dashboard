@@ -367,6 +367,7 @@ export const createClass = async (
 };
 
 export type UpdateClassData = {
+  organization_id?: number;
   program_id?: number;
   location_id?: number | null;
   name?: string;
@@ -412,6 +413,22 @@ export const updateClass = async (
   } catch (error) {
     console.error("Error updating class:", error);
     throw error;
+  }
+};
+
+export const deleteClass = async (classId: number): Promise<void> => {
+  const response = await fetch(`${apiPrefix.replace(/\/$/, "")}/api/admin/classes/${classId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${Auth.getToken()}` },
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    const fallback = response.status === 409
+      ? "This class cannot be deleted because related records exist."
+      : response.status === 404
+        ? "This class no longer exists."
+        : "Failed to delete class. Please try again.";
+    throw new Error(data?.message || fallback);
   }
 };
 

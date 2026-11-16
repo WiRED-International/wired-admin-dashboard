@@ -18,6 +18,7 @@ export interface AdminLocation {
   country_id: number;
   location_type: LocationType;
   parent_location_id: number | null;
+  time_zone: string | null;
   country: LocationCountry;
 }
 
@@ -77,6 +78,7 @@ export const fetchAdminLocations =
   country_id: number;
   location_type: LocationType;
   parent_location_id: number | null;
+  time_zone: string;
 }
 
 export const fetchPaginatedAdminLocations = async (
@@ -166,6 +168,7 @@ export interface UpdateLocationData {
   country_id: number;
   location_type: LocationType;
   parent_location_id: number | null;
+  time_zone?: string;
 }
 
 export interface UpdateLocationResponse {

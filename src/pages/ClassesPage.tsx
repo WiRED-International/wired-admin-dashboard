@@ -7,7 +7,7 @@ import {
 } from "../api/classAPI";
 import { fetchAllOrganizations } from "../api/organizationsAPI";
 import { ClassItem } from "../interfaces/Class";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Select from "../components/ui/Select";
 
 export default function ClassesPage() {
@@ -20,6 +20,8 @@ export default function ClassesPage() {
   const [locationFilter, setLocationFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const navigate = useNavigate();
+  const location = useLocation();
+  const successMessage = (location.state as { successMessage?: string } | null)?.successMessage;
 
   const [programs, setPrograms] = useState<
     { id: number; name: string }[]
@@ -155,6 +157,11 @@ export default function ClassesPage() {
         </button>
       </div>
 
+      {successMessage && (
+        <div role="status" style={{ ...styles.error, background: "#DCFCE7", color: "#166534" }}>
+          {successMessage}
+        </div>
+      )}
       {error && (
         <div style={styles.error}>
           {error}

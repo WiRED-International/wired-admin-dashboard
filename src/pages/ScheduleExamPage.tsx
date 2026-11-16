@@ -10,8 +10,9 @@ import PageHeader from "@/components/ui/PageHeader";
 import Panel from "@/components/ui/Panel";
 import SearchableTimeZonePicker from "@/components/Common/SearchableTimeZonePicker";
 import { useNavigate } from "react-router-dom";
-import { fetchClasses } from "@/api/classAPI";
+import { fetchClasses, fetchClassById } from "@/api/classAPI";
 import { ClassItem } from "@/interfaces/Class";
+import { isValidLocationTimeZone } from "@/utils/locationTimeZone";
 
 export default function ScheduleExamPage() {
   const [scheduling, setScheduling] = useState(false);
@@ -22,7 +23,7 @@ export default function ScheduleExamPage() {
   const [description, setDescription] = useState("");
   const [localStart, setLocalStart] = useState("");
   const [localEnd, setLocalEnd] = useState("");
-  const [timeZone, setTimeZone] = useState("Africa/Nairobi");
+  const [manualTimeZone, setManualTimeZone] = useState("");
   const [durationMinutes, setDurationMinutes] = useState(45);
   const navigate = useNavigate();
 
@@ -35,7 +36,15 @@ export default function ScheduleExamPage() {
     }[]
   >([]);
   const [classes, setClasses] = useState<ClassItem[]>([]);
-  const [selectedClasses, setSelectedClasses] = useState<number[]>([]);
+  const [classLoadWarning, setClassLoadWarning] = useState("");
+  const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
+  const [classTimeZone, setClassTimeZone] = useState<{
+    classId: number;
+    zone: string | null;
+    message: string;
+    failed: boolean;
+  } | null>(null);
+  const [lookupRetry, setLookupRetry] = useState(0);
   const [selectedOrganizations, setSelectedOrganizations] = useState<number[]>([]);
 
   const [userSearch, setUserSearch] = useState("");
@@ -52,32 +61,59 @@ export default function ScheduleExamPage() {
   );
 
   useEffect(() => {
-    setSelectedClasses((current) =>
-      current.filter((classId) => {
-        const classItem = classes.find(
-          (item) => item.id === classId
-        );
+    if (selectedClassId !== null && !classes.some(c => c.id === selectedClassId &&
+      c.status === "active" && selectedOrganizations.includes(c.organization_id))) {
+      setSelectedClassId(null);
+      setManualTimeZone("");
+    }
+  }, [selectedOrganizations, classes, selectedClassId]);
 
-        return (
-          classItem &&
-          selectedOrganizations.includes(
-            classItem.organization_id
-          )
-        );
-      })
-    );
-  }, [selectedOrganizations, classes]);
+  useEffect(() => {
+    if (selectedClassId === null) return;
+    let cancelled = false;
+    setClassTimeZone(null);
+    const loadClassTimeZone = async () => {
+      try {
+        const { class: selectedClass } = await fetchClassById(selectedClassId);
+        if (cancelled) return;
+        const location = selectedClass.location;
+        const zone = location?.time_zone;
+        const configured = isValidLocationTimeZone(zone);
+        setClassTimeZone({
+          classId: selectedClassId,
+          zone: configured ? zone : null,
+          message: configured
+            ? `Automatically selected from the class location: ${location?.name}.`
+            : !location
+              ? "This class has no location. Select a timezone manually."
+              : "This class location has no valid configured timezone. Select a timezone manually.",
+          failed: false,
+        });
+      } catch {
+        if (!cancelled) setClassTimeZone({
+          classId: selectedClassId,
+          zone: null,
+          message: "Unable to load the class location. Retry before scheduling.",
+          failed: true,
+        });
+      }
+    };
+    loadClassTimeZone();
+    return () => { cancelled = true; };
+  }, [selectedClassId, lookupRetry]);
 
-  const classMemberCount = selectedClasses.reduce(
-    (total, classId) => {
-      const classItem = classes.find(
-        (item) => item.id === classId
-      );
-
-      return total + (classItem?.class_enrollments?.length ?? 0);
-    },
-    0
-  );
+  const selectedClass = filteredClasses.find(c => c.id === selectedClassId);
+  const classMemberCount = selectedClass?.class_enrollments?.length ?? 0;
+  const resolvedClassTimeZone = classTimeZone?.classId === selectedClassId ? classTimeZone : null;
+  const loadingClassTimeZone = selectedClassId !== null && !resolvedClassTimeZone;
+  const timeZone = selectedClassId !== null && resolvedClassTimeZone?.zone
+    ? resolvedClassTimeZone.zone : manualTimeZone;
+  const classTimeZoneBlocked = loadingClassTimeZone ||
+    (selectedClassId !== null && (!selectedClass || resolvedClassTimeZone?.failed));
+  const awaitingAssignment = selectedClassId === null && selectedUsers.length === 0 && !timeZone;
+  const timeZoneGuidance = awaitingAssignment
+    ? "Select a class to determine the timezone."
+    : "Select a timezone manually.";
 
   useEffect(() => {
     if (successMessage) {
@@ -97,9 +133,18 @@ export default function ScheduleExamPage() {
         const orgs = await getAccessibleOrganizations();
         setOrganizations(orgs);
 
-        const classData = await fetchClasses();
-
-        setClasses(classData.classes);
+        const classData = await fetchClasses({ status: "active", page: 1, limit: 100 });
+        const allClasses = new Map(classData.classes.map(classItem => [classItem.id, classItem]));
+        for (let page = 2; page <= classData.pagination.totalPages; page++) {
+          try {
+            const next = await fetchClasses({ status: "active", page, limit: 100 });
+            next.classes.forEach(classItem => allClasses.set(classItem.id, classItem));
+          } catch {
+            setClassLoadWarning("Additional classes could not be loaded. Showing the classes retrieved so far. Refresh to retry.");
+            break;
+          }
+        }
+        setClasses([...allClasses.values()]);
       } catch (err) {
         console.error("Failed to load schedule exam data:", err);
       }
@@ -133,8 +178,10 @@ export default function ScheduleExamPage() {
     !!title.trim() &&
     !!localStart &&
     !!localEnd &&
+    !!timeZone &&
+    !classTimeZoneBlocked &&
     (
-      selectedClasses.length > 0 ||
+      selectedClassId !== null ||
       selectedUsers.length > 0
     );
 
@@ -227,7 +274,7 @@ export default function ScheduleExamPage() {
           </div>
 
           <div>
-            <label>Start Date / Time</label>
+            <label>Start Date / Time ({timeZone || "select a timezone"})</label>
             <input
               type="datetime-local"
               value={localStart}
@@ -239,7 +286,7 @@ export default function ScheduleExamPage() {
           </div>
 
           <div>
-            <label>End Date / Time</label>
+            <label>End Date / Time ({timeZone || "select a timezone"})</label>
             <input
               type="datetime-local"
               value={localEnd}
@@ -251,14 +298,39 @@ export default function ScheduleExamPage() {
           </div>
 
           <div>
-            <label>Time Zone</label>
-
-            <SearchableTimeZonePicker
-              value={timeZone}
-              onChange={(zone) =>
-                setTimeZone(zone)
-              }
-            />
+            {loadingClassTimeZone ? (
+              <p role="status" style={styles.timeZoneHelp}>Loading class location timezone...</p>
+            ) : selectedClassId !== null && resolvedClassTimeZone?.zone ? (
+              <>
+                <strong style={{ display: "block", fontSize: "16px" }}>{timeZone}</strong>
+                <p role="status" style={{ ...styles.timeZoneHelp, marginTop: "6px" }}>
+                  {resolvedClassTimeZone.message}
+                </p>
+              </>
+            ) : (
+              <>
+                <p role="status" style={styles.timeZoneHelp}>
+                  {selectedClassId !== null && resolvedClassTimeZone
+                    ? resolvedClassTimeZone.message
+                    : awaitingAssignment
+                      ? timeZoneGuidance
+                      : "Select a timezone manually for student-only exams."}
+                </p>
+                {!classTimeZoneBlocked && (
+                  <SearchableTimeZonePicker
+                    value={manualTimeZone}
+                    onChange={setManualTimeZone}
+                    placeholder={awaitingAssignment ? "Or select a timezone manually…" : "Select Time Zone"}
+                  />
+                )}
+              </>
+            )}
+            {selectedClassId !== null && resolvedClassTimeZone?.failed && (
+              <button type="button" onClick={() => {
+                setClassTimeZone(null);
+                setLookupRetry(retry => retry + 1);
+              }}>Retry location lookup</button>
+            )}
           </div>
 
           <div>
@@ -291,6 +363,7 @@ export default function ScheduleExamPage() {
       </Panel>
       <Panel>
         <h2>Class Access</h2>
+        {classLoadWarning && <p role="alert">{classLoadWarning}</p>}
 
         <SearchableOrganizationMultiSelect
           organizations={organizations}
@@ -304,67 +377,27 @@ export default function ScheduleExamPage() {
 
         {selectedOrganizations.length > 0 && (
           <div style={{ marginTop: "20px" }}>
-            <h3>Select Classes</h3>
-
-            {filteredClasses.length === 0 ? (
-              <p>No classes found for the selected organization.</p>
-            ) : (
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "8px",
-                }}
-              >
-                {filteredClasses.map((classItem) => (
-                  <label
-                    key={classItem.id}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      padding: "10px 12px",
-                      border: "1px solid #E5E7EB",
-                      borderRadius: "6px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedClasses.includes(classItem.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedClasses([
-                            ...selectedClasses,
-                            classItem.id,
-                          ]);
-                        } else {
-                          setSelectedClasses(
-                            selectedClasses.filter(
-                              (id) => id !== classItem.id
-                            )
-                          );
-                        }
-                      }}
-                    />
-
-                    <div>
-                      <div style={{ fontWeight: 600 }}>
-                        {classItem.name}
-                      </div>
-
-                      <div
-                        style={{
-                          fontSize: "13px",
-                          color: "#666",
-                        }}
-                      >
-                        {classItem.program?.name ?? "Program not available"}
-                      </div>
-                    </div>
-                  </label>
-                ))}
-              </div>
+            <h3>Select Class</h3>
+            <p>Schedule one exam per class. The same template can be reused for another class.</p>
+            <select
+              aria-label="Class for this exam"
+              value={selectedClassId ?? ""}
+              onChange={(e) => {
+                setSelectedClassId(e.target.value ? Number(e.target.value) : null);
+                setClassTimeZone(null);
+                setManualTimeZone("");
+              }}
+              style={styles.input}
+            >
+              <option value="">No class (individual students only)</option>
+              {filteredClasses.map((classItem) => (
+                <option key={classItem.id} value={classItem.id}>
+                  {classItem.name} - {classItem.program?.name ?? "Program not available"}
+                </option>
+              ))}
+            </select>
+            {filteredClasses.length === 0 && !classLoadWarning && (
+              <p>No active classes found for the selected organization.</p>
             )}
           </div>
         )}
@@ -525,8 +558,8 @@ export default function ScheduleExamPage() {
           </div>
 
           <div>
-            <strong>Classes:</strong>{" "}
-            {selectedClasses.length}
+            <strong>Class:</strong>{" "}
+            {selectedClass?.name || "None selected"}
           </div>
 
           <div>
@@ -556,7 +589,7 @@ export default function ScheduleExamPage() {
 
           <div>
             <strong>Time Zone:</strong>{" "}
-            {timeZone}
+            {timeZone || timeZoneGuidance}
           </div>
 
           <div
@@ -592,6 +625,8 @@ export default function ScheduleExamPage() {
               ⚠ Missing:
 
               <ul style={{ marginTop: "8px" }}>
+                {!timeZone && <li>Time Zone</li>}
+                {classTimeZoneBlocked && <li>Class location timezone lookup</li>}
                 {!selectedTemplateId && (
                   <li>Exam Template</li>
                 )}
@@ -608,7 +643,7 @@ export default function ScheduleExamPage() {
                   <li>End Date</li>
                 )}
 
-                {selectedClasses.length === 0 &&
+                {selectedClassId === null &&
                   selectedUsers.length === 0 && (
                     <li>
                       Class or User Assignment
@@ -649,7 +684,7 @@ export default function ScheduleExamPage() {
           disabled={!isValid || scheduling}
           onClick={async () => {
 
-            if (scheduling) return;
+            if (scheduling || !isValid) return;
             
             try {
 
@@ -663,7 +698,7 @@ export default function ScheduleExamPage() {
                 localEnd: examScheduleValue(localEnd, timeZone),
                 timeZone: requireExamTimeZone(timeZone),
                 duration_minutes: durationMinutes,
-                classes: selectedClasses,
+                classes: selectedClassId === null ? [] : [selectedClassId],
                 users: selectedUsers.map(u => u.id),
               });
 
@@ -679,7 +714,8 @@ export default function ScheduleExamPage() {
               setDurationMinutes(45);
 
               setSelectedOrganizations([]);
-              setSelectedClasses([]);
+              setSelectedClassId(null);
+              setClassTimeZone(null);
               setSelectedUsers([]);
               setUserResults([]);
               setUserSearch("");
@@ -718,6 +754,12 @@ const styles: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     gap: "20px",
+  },
+
+  timeZoneHelp: {
+    margin: "0 0 6px",
+    fontSize: "14px",
+    color: "#666",
   },
 
   input: {

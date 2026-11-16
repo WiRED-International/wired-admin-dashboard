@@ -17,6 +17,8 @@ import {
 } from "../api/locationsAPI";
 import { fetchAllCountries } from "../api/countriesAPI";
 import { CountryInterface } from "../interfaces/CountryInterface";
+import { isValidLocationTimeZone } from "../utils/locationTimeZone";
+import SearchableTimeZonePicker from "../components/Common/SearchableTimeZonePicker";
 
 export default function LocationsPage() {
   const [locations, setLocations] = useState<
@@ -79,6 +81,9 @@ export default function LocationsPage() {
 
   const [selectedParentLocationId, setSelectedParentLocationId] =
     useState<number | null>(null);
+
+  const [selectedTimeZone, setSelectedTimeZone] = useState("");
+  const [originalTimeZone, setOriginalTimeZone] = useState<string | null>(null);
 
   const [creating, setCreating] =
     useState(false);
@@ -196,6 +201,11 @@ export default function LocationsPage() {
       return;
     }
 
+    if (!isValidLocationTimeZone(selectedTimeZone)) {
+      setCreateError("Select a valid timezone for this location.");
+      return;
+    }
+
     try {
       setCreating(true);
       setCreateError(null);
@@ -205,6 +215,7 @@ export default function LocationsPage() {
         country_id: selectedCountryId,
         location_type: selectedLocationType,
         parent_location_id: selectedParentLocationId,
+        time_zone: selectedTimeZone,
       });
 
       setError(null);
@@ -225,6 +236,7 @@ export default function LocationsPage() {
       await loadTableLocations();
 
       setLocationName("");
+      setSelectedTimeZone("");
       setSelectedCountryId(null);
       setSelectedLocationType("county");
       setSelectedParentLocationId(null);
@@ -262,6 +274,12 @@ export default function LocationsPage() {
       return;
     }
 
+    const timeZoneChanged = selectedTimeZone !== (originalTimeZone ?? "");
+    if (timeZoneChanged && !isValidLocationTimeZone(selectedTimeZone)) {
+      setUpdateError("Select a valid timezone for this location.");
+      return;
+    }
+
     try {
       setUpdating(true);
       setUpdateError(null);
@@ -273,6 +291,8 @@ export default function LocationsPage() {
           country_id: selectedCountryId,
           location_type: selectedLocationType,
           parent_location_id: selectedParentLocationId,
+          // Preserve the server's current value unless explicitly changed here.
+          ...(timeZoneChanged ? { time_zone: selectedTimeZone } : {}),
         }
       );
 
@@ -295,6 +315,7 @@ export default function LocationsPage() {
 
       setEditingLocationId(null);
       setLocationName("");
+      setSelectedTimeZone("");
       setSelectedCountryId(null);
       setSelectedLocationType("county");
       setSelectedParentLocationId(null);
@@ -420,7 +441,10 @@ export default function LocationsPage() {
         <button
           type="button"
           style={styles.createButton}
-          onClick={() => setShowCreateForm(true)}
+          onClick={() => {
+            setSelectedTimeZone("");
+            setShowCreateForm(true);
+          }}
         >
           + Create Location
         </button>
@@ -438,6 +462,7 @@ export default function LocationsPage() {
               style={styles.cancelButton}
               onClick={() => {
                 setLocationName("");
+                setSelectedTimeZone("");
                 setSelectedCountryId(null);
                 setSelectedLocationType("county");
                 setSelectedParentLocationId(null);
@@ -564,6 +589,15 @@ export default function LocationsPage() {
             </select>
           </div>
 
+          <div style={styles.formGroupSpaced}>
+            <label style={styles.filterLabel}>Time Zone (required)</label>
+            <SearchableTimeZonePicker
+              value={selectedTimeZone}
+              onChange={setSelectedTimeZone}
+              filterTimeZone={isValidLocationTimeZone}
+            />
+          </div>
+
           {createError && (
             <div style={styles.createError}>
               {createError}
@@ -597,6 +631,7 @@ export default function LocationsPage() {
               onClick={() => {
                 setEditingLocationId(null);
                 setLocationName("");
+                setSelectedTimeZone("");
                 setSelectedCountryId(null);
                 setSelectedLocationType("county");
                 setSelectedParentLocationId(null);
@@ -724,6 +759,16 @@ export default function LocationsPage() {
                   </option>
                 ))}
             </select>
+          </div>
+
+          <div style={styles.formGroupSpaced}>
+            <label style={styles.filterLabel}>Time Zone</label>
+            <SearchableTimeZonePicker
+              value={selectedTimeZone}
+              onChange={setSelectedTimeZone}
+              filterTimeZone={isValidLocationTimeZone}
+              placeholder="Not set (optional for existing locations)"
+            />
           </div>
 
           {updateError && (
@@ -876,6 +921,10 @@ export default function LocationsPage() {
               </th>
 
               <th style={styles.tableHeader}>
+                Time Zone
+              </th>
+
+              <th style={styles.tableHeader}>
                 Actions
               </th>
             </tr>
@@ -885,7 +934,7 @@ export default function LocationsPage() {
             {loading ? (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={6}
                   style={styles.messageCell}
                 >
                   Loading locations...
@@ -894,7 +943,7 @@ export default function LocationsPage() {
             ) : tableLocations.length === 0 ? (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={6}
                   style={styles.messageCell}
                 >
                   No locations found.
@@ -923,6 +972,9 @@ export default function LocationsPage() {
                     )}
                   </td>
                   <td style={styles.tableCell}>
+                    {location.time_zone || "Not set"}
+                  </td>
+                  <td style={styles.tableCell}>
                     <div style={styles.actionButtons}>
                       <button
                         type="button"
@@ -930,6 +982,8 @@ export default function LocationsPage() {
                         onClick={() => {
                           setEditingLocationId(location.id);
                           setLocationName(location.name);
+                          setSelectedTimeZone(location.time_zone ?? "");
+                          setOriginalTimeZone(location.time_zone ?? null);
                           setSelectedCountryId(location.country_id);
                           setSelectedLocationType(
                             location.location_type
