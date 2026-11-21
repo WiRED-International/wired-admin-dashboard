@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import React from "react";
+import { Upload } from "lucide-react";
+import "./ExamTemplatesPage.css";
 import axios from "axios";
 import PageContainer from "@/components/ui/PageContainer";
 import PageHeader from "@/components/ui/PageHeader";
@@ -133,15 +135,17 @@ export default function ExamTemplatesPage() {
           ) : (
 
             <>
-              <div style={styles.actions}>
+              <div className="exam-template-actions">
                 <button
-                  style={styles.primaryButton}
+                  className="exam-template-button exam-template-button-primary"
+                  type="button"
                   onClick={() => setShowCreateForm(true)}
                 >
                   Create Template
                 </button>
 
-                <button style={styles.secondaryButton}>
+                <button type="button" className="exam-template-button exam-template-button-secondary" onClick={() => navigate("/exams/templates/import")}>
+                  <Upload size={16} aria-hidden="true" />
                   Import Template
                 </button>
               </div>

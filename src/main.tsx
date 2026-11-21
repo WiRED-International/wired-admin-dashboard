@@ -19,6 +19,7 @@ import ExamDetailsPage from "./pages/ExamDetailsPage.tsx";
 import { UserOptionsProvider } from "./context/UserOptionsContext.tsx";
 import ExamAttemptDetailsPage from "./pages/ExamAttemptDetailsPage.tsx";
 import ExamTemplatesPage from "./pages/ExamTemplatesPage.tsx";
+import ExamTemplateImportPage from "./pages/ExamTemplateImportPage.tsx";
 import ExamTemplateDetailsPage from "./pages/ExamTemplateDetailsPage.tsx";
 import ExamTemplateQuestionDetailsPage from "./pages/ExamTemplateQuestionDetailsPage.tsx";
 import UserDetailsPage from "./pages/UserDetailsPage.tsx";
@@ -290,6 +291,14 @@ const router = createBrowserRouter(
               allow={() => Auth.isSuperAdmin()}
             >
                 <ExamTemplatesPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/exams/templates/import",
+          element: (
+            <ProtectedRoute redirectTo="/login" allow={() => Auth.isSuperAdmin()}>
+              <ExamTemplateImportPage />
             </ProtectedRoute>
           ),
         },

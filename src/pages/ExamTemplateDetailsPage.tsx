@@ -2,7 +2,7 @@ import PageContainer from "@/components/ui/PageContainer";
 import PageHeader from "@/components/ui/PageHeader";
 import Panel from "@/components/ui/Panel";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 
 import { ExamTemplate, ExamType } from "@/interfaces/ExamTemplate";
 
@@ -12,6 +12,8 @@ import { useNavigate } from "react-router-dom";
 
 export default function ExamTemplateDetailsPage() {
   const { templateId } = useParams();
+  const location = useLocation();
+  const importSuccess = (location.state as { successMessage?: unknown } | null)?.successMessage;
   const [template, setTemplate] = useState<ExamTemplate | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState("");
@@ -170,6 +172,7 @@ export default function ExamTemplateDetailsPage() {
       />
 
       <Panel>
+        {typeof importSuccess === "string" && <div role="status" style={styles.successBanner}>{importSuccess}</div>}
 
         {loading ? (
 
@@ -559,6 +562,16 @@ export default function ExamTemplateDetailsPage() {
 const styles: {
   [key: string]: React.CSSProperties;
 } = {
+  successBanner: {
+    backgroundColor: "#ECFDF5",
+    border: "1px solid #10B981",
+    color: "#065F46",
+    padding: "12px 16px",
+    borderRadius: "8px",
+    marginBottom: "20px",
+    fontWeight: 600,
+  },
+
   questionCard: {
     border: "1px solid #E5E7EB",
     borderRadius: "12px",

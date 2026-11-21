@@ -1,0 +1,107 @@
+.exam-import { max-width: 1100px; margin: 0 auto; color: #334155; font-family: Inter, Arial, sans-serif; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.exam-import *, .exam-import *::before, .exam-import *::after { box-sizing: border-box; }
+/* Panel supplies min-width: fit-content inline. Only importer panels may shrink. */
+.exam-import-panel { width: 100%; min-width: 0; }
+.exam-import-panel > div { width: 100%; min-width: 0 !important; }
+.exam-import :is(.exam-import-file, .exam-import-summary, .exam-import-savebar, .exam-import-question-fields) > * { min-width: 0; }
+.exam-import input, .exam-import textarea, .exam-import select, .exam-import button { font: inherit; }
+.exam-import-back { display: inline-block; color: #2563eb; margin-bottom: 20px; font-weight: 600; text-decoration: none; }
+.exam-import a:hover { text-decoration: underline; }
+.exam-import h2 { margin: 6px 0 12px; color: #1e293b; font-size: 22px; font-weight: 700; line-height: 1.3; }
+.exam-import h3 { margin: 24px 0 6px; color: #1e293b; font-size: 18px; font-weight: 700; }
+.exam-import p { margin: 8px 0 16px; line-height: 1.6; }
+.exam-import .exam-import-help { color: #64748b; font-size: 13px; line-height: 1.6; }
+.exam-import-upload { min-width: 0; }
+.exam-import-file-label { display: block; font-weight: 600; margin: 18px 0 8px; }
+.exam-import input[type="file"] { width: 100%; min-width: 0; max-width: 100%; color: #475569; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px; background: #f8fafc; }
+.exam-import input[type="file"]::file-selector-button { padding: 8px 12px; margin-right: 12px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 6px; font: inherit; font-weight: 600; cursor: pointer; }
+.exam-import-file { display: flex; flex-wrap: wrap; gap: 6px 20px; padding: 12px 16px; margin: 16px 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; }
+.exam-import-file span { color: #64748b; font-size: 13px; }
+.exam-import button:disabled { opacity: .5; cursor: not-allowed !important; }
+.exam-import :is(input, select, textarea, button, a, summary):focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+.exam-import-preview { margin-top: 24px; }
+.exam-import-summary { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; }
+.exam-import-summary h2 { margin: 8px 0; }
+.exam-import-eyebrow { text-transform: uppercase; font-size: 11px; letter-spacing: .07em; color: #64748b; font-weight: 700; }
+.exam-import-status { padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.exam-import-ready { color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; }
+.exam-import-savebar { position: sticky; top: 12px; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; box-shadow: 0 2px 8px rgb(15 23 42 / 6%); }
+.exam-import-savebar span { display: block; font-size: 12px; color: #64748b; margin-top: 2px; }
+.exam-import-savebar button { flex-shrink: 0; }
+.exam-import-diagnostics { padding: 12px 16px; margin: 16px 0; border-radius: 8px; font-size: 13px; }
+.exam-import-diagnostics ul { padding-left: 20px; margin-bottom: 0; }
+.exam-import-diagnostics li { margin: 6px 0; white-space: pre-wrap; }
+.exam-import-errors { color: #991b1b; background: #fef2f2; border: 1px solid #fecaca; }
+.exam-import-parser-errors { color: #475569; background: #f8fafc; border: 1px solid #cbd5e1; }
+.exam-import-warnings { color: #854d0e; background: #fffbeb; border: 1px solid #fde68a; }
+.exam-import-error-text, .exam-import-invalid { color: #991b1b; }
+.exam-import-valid-text { color: #166534; }
+.exam-import-warning-text { color: #854d0e; }
+.exam-import-question { border: 1px solid #e2e8f0; border-radius: 10px; margin: 12px 0; scroll-margin-top: 110px; }
+.exam-import-question summary { cursor: pointer; padding: 14px 18px; background: #f8fafc; border-radius: 10px; }
+.exam-import-question[open] summary { border-radius: 10px 10px 0 0; border-bottom: 1px solid #e2e8f0; }
+.exam-import-question summary::marker { color: #2563eb; }
+.exam-import-question-heading { font-weight: 700; color: #334155; }
+.exam-import-question-snippet { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 6px; line-height: 1.5; }
+.exam-import-question-flags { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; margin-top: 6px; }
+.exam-import-question-body { padding: 18px; }
+.exam-import .exam-import-source { color: #64748b; font-size: 11px; margin: 0 0 12px; }
+.exam-import-pagination { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 24px; font-size: 13px; }
+.exam-import-form { display: grid; gap: 14px; }
+.exam-import-review-fields { border: 0; padding: 0; margin: 16px 0 0; min-width: 0; }
+.exam-import-form label { display: grid; gap: 6px; font-size: 13px; font-weight: 600; color: #475569; min-width: 0; }
+.exam-import-form input:not([type="radio"]):not([type="checkbox"]), .exam-import-form textarea, .exam-import-form select { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 10px; color: #334155; background: #fff; font: 400 14px/1.5 Inter, Arial, sans-serif; }
+.exam-import-form :is(input, textarea, select) { min-width: 0; max-width: 100%; }
+.exam-import-form legend { max-width: 100%; }
+.exam-import-form textarea { min-height: 96px; resize: vertical; }
+.exam-import-form :is(input, textarea, select):hover:not(:disabled) { border-color: #94a3b8; }
+.exam-import-form select:disabled { background: #f1f5f9; color: #64748b; }
+.exam-import-form fieldset { border: 0; padding: 0; min-width: 0; margin: 0; }
+.exam-import-form legend { color: #334155; font-weight: 600; padding: 0; margin-bottom: 10px; }
+.exam-import-form button { padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #2563eb; cursor: pointer; font-size: 12px; font-weight: 600; }
+.exam-import-metadata { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 24px; padding: 12px 0 20px; border-bottom: 1px solid #e2e8f0; }
+.exam-import-metadata > label:first-child, .exam-import-description { grid-column: 1 / -1; }
+.exam-import-question-fields { display: grid; grid-template-columns: minmax(0, 2fr) minmax(200px, 1fr); gap: 20px; align-items: start; }
+.exam-import-question-fields .exam-import-help { margin: 8px 0 0; font-size: 12px; }
+.exam-import-choice-head, .exam-import-option-editor { display: grid; grid-template-columns: 64px minmax(0, 1fr) 64px 94px; gap: 10px; align-items: center; }
+.exam-import-choice-head { color: #64748b; font-size: 11px; padding: 0 10px 6px; }
+.exam-import-choice-head span:nth-child(3) { text-align: center; }
+.exam-import-option-editor { padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; }
+.exam-import-option-editor.is-correct { background: #f0fdf4; border-color: #bbf7d0; }
+.exam-import-choice-id input { text-align: center; text-transform: uppercase; font-weight: 700 !important; color: #1d4ed8 !important; background: #eff6ff !important; }
+.exam-import-form .exam-import-answer-toggle { display: flex; align-items: center; justify-content: center; min-height: 38px; cursor: pointer; }
+.exam-import-answer-toggle input { width: 18px; height: 18px; margin: 0; accent-color: #508432; cursor: pointer; }
+.exam-import-form .exam-import-remove-choice { border-color: transparent; background: transparent; color: #64748b; padding: 6px 2px; font-size: 11px; font-weight: 400; }
+.exam-import-form .exam-import-remove-choice:hover { color: #b91c1c; text-decoration: underline; }
+.exam-import-answer-footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
+.exam-import-answer-footer p { font-size: 12px; color: #64748b; margin: 0; }
+.exam-import-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+@media (max-width: 760px) {
+  .exam-import-question-fields { grid-template-columns: 1fr; gap: 12px; }
+  .exam-import-savebar { top: 6px; }
+  .exam-import-choice-head, .exam-import-option-editor { grid-template-columns: 52px minmax(0, 1fr) 44px 76px; gap: 6px; }
+}
+@media (max-width: 520px) {
+  .exam-import-panel > div { padding: 16px !important; }
+  .exam-import h2 { font-size: 19px; }
+  .exam-import-metadata { grid-template-columns: 1fr; gap: 14px; }
+  .exam-import-question-body { padding: 12px; }
+  .exam-import-question summary { padding: 12px; }
+  .exam-import-savebar { padding: 12px; gap: 8px; flex-wrap: wrap; }
+  .exam-import-savebar button { width: 100%; }
+  .exam-import-choice-head, .exam-import-option-editor { grid-template-columns: 44px minmax(0, 1fr) 36px; }
+  .exam-import-choice-head span:last-child { display: none; }
+  .exam-import-form .exam-import-remove-choice { grid-column: 2 / -1; justify-self: end; padding: 0; }
+  .exam-import-option-editor { padding: 8px; }
+  .exam-import-form .exam-import-choice-id input { padding-inline: 2px; }
+  .exam-import-pagination { justify-content: center; }
+  .exam-import-pagination > span { width: 100%; order: -1; text-align: center; }
+}
+.exam-import-dropzone { padding: 28px 20px; border: 2px dashed #cbd5e1; border-radius: 10px; background: #f8fafc; text-align: center; transition: border-color .15s ease, background-color .15s ease; }
+.exam-import-dropzone:hover, .exam-import-dropzone:focus-within, .exam-import-dropzone.is-dragging { border-color: #2563eb; background: #eff6ff; }
+.exam-import-dropzone[aria-disabled="true"] { opacity: .6; border-color: #cbd5e1; background: #f8fafc; }
+.exam-import-upload-icon { color: #2563eb; }
+.exam-import .exam-import-drop-instruction { font-weight: 600; color: #1e293b; margin: 12px 0 4px; }
+.exam-import-dropzone input[type="file"] { background: #fff; text-align: left; }
+.exam-import input[type="file"]::file-selector-button:hover { background: #dbeafe; }
+@media (max-width: 520px) { .exam-import-dropzone { padding: 20px 12px; } }
