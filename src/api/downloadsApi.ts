@@ -6,12 +6,12 @@ import { apiPrefix } from "../utils/globalVariables";
 
 
 //fetch data from /downloads endpoint
-export const fetchDownloads = async (queries?: string): Promise<ModuleDownloadInterface[]> => {
+export const fetchDownloads = async (queries?: string, signal?: AbortSignal): Promise<ModuleDownloadInterface[]> => {
     try {
-        const fetchURL = queries ? `${apiPrefix}api/downloads?${queries}` : `${apiPrefix}api/downloads`;
+        const fetchURL = queries ? `${apiPrefix.replace(/\/$/, "")}/api/downloads?${queries}` : `${apiPrefix.replace(/\/$/, "")}/api/downloads`;
 
         const response = await fetch(fetchURL, {
-            
+            signal,
             headers: {
                 Authorization: `Bearer ${Auth.getToken()}`,
             }

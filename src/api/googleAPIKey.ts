@@ -3,7 +3,7 @@ import { apiPrefix } from "../utils/globalVariables";
 
 export const fetchGoogleAPIKey = async (): Promise<string> => {
     try {
-        const response = await fetch(`${apiPrefix}api/googleAPIKey`, {
+        const response = await fetch(`${apiPrefix.replace(/\/$/, "")}/api/googleAPIKey`, {
             headers: {
                 Authorization: `Bearer ${Auth.getToken()}`,
             }

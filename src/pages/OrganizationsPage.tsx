@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -63,6 +64,21 @@ export default function OrganizationsPage() {
   const [updating, setUpdating] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
   const [editingOrganizationId, setEditingOrganizationId] = useState<number | null>(null);
+  const [editScrollRequest, setEditScrollRequest] = useState(0);
+  const editSectionRef = useRef<HTMLDivElement>(null);
+  const editNameRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editingOrganizationId === null) return;
+
+    editNameRef.current?.focus({ preventScroll: true });
+    editSectionRef.current?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth",
+      block: "start",
+    });
+  }, [editingOrganizationId, editScrollRequest]);
   const [adminPermissions, setAdminPermissions] = useState<AdminPermission[]>([]);
   const [loadingAdminPermissions, setLoadingAdminPermissions] = useState(false);
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
@@ -519,7 +535,10 @@ export default function OrganizationsPage() {
       )}
 
       {editingOrganizationId !== null && (
-        <div style={styles.formCard}>
+        <div
+          ref={editSectionRef}
+          style={{ ...styles.formCard, scrollMarginTop: "96px" }}
+        >
           <div style={styles.formHeader}>
             <h2 style={styles.formHeading}>
               Edit Organization
@@ -546,6 +565,7 @@ export default function OrganizationsPage() {
             </label>
 
             <input
+              ref={editNameRef}
               type="text"
               value={organizationName}
               onChange={(event) =>
@@ -856,6 +876,7 @@ export default function OrganizationsPage() {
                       style={styles.editButton}
                       onClick={async () => {
                         setEditingOrganizationId(organization.id);
+                        setEditScrollRequest((request) => request + 1);
                         setOrganizationName(organization.name);
                         setSelectedCountryIds(
                           organization.countries.map((country) => country.id)

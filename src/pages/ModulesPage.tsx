@@ -163,7 +163,7 @@ export default function ModulesPage() {
     const matchesSearch =
       !query ||
       (module.name || "").toLowerCase().includes(query) ||
-      (module.module_id || "").toLowerCase().includes(query);
+      String(module.module_id ?? "").toLowerCase().includes(query);
 
     const matchesProgram =
       !selectedProgramId ||

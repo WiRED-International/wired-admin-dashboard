@@ -42,6 +42,7 @@ export default function Sidebar({
   const canAccessExams = Auth.isSuperAdmin() || Auth.isInstructor();
 
   const isNavItemActive = (path: string) => {
+    if (path === "/downloads/map") return location.pathname.startsWith("/downloads/");
     if (path === "/") {
       return location.pathname === "/";
     }
@@ -53,11 +54,11 @@ export default function Sidebar({
   };
 
   const navItems = [
-    {
+    ...(Auth.isSuperAdmin() ? [{
       name: "Downloads",
-      path: "/",
+      path: "/downloads/map",
       icon: <Download size={20} />,
-    },
+    }] : []),
 
     {
       name: "Users",
@@ -166,7 +167,7 @@ export default function Sidebar({
 
       </div>
 
-      <nav style={styles.nav}>
+      <nav style={styles.nav} tabIndex={0} aria-label="Sidebar navigation">
         {navItems.map((item) => (
           <Link
             key={item.name}
@@ -216,9 +217,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "20px 10px",
     display: "flex",
     flexDirection: "column",
-    overflowY: "auto",
   },
   logoContainer: {
+    flexShrink: 0,
     padding: "10px",
   },
   logoText: {
@@ -238,9 +239,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: "10px",
     marginTop: "30px",
     flex: 1,
+    minHeight: 0,
+    overflowY: "auto",
+    overflowX: "hidden",
   },
   navItem: {
     height: "48px",
+    flexShrink: 0,
     borderRadius: "10px",
     textDecoration: "none",
     color: globalStyles.colors.darkText,
@@ -261,6 +266,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
   },
   logoutBtn: {
+    flexShrink: 0,
     marginTop: "auto",
     padding: "10px 16px",
     borderRadius: "6px",

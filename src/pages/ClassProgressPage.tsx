@@ -9,6 +9,7 @@ import {
 } from "../api/examsAPI";
 import { ClassProgressResponse } from "../interfaces/Class";
 import AuthService from "../utils/auth";
+import { examColumns, latestCompletedExam, type ExamCategory } from "../utils/classProgressExams";
 
 export default function ClassProgressPage() {
   const { classId } = useParams();
@@ -94,6 +95,7 @@ export default function ClassProgressPage() {
 
   const canViewProgramExam =
     AuthService.isInstructor() || isSuperAdmin;
+  const columns = examColumns(progress.exams);
 
   const handleHistoricalExamClick = async (
     studentId: number
@@ -211,11 +213,11 @@ export default function ClassProgressPage() {
                   </th>
                 )}
 
-                {canViewProgramExam && (
-                  <th style={styles.progressHeader}>
-                    Program Exam
+                {canViewProgramExam && columns.map(column => (
+                  <th key={column.category} style={styles.progressHeader}>
+                    {column.label}
                   </th>
-                )}
+                ))}
 
                 {!isSpecializationClass &&
                   progress.modules.map((module) => (
@@ -303,14 +305,15 @@ export default function ClassProgressPage() {
                         : "—"}
                     </td>
                   )}
-                  {canViewProgramExam && (
-                    <td style={styles.progressCell}>
+                  {canViewProgramExam && columns.map((column, columnIndex) => (
+                    <td key={column.category} style={styles.progressCell}>
                       <StudentExamStatus
                         studentId={student.id}
                         exams={progress.exams}
+                        category={column.category}
                       />
 
-                      {isSuperAdmin && (
+                      {isSuperAdmin && columnIndex === 0 && (
                         <>
                           <button
                             type="button"
@@ -377,7 +380,7 @@ export default function ClassProgressPage() {
                         </>
                       )}
                     </td>
-                  )}
+                  ))}
 
                   {!isSpecializationClass &&
                     progress.modules.map((module) => {
@@ -474,25 +477,18 @@ function getPassedModuleCount(
 function StudentExamStatus({
   studentId,
   exams,
+  category,
 }: {
   studentId: number;
   exams: ClassProgressResponse["exams"];
+  category: ExamCategory;
 }) {
-  if (exams.length === 0) {
-    return <span style={styles.statusNA}>N/A</span>;
-  }
-
-  const sessions = exams
-    .flatMap((exam) => exam.exam_sessions)
-    .filter((session) => session.user_id === studentId)
-    .sort((a, b) => b.attempt_number - a.attempt_number);
-
-  const latestSession = sessions[0];
+  const latestSession = latestCompletedExam(exams, studentId, category);
 
   if (!latestSession || latestSession.score == null) {
     return (
       <span style={styles.statusNotTaken}>
-        Not Taken
+        {"\u2014"}
       </span>
     );
   }

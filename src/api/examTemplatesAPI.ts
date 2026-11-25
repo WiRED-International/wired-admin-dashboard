@@ -34,7 +34,7 @@ export async function saveExamTemplateImport(body: string): Promise<ImportSaveRe
     || typeof data.template.title !== "string"
     || !(data.template.description === null || typeof data.template.description === "string")
     || typeof data.template.program !== "string"
-    || !["general", "basic_qualifying", "act_final", "specialization_final"].includes(data.template.exam_type)
+    || !["practice", "general", "basic_qualifying", "act_final", "specialization_final"].includes(data.template.exam_type)
     || data.question_count !== payload.questions.length || typeof data.replayed !== "boolean") {
     throw new Error("The server returned an unconfirmed save response.");
   }

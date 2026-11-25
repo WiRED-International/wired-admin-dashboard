@@ -52,6 +52,22 @@ const UserDetailsPage = () => {
   const [roles, setRoles] = useState<RoleInterface[]>([]);
   const [organizations, setOrganizations] = useState<OrganizationInterface[]>([]);
   const [countries, setCountries] = useState<CountryInterface[]>([]);
+  const [editFirstName, setEditFirstName] = useState("");
+  const [editLastName, setEditLastName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const isSuperAdmin = Auth.isSuperAdmin();
+  let canEditUser = isSuperAdmin && !!user;
+  if (Auth.getRoleId() === 2 && user) {
+    const profile = Auth.getProfile() as { organization_id?: number; country_id?: number; city_id?: number };
+    const targetRole = user.role_id ?? user.role?.id;
+    canEditUser = targetRole !== 2 && targetRole !== 3
+      && profile.organization_id != null && profile.organization_id === user.organization_id
+      && profile.country_id != null && profile.country_id === user.country_id
+      && (!profile.city_id || profile.city_id === user.city_id);
+  }
 
   useEffect(() => {
 
@@ -177,15 +193,35 @@ const UserDetailsPage = () => {
   ).sort();
 
   const handleSaveUser = async () => {
-    if (!userId) return;
+    if (!userId || !canEditUser || saving) return;
+    setSaveError(null);
+    const identity = {
+      first_name: editFirstName.trim(),
+      last_name: editLastName.trim(),
+      email: editEmail.trim(),
+    };
+    for (const [field, label] of [["first_name", "First Name"], ["last_name", "Last Name"], ["email", "Email"]] as const) {
+      if (!identity[field] || Array.from(identity[field]).length > 255) {
+        setSaveError(`${label} is required and must be at most 255 characters.`);
+        return;
+      }
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identity.email)) {
+      setSaveError("Enter a valid email address.");
+      return;
+    }
 
+    setSaving(true);
     try {
       const response = await updateUserById(
         Number(userId),
         {
+          ...identity,
+          ...(isSuperAdmin ? {
           role_id: editRoleId ?? undefined,
           organization_id: editOrganizationId,
           country_id: editCountryId,
+          } : {}),
         }
       );
 
@@ -193,6 +229,9 @@ const UserDetailsPage = () => {
       setIsEditing(false);
     } catch (err) {
       console.error("Failed to update user:", err);
+      setSaveError(err instanceof Error ? err.message : "Failed to update user. Please try again.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -226,13 +265,14 @@ const UserDetailsPage = () => {
 
           </div>
 
-          {Auth.isSuperAdmin() && (
+          {canEditUser && (
             <>
               {isEditing ? (
                 <div style={{ display: "flex", gap: "8px" }}>
                   <button
                     style={styles.cancelButton}
-                    onClick={() => setIsEditing(false)}
+                    disabled={saving}
+                    onClick={() => { setIsEditing(false); setSaveError(null); }}
                   >
                     Cancel
                   </button>
@@ -241,14 +281,19 @@ const UserDetailsPage = () => {
                     style={styles.saveButton}
                     type="button"
                     onClick={handleSaveUser}
+                    disabled={saving}
                   >
-                    Save Changes
+                    {saving ? "Saving..." : "Save Changes"}
                   </button>
                 </div>
               ) : (
                 <button
                   style={styles.saveButton}
                   onClick={() => {
+                    setEditFirstName(user?.first_name ?? "");
+                    setEditLastName(user?.last_name ?? "");
+                    setEditEmail(user?.email ?? "");
+                    setSaveError(null);
                     setEditRoleId(user?.role_id ?? null);
                     setEditOrganizationId(user?.organization_id ?? null);
                     setEditCountryId(user?.country_id ?? null);
@@ -271,15 +316,35 @@ const UserDetailsPage = () => {
           Account Information
         </h2>
 
+        {saveError && <p role="alert" style={{ color: "#B91C1C" }}>{saveError}</p>}
+
         <div style={styles.infoGrid}>
 
-          <div style={styles.label}>Email</div>
-          <div style={styles.value}>{user?.email}</div>
+          <label htmlFor="edit-first-name" style={styles.label}>First Name</label>
+          <div style={styles.value}>{isEditing && canEditUser ? (
+            <input id="edit-first-name" style={styles.editSelect} value={editFirstName}
+              required onChange={e => setEditFirstName(e.target.value)} />
+          ) : user?.first_name}</div>
+
+          <label htmlFor="edit-last-name" style={styles.label}>Last Name</label>
+          <div style={styles.value}>{isEditing && canEditUser ? (
+            <input id="edit-last-name" style={styles.editSelect} value={editLastName}
+              required onChange={e => setEditLastName(e.target.value)} />
+          ) : user?.last_name}</div>
+
+          <label htmlFor="edit-email" style={styles.label}>Email</label>
+          <div style={styles.value}>{isEditing && canEditUser ? (
+            <>
+              <input id="edit-email" type="email" style={styles.editSelect} value={editEmail}
+                required aria-describedby="edit-email-note" onChange={e => setEditEmail(e.target.value)} />
+              <p id="edit-email-note" style={styles.subtitle}>Changing the email address also changes the user's HealthMAP login email.</p>
+            </>
+          ) : user?.email}</div>
 
           <div style={styles.label}>Role</div>
 
           <div style={styles.value}>
-            {isEditing ? (
+            {isEditing && isSuperAdmin ? (
               <div style={styles.selectWrapper}>
                 <select
                   value={editRoleId ?? ""}
@@ -310,7 +375,7 @@ const UserDetailsPage = () => {
           <div style={styles.label}>Organization</div>
 
           <div style={styles.value}>
-            {isEditing ? (
+            {isEditing && isSuperAdmin ? (
               <SearchableOrganizationPicker
                 organizations={organizations}
                 selectedId={editOrganizationId}
@@ -327,7 +392,7 @@ const UserDetailsPage = () => {
           <div style={styles.label}>Country</div>
 
           <div style={styles.value}>
-            {isEditing ? (
+            {isEditing && isSuperAdmin ? (
               <div style={styles.selectWrapper}>
                 <select
                   value={editCountryId ?? ""}

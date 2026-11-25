@@ -3,6 +3,7 @@ import type { ExamTemplateImportPreview } from "@/interfaces/ExamTemplateImport"
 
 export const IMPORT_PROGRAMS = ["Basic Training", "ACT", "Specialization"] as const;
 export const IMPORT_EXAM_TYPES: { value: ExamType; label: string }[] = [
+  { value: "practice", label: "Practice Exam" },
   { value: "general", label: "General / Other" },
   { value: "basic_qualifying", label: "Basic Qualifying Exam" },
   { value: "act_final", label: "ACT Final Exam" },

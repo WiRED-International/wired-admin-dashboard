@@ -5,7 +5,7 @@ import {
     InfoWindow,
     useLoadScript,
 } from "@react-google-maps/api";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { ModuleDownloadInterface } from "../interfaces/ModuleDownloadInterface";
 
 const mapContainerStyle = {
@@ -31,25 +31,24 @@ const GoogleMapsComponent = ({ downloads, handleViewAllDownloads, googleAPIKey }
 
     const mapRef = useRef<google.maps.Map | null>(null);
 
-    // Save reference to the map on load
+    const fitDownloadBounds = useCallback((map: google.maps.Map) => {
+        if (downloads.length === 0) return;
+        const bounds = new window.google.maps.LatLngBounds();
+        downloads.forEach(download => bounds.extend(new window.google.maps.LatLng(
+            parseFloat(download.latitude), parseFloat(download.longitude)
+        )));
+        map.fitBounds(bounds);
+    }, [downloads]);
+
+    // Fit even when the data arrives before the Maps script finishes loading.
     const onLoad = (map: google.maps.Map) => {
         mapRef.current = map;
+        fitDownloadBounds(map);
         handleViewAllDownloads();
     };
-
-    // Fit map to bounds of all queried downloads
     useEffect(() => {
-        if (mapRef.current && downloads.length > 0) {
-            const bounds = new window.google.maps.LatLngBounds();
-            downloads.forEach(download => {
-                bounds.extend(new window.google.maps.LatLng(
-                    parseFloat(download.latitude), 
-                    parseFloat(download.longitude)
-                ));
-            });
-            mapRef.current.fitBounds(bounds);
-        }
-    }, [downloads]);
+        if (mapRef.current) fitDownloadBounds(mapRef.current);
+    }, [fitDownloadBounds]);
 
     if (loadError) {
     console.error(loadError);

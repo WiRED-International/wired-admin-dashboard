@@ -1,4 +1,5 @@
 export type ExamType =
+  | 'practice'
   | 'general'
   | 'basic_qualifying'
   | 'act_final'

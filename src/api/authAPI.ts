@@ -62,7 +62,7 @@ export const sendPasswordResetEmail = async (email: string) => {
 
 export const resetPassword = async (token: string, password: string) => {
   try {
-    const response = await fetch("/auth/reset-password", {
+    const response = await fetch(`${apiPrefix || '/'}auth/reset-password`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

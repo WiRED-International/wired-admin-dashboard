@@ -156,6 +156,7 @@ export interface ClassProgressExamTemplate {
   title: string;
   program: string;
   exam_type:
+    | "practice"
     | "general"
     | "basic_qualifying"
     | "act_final"

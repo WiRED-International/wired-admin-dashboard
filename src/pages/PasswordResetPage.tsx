@@ -5,7 +5,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 
 const ResetPasswordPage = () => {
   const { token } = useParams(); // Get the token from the URL
-  console.log("URL token:", token);
   const navigate = useNavigate();
 
   const [password, setPassword] = useState('');

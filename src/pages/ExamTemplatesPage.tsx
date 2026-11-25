@@ -200,6 +200,7 @@ export default function ExamTemplatesPage() {
                     >
                       <option value="">Select an exam type</option>
                       <option value="general">General / Other</option>
+                      <option value="practice">Practice Exam</option>
                       <option value="basic_qualifying">Basic Qualifying Exam</option>
                       <option value="act_final">ACT Final Exam</option>
                       <option value="specialization_final">Specialization Final Exam</option>

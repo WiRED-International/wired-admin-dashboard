@@ -1,178 +1,59 @@
-import { useState, useEffect } from 'react';
-import { fetchDownloads } from '../api/downloadsApi';
-import { fetchModuleAndPackageInfo } from '../api/modulesAPI';
-import { ModuleDownloadInterface } from '../interfaces/ModuleDownloadInterface';
-import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner';
-import { globalStyles } from '../globalStyles';
-import FilterPopover from '../components/FilterPopover';
-import { buildDownloadsQueryString } from '../utils/helperFunctions';
-import GoogleMapsComponent from '../components/GoogleMap';
-import { IdsAndNamesInterface } from '../interfaces/IdsAndNamesInterface';
-import { FilterFormInterface } from '../interfaces/FilterFormInterface';
-import { fetchGoogleAPIKey } from '../api/googleAPIKey';
+import { useCallback, useEffect, useState } from "react";
+import { Navigate, useSearchParams } from "react-router-dom";
+import Auth from "@/utils/auth";
+import { fetchDownloads } from "@/api/downloadsApi";
+import { fetchGoogleAPIKey } from "@/api/googleAPIKey";
+import type { ModuleDownloadInterface } from "@/interfaces/ModuleDownloadInterface";
+import GoogleMapsComponent from "@/components/GoogleMap";
+import PageContainer from "@/components/ui/PageContainer";
+import PageHeader from "@/components/ui/PageHeader";
+import Button from "@/components/ui/Button";
+import DownloadsNavigation from "@/components/Downloads/DownloadsNavigation";
+import DownloadsFilters from "@/components/Downloads/DownloadsFilters";
+import { downloadFilterParams, downloadMapQuery, readDownloadFilters, validateDownloadFilters } from "@/utils/downloadReporting";
+import "./Downloads.css";
 
-const AdminDashboard = () => {
-
+// Retain the existing map and legacy endpoint; only adapt the shared URL filters.
+export default function AdminDashboard() {
+  const [params] = useSearchParams();
+  const filterQuery = downloadFilterParams(readDownloadFilters(params)).toString();
   const [downloads, setDownloads] = useState<ModuleDownloadInterface[]>([]);
-  const [errorMessage, setErrorMessage] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
-  const [hasQueriedDownloads, setHasQueriedDownloads] = useState<boolean>(false);
-  const [hasQueriedModuleAndPackageInfo, setHasQueriedModuleAndPackageInfo] = useState<boolean>(false);
-  const [filterPopoverOpen, setFilterPopoverOpen] = useState<boolean>(false);
-  const [queryString, setQueryString] = useState<string>('');
-  const [moduleAndPackageInfo, setModuleAndPackageInfo] = useState<IdsAndNamesInterface>({} as IdsAndNamesInterface);
-  const [formData, setFormData] = useState<FilterFormInterface>({
-    searchQuery: '',
-    searchBy: '',
-    sort_by: '',
-    sort_dir: '',
-    startDate: null,
-    endDate: null,
-    latitude: '',
-    longitude: '',
-    distance: '',
-  });
-  const [googleAPIKey, setGoogleAPIKey] = useState<string>('');
-
-  const handleViewAllDownloads = async () => {
-    setLoading(true);
-    setErrorMessage('');
-    try {
-      const data = await fetchDownloads(queryString);
-      setDownloads(data);
-    } catch (err) {
-      if (err instanceof Error) {
-        setErrorMessage(err.message);
-      } else {
-        setErrorMessage('An unknown error occurred. Please try again later.');
-      }
-    } finally {
-      setLoading(false);
-      setHasQueriedDownloads(true);
-    }
-  }
-
-  const handlePopoverClose = () => {
-    setFilterPopoverOpen(false);
-  }
-
+  const [googleAPIKey, setGoogleAPIKey] = useState("");
+  const [keyError, setKeyError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [retry, setRetry] = useState(0);
+  // The map's onLoad callback is retained; the effect owns fetching to avoid duplicate requests.
+  const handleMapLoad = useCallback(() => {}, []);
   useEffect(() => {
-    setLoading(true);
-    //getting list of of names and ids for modules and packages for filter dropdowns if not already queried
-    //it would be nice to implement caching for this or some means of not querying this every time the page is loaded
-    if (!hasQueriedModuleAndPackageInfo) {
-      fetchModuleAndPackageInfo()
-        .then((data) => {
-          setModuleAndPackageInfo(data);
-          setHasQueriedModuleAndPackageInfo(true);
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error(err);
-          setLoading(false);
-        });
-    }
-    const savedFormData = localStorage.getItem('formData');
-    if (savedFormData) {
-      const parsedFormData = JSON.parse(savedFormData);
-      buildDownloadsQueryString({ formData: parsedFormData, setQueryString });
-    }
-    fetchGoogleAPIKey()
-      .then((data) => {
-        setGoogleAPIKey(data);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }, [])
-
+    if (!Auth.isSuperAdmin()) return;
+    let active = true;
+    setKeyError(null);
+    fetchGoogleAPIKey().then(key => { if (active) setGoogleAPIKey(key); })
+      .catch(() => { if (active) setKeyError("Unable to load the map configuration. Please retry."); });
+    return () => { active = false; };
+  }, [retry]);
   useEffect(() => {
-    handleViewAllDownloads();
-  }, [queryString]);
-
-  return (
-    <div style={globalStyles.pageContainer}>
-      {/* <DashboardHeader /> */}
-
-      {filterPopoverOpen &&
-        <FilterPopover
-          setQueryString={setQueryString}
-          onClose={handlePopoverClose}
-          moduleAndPackageInfo={moduleAndPackageInfo}
-          formData={formData}
-          setFormData={setFormData}
-          queryString={queryString}
-        />}
-
-      {/* {errorMessage && <div style={styles.error}>{errorMessage}</div>} */}
-      {loading && <LoadingSpinner />}
-      {hasQueriedDownloads && downloads.length === 0 && <div style={{ ...styles.error, position: 'absolute' }}>{errorMessage ? errorMessage : 'No downloads match the provided search criteria.'}</div>}
-
-      {googleAPIKey && (
-        <GoogleMapsComponent
-          downloads={downloads}
-          handleViewAllDownloads={handleViewAllDownloads}
-          googleAPIKey={googleAPIKey}
-        />
-      )}
-
-    </div>
-  );
-};
-
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    fontFamily: 'Arial, sans-serif',
-    backgroundColor: globalStyles.colors.pageBackgroundMain,
-    height: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    color: globalStyles.colors.darkText,
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  buttonContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    gap: '10px', // Space between the buttons
-    marginTop: '20px',
-    position: 'absolute',
-    top: '130px',
-    width: '100%',
-    zIndex: 1,
-  },
-  button: {
-    backgroundColor: globalStyles.colors.darkButtonTheme,
-    color: globalStyles.colors.whiteTheme,
-    fontSize: '16px',
-    padding: '12px 24px',
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    transition: 'background 0.3s ease',
-    marginTop: '20px',
-    maxWidth: '200px',  // Ensures it doesn't get too wide
-    // width: '100%', // Allows it to shrink on smaller screens
-    textAlign: 'center',
-    minHeight: '60px',
-    flex: 1
-  },
-  filterButton: {
-    maxWidth: '170px',  // Ensures it doesn't get too wide
-    width: '100%', // Allows it to shrink on smaller screens
-    backgroundColor: globalStyles.colors.headerColor, // Different color for Filter/Sort button
-    borderRadius: '8px',
-  },
-  error: {
-    backgroundColor: globalStyles.colors.error,
-    color: globalStyles.colors.whiteTheme,
-    padding: '10px',
-    borderRadius: '5px',
-    marginTop: '15px',
-    textAlign: 'center',
-    fontSize: '14px',
-    maxWidth: '80%',
-  },
-};
-
-export default AdminDashboard;
+    if (!Auth.isSuperAdmin()) return;
+    const controller = new AbortController();
+    setError(null); setLoading(true); setDownloads([]);
+    const filters = readDownloadFilters(new URLSearchParams(filterQuery));
+    const invalid = validateDownloadFilters(filters);
+    if (invalid) { setError(invalid); setLoading(false); return () => controller.abort(); }
+    fetchDownloads(downloadMapQuery(filters), controller.signal)
+      .then(data => { if (!controller.signal.aborted) setDownloads(data); })
+      .catch(failure => { if (!controller.signal.aborted) setError(failure instanceof Error ? failure.message : "Unable to load downloads."); })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, [filterQuery, retry]);
+  if (!Auth.isSuperAdmin()) return <Navigate to="/exams" replace />;
+  return <div className="downloads-page"><PageContainer><div className="downloads">
+    <PageHeader title="Downloads Map" subtitle="Explore reported download events around the world" />
+    <DownloadsNavigation /><DownloadsFilters />
+    <p>The map shows reported events with coordinates. The table also includes events without coordinates.</p>
+    {loading && <p role="status">Loading download markers...</p>}
+    {(error || keyError) && <div className="downloads-error" role="alert">{error || keyError} <Button variant="secondary" onClick={() => setRetry(value => value + 1)}>Retry map</Button></div>}
+    {!loading && !error && downloads.length === 0 && <p role="status">No mapped download events match these filters.</p>}
+    {googleAPIKey && <div className="downloads-map-frame"><GoogleMapsComponent downloads={downloads} handleViewAllDownloads={handleMapLoad} googleAPIKey={googleAPIKey} /></div>}
+  </div></PageContainer></div>;
+}

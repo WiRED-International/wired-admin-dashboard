@@ -139,12 +139,13 @@ export const updateUserById = async (userId: number, updatedData: Partial<UserDa
             body: JSON.stringify(updatedData),
         });
 
-        const data = await response.json();
+        const data = await response.json().catch(() => null);
 
         if (!response.ok) {
-            throw new Error(
-                data.message || 'Failed to update user'
-            );
+            const details = data?.errors && typeof data.errors === 'object'
+                ? Object.values(data.errors).filter((value): value is string => typeof value === 'string')
+                : [];
+            throw new Error([...new Set([data?.message, ...details].filter(Boolean))].join(' ') || 'Failed to update user');
         }
 
         return data;

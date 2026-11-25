@@ -8,6 +8,8 @@ import LoginPage from "./pages/LoginPage.tsx";
 import LoginRedirectWrapper from "./components/LoginRedirectWrapper.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
+import DownloadsEntry from "./components/Downloads/DownloadsEntry";
+import DownloadsTablePage from "./pages/DownloadsTablePage.tsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage.tsx";
 import PasswordResetPage from "./pages/PasswordResetPage.tsx";
 import PasswordResetSuccessPage from "./pages/PasswordResetSuccessPage.tsx";
@@ -50,9 +52,17 @@ const router = createBrowserRouter(
           index: true,
           element: (
             <ProtectedRoute redirectTo="/login">
-              <AdminDashboard />
+              <DownloadsEntry />
             </ProtectedRoute>
           ),
+        },
+        {
+          path: "/downloads/map",
+          element: <ProtectedRoute redirectTo="/login" allow={() => Auth.isSuperAdmin()}><AdminDashboard /></ProtectedRoute>,
+        },
+        {
+          path: "/downloads/table",
+          element: <ProtectedRoute redirectTo="/login" allow={() => Auth.isSuperAdmin()}><DownloadsTablePage /></ProtectedRoute>,
         },
         {
           path: "/login",
