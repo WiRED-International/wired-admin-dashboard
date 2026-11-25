@@ -562,10 +562,44 @@ export const fetchSpecializations = async (): Promise<
 };
 
 export type ModuleUploadUrlResponse = {
+  uploadId?: string;
   uploadUrl: string;
   downloadLink: string;
   key: string;
   fileName: string;
+};
+
+export type ModulePackageMetadata = { module_id: string; module_title: string };
+
+export const inspectModulePackage = async (file: File, moduleId?: number | string): Promise<ModulePackageMetadata | null> => {
+  const form = new FormData();
+  form.append("file", file);
+  if (moduleId != null) form.append("moduleId", String(moduleId));
+  const response = await fetch(`${apiPrefix}/api/admin/modules/inspect-package`, {
+    method: "POST", headers: { Authorization: `Bearer ${Auth.getToken()}` }, body: form,
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || "Unable to inspect module ZIP.");
+  return data.metadata;
+};
+
+export const fetchModulePackageMetadata = async (moduleId: number | string): Promise<ModulePackageMetadata | null> => {
+  const response = await fetch(`${apiPrefix}/api/admin/modules/${moduleId}/package-metadata`, {
+    headers: { Authorization: `Bearer ${Auth.getToken()}` },
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || "Unable to verify the current module package identity.");
+  return data.metadata;
+};
+
+export const checkModuleIdAvailable = async (moduleId: string): Promise<void> => {
+  if (!moduleId.trim()) return;
+  const query = new URLSearchParams({ module_id: moduleId.trim() });
+  const response = await fetch(`${apiPrefix}/api/admin/modules/identity-availability?${query}`, {
+    headers: { Authorization: `Bearer ${Auth.getToken()}` },
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || "Unable to check Module ID availability.");
 };
 
 export const createModuleUploadUrl = async (

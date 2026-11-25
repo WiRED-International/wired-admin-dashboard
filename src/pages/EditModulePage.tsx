@@ -19,6 +19,9 @@ import {
   fetchSpecializations,
   ModuleProgram,
   ModuleSpecialization,
+  inspectModulePackage,
+  fetchModulePackageMetadata,
+  ModulePackageMetadata,
 } from "../api/moduleApi";
 
 export default function EditModulePage() {
@@ -45,6 +48,11 @@ export default function EditModulePage() {
   const [replacementSuccess, setReplacementSuccess] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const successBannerRef = useRef<HTMLDivElement | null>(null);
+  const [packageMetadata, setPackageMetadata] = useState<ModulePackageMetadata | null>(null);
+  const [replacementMetadata, setReplacementMetadata] = useState<ModulePackageMetadata | null>(null);
+  const [identityReady, setIdentityReady] = useState(false);
+  const [inspecting, setInspecting] = useState(false);
+  const inspectionVersion = useRef(0);
 
   const specializationProgram = programs.find(
     (program) => program.training_type === "specialization"
@@ -92,6 +100,12 @@ export default function EditModulePage() {
         setKeywords(keywordsData);
         setPrograms(programsData);
         setSpecializations(specializationsData);
+        try {
+          setPackageMetadata(await fetchModulePackageMetadata(moduleId));
+          setIdentityReady(true);
+        } catch (err) {
+          setReplacementError(err instanceof Error ? err.message : "Unable to verify package identity. Reload before editing Module ID or Name.");
+        }
       } catch (err) {
         setError(
           err instanceof Error
@@ -385,8 +399,35 @@ export default function EditModulePage() {
     }
   };
 
+    const selectReplacement = async (file: File | null) => {
+      if (replacingZip || saving || deleting) return;
+      const request = ++inspectionVersion.current;
+      setReplacementZip(null);
+      setReplacementMetadata(null);
+      setReplacementError(null);
+      setReplacementSuccess(null);
+      setInspecting(false);
+      if (!file) return;
+      if (!file.name.toLowerCase().endsWith(".zip")) { setReplacementError("Please select a ZIP file."); return; }
+      setInspecting(true);
+      try {
+        const metadata = await inspectModulePackage(file, moduleId);
+        if (request !== inspectionVersion.current) return;
+        if (metadata && (metadata.module_id !== String(savedModule?.module_id ?? "").trim()
+            || metadata.module_title !== savedModule?.name.trim())) {
+          throw new Error("The compiler package Module ID and title must match the existing module. Replacement cannot change its identity or title.");
+        }
+        setReplacementMetadata(metadata);
+        setReplacementZip(file);
+      } catch (err) {
+        if (request === inspectionVersion.current) setReplacementError(err instanceof Error ? err.message : "Unable to inspect replacement ZIP.");
+      } finally {
+        if (request === inspectionVersion.current) setInspecting(false);
+      }
+    };
+
     const handleReplaceZip = async () => {
-      if (!moduleId || !replacementZip || replacingZip) return;
+      if (!moduleId || !replacementZip || replacingZip || inspecting || saving) return;
 
       if (module && savedModule) {
         const fieldsToCompare = [
@@ -457,6 +498,8 @@ export default function EditModulePage() {
         const refreshedModule = await fetchModuleById(moduleId);
         setModule(refreshedModule);
         setSavedModule(structuredClone(refreshedModule));
+        setPackageMetadata(replacementMetadata);
+        setIdentityReady(true);
 
         setReplacementZip(null);
         setReplacementSuccess("Module ZIP replaced successfully.");
@@ -510,7 +553,7 @@ export default function EditModulePage() {
   };
 
   const handleSave = async () => {
-    if (!moduleId || !module) return;
+    if (!moduleId || !module || replacingZip || inspecting || saving) return;
 
     try {
       setSaving(true);
@@ -625,6 +668,7 @@ export default function EditModulePage() {
                 <input
                   type="text"
                   value={module.module_id ?? ""}
+                  readOnly={!identityReady || !!packageMetadata || !!replacementMetadata || replacingZip || inspecting}
                   onChange={(event) =>
                     handleFieldChange(
                       "module_id",
@@ -643,6 +687,7 @@ export default function EditModulePage() {
                 <input
                   type="text"
                   value={module.name}
+                  readOnly={!identityReady || !!packageMetadata || !!replacementMetadata || replacingZip || inspecting}
                   onChange={(event) =>
                     handleFieldChange(
                       "name",
@@ -829,14 +874,7 @@ export default function EditModulePage() {
 
                   if (!file) return;
 
-                  if (!file.name.toLowerCase().endsWith(".zip")) {
-                    setReplacementError("Please select a ZIP file.");
-                    return;
-                  }
-
-                  setReplacementZip(file);
-                  setReplacementError(null);
-                  setReplacementSuccess(null);
+                  void selectReplacement(file);
                 }}
                 style={{
                   border: "2px dashed #9CA3AF",
@@ -880,9 +918,7 @@ export default function EditModulePage() {
                     onChange={(event) => {
                       const file = event.target.files?.[0] ?? null;
 
-                      setReplacementZip(file);
-                      setReplacementError(null);
-                      setReplacementSuccess(null);
+                      void selectReplacement(file);
 
                       event.target.value = "";
                     }}
@@ -911,7 +947,7 @@ export default function EditModulePage() {
 
               <button
                 type="button"
-                disabled={!replacementZip || replacingZip}
+                disabled={!replacementZip || replacingZip || inspecting || saving}
                 onClick={handleReplaceZip}
                 style={{
                   ...styles.saveButton,
@@ -921,7 +957,7 @@ export default function EditModulePage() {
                     : {}),
                 }}
               >
-                {replacingZip ? "Preparing..." : "Replace ZIP"}
+                {inspecting ? "Inspecting ZIP..." : replacingZip ? "Preparing..." : "Replace ZIP"}
               </button>
             </div>
           <div style={styles.card}>
@@ -1366,7 +1402,7 @@ export default function EditModulePage() {
                 ...styles.saveButton,
                 ...(saving ? styles.disabledButton : {}),
               }}
-              disabled={saving}
+              disabled={saving || replacingZip || inspecting}
               onClick={handleSave}
             >
               {saving ? "Saving..." : "Save Changes"}

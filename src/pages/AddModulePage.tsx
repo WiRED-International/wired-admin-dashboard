@@ -15,6 +15,9 @@ import {
   CategoryOption,
   KeywordOption,
   createModule,
+  inspectModulePackage,
+  checkModuleIdAvailable,
+  ModulePackageMetadata,
 } from "../api/moduleApi";
 
 export default function AddModulePage() {
@@ -72,6 +75,9 @@ export default function AddModulePage() {
 
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [packageMetadata, setPackageMetadata] = useState<ModulePackageMetadata | null>(null);
+  const [inspecting, setInspecting] = useState(false);
+  const inspectionVersion = useRef(0);
 
   useEffect(() => {
     const loadOptions = async () => {
@@ -124,9 +130,15 @@ export default function AddModulePage() {
     return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
   };
 
-  const selectFile = (file: File | null) => {
+  const selectFile = async (file: File | null) => {
+    if (uploading || creating) return;
+    const request = ++inspectionVersion.current;
     setUploadError(null);
     setDownloadLink(null);
+    setSelectedFile(null);
+    setInspecting(false);
+    if (packageMetadata) { setModuleId(""); setName(""); }
+    setPackageMetadata(null);
 
     if (!file) {
       setSelectedFile(null);
@@ -139,7 +151,18 @@ export default function AddModulePage() {
       return;
     }
 
-    setSelectedFile(file);
+    setInspecting(true);
+    try {
+      const metadata = await inspectModulePackage(file);
+      if (request !== inspectionVersion.current) return;
+      setPackageMetadata(metadata);
+      if (metadata) { setModuleId(metadata.module_id); setName(metadata.module_title); }
+      setSelectedFile(file);
+    } catch (err) {
+      if (request === inspectionVersion.current) setUploadError(err instanceof Error ? err.message : "Unable to inspect module ZIP.");
+    } finally {
+      if (request === inspectionVersion.current) setInspecting(false);
+    }
   };
 
   const handleFileChange = (
@@ -153,9 +176,7 @@ export default function AddModulePage() {
   ) => {
     event.stopPropagation();
 
-    setSelectedFile(null);
-    setDownloadLink(null);
-    setUploadError(null);
+    void selectFile(null);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -271,18 +292,20 @@ export default function AddModulePage() {
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile || inspecting || uploading) return;
 
     try {
       setUploading(true);
       setUploadError(null);
       setDownloadLink(null);
 
+      await checkModuleIdAvailable(moduleId);
       const upload = await createModuleUploadUrl(selectedFile);
 
       await uploadModuleZipToS3(
         selectedFile,
-        upload.uploadUrl
+        upload.uploadUrl,
+        upload.uploadId
       );
 
       setDownloadLink(upload.downloadLink);
@@ -298,6 +321,7 @@ export default function AddModulePage() {
   };
 
   const handleCreateModule = async () => {
+    if (inspecting || uploading || creating) return;
     const trimmedName = name.trim();
 
     if (!trimmedName) {
@@ -330,6 +354,7 @@ export default function AddModulePage() {
       setCreating(true);
       setCreateError(null);
 
+      await checkModuleIdAvailable(moduleId);
       await createModule({
         name: trimmedName,
         module_id: moduleId.trim(),
@@ -472,7 +497,7 @@ export default function AddModulePage() {
           <button
             type="button"
             onClick={handleUpload}
-            disabled={!selectedFile || uploading}
+            disabled={!selectedFile || uploading || inspecting || creating}
             style={{
               ...styles.uploadButton,
               ...(!selectedFile || uploading
@@ -480,7 +505,7 @@ export default function AddModulePage() {
                 : {}),
             }}
           >
-            {uploading ? "Uploading..." : "Upload ZIP"}
+            {inspecting ? "Inspecting ZIP..." : uploading ? "Uploading..." : "Upload ZIP"}
           </button>
         </div>
 
@@ -495,6 +520,7 @@ export default function AddModulePage() {
             Module package uploaded successfully.
           </div>
         )}
+        {packageMetadata && <p style={styles.sectionDescription}>Compiler package detected. Module ID and Name are supplied by module.json.</p>}
       </div>
       <div style={styles.card}>
         <h2 style={styles.sectionHeading}>
@@ -514,6 +540,7 @@ export default function AddModulePage() {
             <input
               type="text"
               value={moduleId}
+              readOnly={!!packageMetadata || inspecting || uploading || creating}
               onChange={(event) =>
                 setModuleId(event.target.value)
               }
@@ -529,6 +556,7 @@ export default function AddModulePage() {
             <input
               type="text"
               value={name}
+              readOnly={!!packageMetadata || inspecting || uploading || creating}
               onChange={(event) =>
                 setName(event.target.value)
               }
@@ -1056,7 +1084,7 @@ export default function AddModulePage() {
         <button
           type="button"
           onClick={handleCreateModule}
-          disabled={creating || uploading}
+          disabled={creating || uploading || inspecting}
           style={{
             ...styles.createButton,
             ...(creating || uploading
