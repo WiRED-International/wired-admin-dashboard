@@ -1,3 +1,4 @@
+import { isArchivedTemplateConflict } from "@/api/examsAPI";
 import { formatExamSchedulePreview, examScheduleValue, requireExamTimeZone } from "@/utils/examDateTime";
 import { useEffect, useRef, useState } from "react";
 import { getExamTemplates, getAccessibleOrganizations, scheduleExam } from "@/api/examsAPI";
@@ -127,8 +128,8 @@ export default function ScheduleExamPage() {
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const data = await getExamTemplates();
-        setTemplates(data);
+        const data = await getExamTemplates({ status: "active" });
+        setTemplates(data.filter(template => !template.is_archived));
 
         const orgs = await getAccessibleOrganizations();
         setOrganizations(orgs);
@@ -722,7 +723,13 @@ export default function ScheduleExamPage() {
 
             } catch (err) {
 
-              alert(err instanceof Error ? err.message : "Failed to schedule exam");
+              if (isArchivedTemplateConflict(err)) {
+                setTemplates(current => current.filter(template => template.id !== Number(selectedTemplateId)));
+                setSelectedTemplateId("");
+                alert("This template has been archived. Select an active template and try again.");
+              } else {
+                alert(err instanceof Error ? err.message : "Failed to schedule exam");
+              }
               console.error(
                 "❌ Failed to schedule exam:",
                 err

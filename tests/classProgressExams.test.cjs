@@ -26,7 +26,7 @@ function text(node) {
 }
 function ui(file, state, imports) {
   let cursor = 0;
-  const component = load(file, { react: { useEffect() {}, useState(initial) {
+  const component = load(file, { react: { useRef: value => ({ current: value }), useEffect() {}, useState(initial) {
     const index = cursor++;
     if (!(index in state)) state[index] = initial;
     return [state[index], value => { state[index] = typeof value === 'function' ? value(state[index]) : value; }];

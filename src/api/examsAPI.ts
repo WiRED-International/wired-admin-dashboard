@@ -3,7 +3,6 @@ import Auth from "@/utils/auth";
 import { apiPrefix } from "@/utils/globalVariables";
 import { UpcomingExam } from "@/interfaces/UpcomingExamInterface";
 import { AllExamResultsResponse, ExamResultsQuery } from "@/interfaces/AllExamResultsInterface";
-import { ExamTemplate } from "@/interfaces/ExamTemplate";
 import { ExamKpiResponse } from "@/interfaces/Exam";
 import { ExamListItem } from "@/interfaces/ExamListItemInterface";
 import { ExamAnalyticsResponse, QuestionAnalyticsResponse, } from "@/interfaces/Exam";
@@ -112,19 +111,20 @@ export async function getAccessibleOrganizations():
 // -----------------------------------------------------
 // Get All Exam Templates
 // -----------------------------------------------------
-export async function getExamTemplates(): Promise<ExamTemplate[]> {
-  const token = Auth.getToken();
-
-  const response = await axios.get(
-    `${apiPrefix}/api/admin/exams/templates`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-
+export async function getExamTemplates(params: {
+  status?: "active" | "archived" | "all";
+  search?: string; program?: string; page?: number; limit?: number;
+} = {}): Promise<import("@/interfaces/ExamTemplate").ExamTemplate[]> {
+  const response = await axios.get(`${apiPrefix}/api/admin/exams/templates`, {
+    headers: { Authorization: `Bearer ${Auth.getToken()}` },
+    params: { ...params, status: params.status ?? "active" },
+  });
   return response.data;
+}
+
+export function isArchivedTemplateConflict(error: unknown): boolean {
+  return axios.isAxiosError(error) && error.response?.status === 409
+    && error.response?.data?.code === "EXAM_TEMPLATE_ARCHIVED";
 }
 
 // -----------------------------------------------------

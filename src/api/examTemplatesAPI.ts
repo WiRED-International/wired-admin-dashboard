@@ -58,10 +58,20 @@ export async function previewExamTemplateImport(
   return response.data;
 }
 
-export async function getExamTemplates(): Promise<ExamTemplate[]> {
+export type ExamTemplateStatus = "active" | "archived" | "all";
+export interface ExamTemplateQuery {
+  status?: ExamTemplateStatus;
+  search?: string;
+  program?: string;
+  page?: number;
+  limit?: number;
+}
+
+export async function getExamTemplates(params: ExamTemplateQuery = {}): Promise<ExamTemplate[]> {
   const response = await axios.get(
     `${apiPrefix}/api/admin/exams/templates`,
     {
+      params: { ...params, status: params.status ?? "active" },
       headers: getAuthHeaders(),
     }
   );
@@ -227,4 +237,19 @@ export async function deleteExamTemplate(
   );
 
   return response.data;
+}
+
+export async function archiveExamTemplate(templateId: number): Promise<{ message: string; template: ExamTemplate }> {
+  const response = await axios.patch(`${apiPrefix}/api/admin/exams/templates/${templateId}/archive`, {}, { headers: getAuthHeaders() });
+  return response.data;
+}
+
+export async function restoreExamTemplate(templateId: number): Promise<{ message: string; template: ExamTemplate }> {
+  const response = await axios.patch(`${apiPrefix}/api/admin/exams/templates/${templateId}/restore`, {}, { headers: getAuthHeaders() });
+  return response.data;
+}
+
+export function isArchivedTemplateConflict(error: unknown): boolean {
+  return axios.isAxiosError(error) && error.response?.status === 409
+    && error.response?.data?.code === "EXAM_TEMPLATE_ARCHIVED";
 }

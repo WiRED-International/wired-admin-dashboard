@@ -826,7 +826,7 @@ test('template actions use matched primary and outlined secondary styling and pr
   let cursor = 0;
   const navigations = [];
   const page = load('src/pages/ExamTemplatesPage.tsx', {
-    react: { __esModule: true, default: {}, useEffect() {}, useState: initial => [cursor++ === 1 ? false : initial, () => {}] },
+    react: { __esModule: true, default: {}, useRef: value => ({ current: value }), useEffect() {}, useState: initial => [cursor++ === 1 ? false : initial, () => {}] },
     'react-router-dom': { useNavigate: () => path => navigations.push(path) },
     '@/components/ui/PageContainer': { default: 'main', __esModule: true },
     '@/components/ui/PageHeader': { default: 'header', __esModule: true },
@@ -838,7 +838,7 @@ test('template actions use matched primary and outlined secondary styling and pr
     if (Array.isArray(node)) return node.flatMap(nodes);
     return [node, ...nodes(node.props?.children)];
   }
-  const actions = nodes(page.default()).filter(node => node.type === 'button' && node.props.className?.includes('exam-template-button'));
+  const actions = nodes(page.default()).filter(node => node.type === 'button' && node.props.className?.includes('exam-template-button') && node.props['aria-pressed'] === undefined);
   assert.equal(actions.length, 2);
   assert.match(actions[0].props.className, /primary/);
   assert.match(actions[1].props.className, /secondary/);

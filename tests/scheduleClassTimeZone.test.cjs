@@ -33,6 +33,7 @@ async function schedulingForm(records, lookup = async id => records.find(c => c.
   const prefix = { apiPrefix: '' };
   const quietConsole = { log() {}, error() {} };
   const axios = {
+    isAxiosError: error => error?.isAxiosError === true,
     get: async url => ({ data: url.endsWith('/templates')
       ? [{ id: 50, title: 'Reusable Template' }]
       : { organizations: [{ id: 1, name: 'Organization', userCount: 2 }] } }),

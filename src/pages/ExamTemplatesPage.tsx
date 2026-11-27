@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import React from "react";
 import { Upload } from "lucide-react";
 import "./ExamTemplatesPage.css";
@@ -9,6 +9,9 @@ import Panel from "@/components/ui/Panel";
 import { ExamTemplate, ExamType } from "@/interfaces/ExamTemplate";
 import {
   getExamTemplates,
+  archiveExamTemplate,
+  restoreExamTemplate,
+  ExamTemplateStatus,
   createExamTemplate,
   deleteExamTemplate,
 } from "@/api/examTemplatesAPI";
@@ -25,25 +28,53 @@ export default function ExamTemplatesPage() {
   const [creating, setCreating] = useState(false);
   const navigate = useNavigate();
 
+  const [status, setStatus] = useState<ExamTemplateStatus>("active");
+  const [feedback, setFeedback] = useState<{ error: boolean; message: string } | null>(null);
+  const [pendingId, setPendingId] = useState<number | null>(null);
+  const pending = useRef(false);
+  const requestVersion = useRef(0);
+
   useEffect(() => {
-    loadTemplates();
-  }, []);
+    void loadTemplates();
+    return () => { requestVersion.current++; };
+  }, [status]);
 
   async function loadTemplates() {
-
+    const version = ++requestVersion.current;
+    setLoading(true);
     try {
-
-      const data = await getExamTemplates();
-
-      setTemplates(data);
-
-    } catch (error) {
-
-      console.error("Failed to load templates:", error);
-
+      const data = await getExamTemplates({ status });
+      if (version === requestVersion.current) setTemplates(data);
+    } catch {
+      if (version === requestVersion.current) {
+        setTemplates([]);
+        setFeedback({ error: true, message: "Failed to load templates. Please retry." });
+      }
     } finally {
+      if (version === requestVersion.current) setLoading(false);
+    }
+  }
 
-      setLoading(false);
+  async function handleArchiveToggle(template: ExamTemplate) {
+    if (pending.current) return;
+    if (!template.is_archived && !window.confirm(
+      "Archive this exam template? It will no longer be available when creating new exams. Existing exams, student results, and credentials will not be affected. You can restore this template at any time."
+    )) return;
+    pending.current = true;
+    setPendingId(template.id);
+    setFeedback(null);
+    const action = template.is_archived ? "restore" : "archive";
+    try {
+      await (template.is_archived ? restoreExamTemplate(template.id) : archiveExamTemplate(template.id));
+      setFeedback({ error: false, message: `Template ${template.is_archived ? "restored" : "archived"} successfully.` });
+      await loadTemplates();
+    } catch (error) {
+      setFeedback({ error: true, message: axios.isAxiosError(error)
+        ? error.response?.data?.message ?? `Failed to ${action} template. Please try again.`
+        : `Failed to ${action} template. Please try again.` });
+    } finally {
+      pending.current = false;
+      setPendingId(null);
     }
   }
 
@@ -126,6 +157,19 @@ export default function ExamTemplatesPage() {
       />
 
       <Panel>
+          <div className="exam-template-status" role="group" aria-label="Template status">
+            {(["active", "archived", "all"] as const).map(value => (
+              <button key={value} type="button" aria-pressed={status === value}
+                className={`exam-template-button exam-template-button-${status === value ? "primary" : "secondary"}`}
+                disabled={pendingId !== null} onClick={() => { setFeedback(null); setStatus(value); }}>
+                {value === "active" ? "Active" : value === "archived" ? "Archived" : "All"}
+              </button>
+            ))}
+          </div>
+          {feedback && <div role={feedback.error ? "alert" : "status"} className={feedback.error ? "exam-template-error" : "exam-template-success"}>
+            {feedback.message} {feedback.error && <button type="button" onClick={() => { setFeedback(null); void loadTemplates(); }}>Retry list</button>}
+          </div>}
+
           {loading ? (
 
             <div>
@@ -235,6 +279,8 @@ export default function ExamTemplatesPage() {
               >
                 {templates.length} Templates
               </div>
+              {templates.length === 0 && <p>{status === "archived" ? "No archived exam templates." : status === "active" ? "No active exam templates. Create a template or restore an archived template." : "No exam templates."}</p>}
+              <div className="exam-template-table-scroll">
               <table style={styles.table}>
                 <thead>
                   <tr>
@@ -249,6 +295,7 @@ export default function ExamTemplatesPage() {
                     <tr key={template.id}>
                       <td style={styles.td}>
                         {template.title}
+                        {template.is_archived && <span className="exam-template-archived">Archived</span>}
                       </td>
 
                       <td style={styles.td}>
@@ -260,6 +307,7 @@ export default function ExamTemplatesPage() {
                           style={{
                             display: "flex",
                             gap: "8px",
+                            flexWrap: "wrap",
                           }}
                         >
                           <button
@@ -273,7 +321,12 @@ export default function ExamTemplatesPage() {
                             View
                           </button>
 
+                          <button style={styles.secondaryBtn} disabled={pendingId !== null}
+                            onClick={() => handleArchiveToggle(template)}>
+                            {pendingId === template.id ? "Updating..." : template.is_archived ? "Restore" : "Archive"}
+                          </button>
                           <button
+                            disabled={pendingId !== null}
                             style={styles.deleteBtn}
                             onClick={() =>
                               handleDeleteTemplate(template.id)
@@ -287,6 +340,7 @@ export default function ExamTemplatesPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
           </>
         )}
       </Panel>

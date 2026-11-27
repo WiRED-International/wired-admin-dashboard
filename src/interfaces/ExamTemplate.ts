@@ -34,6 +34,7 @@ export interface ExamTemplateQuestion {
 }
 
 export interface ExamTemplate {
+  is_archived: boolean;
   id: number;
 
   title: string;

@@ -1,3 +1,4 @@
+import { isArchivedTemplateConflict } from "@/api/examsAPI";
 import { examDateTimeInput, formatExamDateTime, examScheduleValue, requireExamTimeZone, examDisplayTimeZone } from "@/utils/examDateTime";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -105,9 +106,9 @@ ExamDetailsPage() {
 
         setAvailableClasses(classData.classes);
 
-        const templateData = await getExamTemplates();
+        const templateData = await getExamTemplates({ status: "active" });
 
-        setTemplates(templateData);
+        setTemplates(templateData.filter(template => !template.is_archived));
 
       } catch (err) {
 
@@ -280,7 +281,11 @@ ExamDetailsPage() {
 
                   console.error(err);
 
-                  if (axios.isAxiosError(err)) {
+                  if (isArchivedTemplateConflict(err)) {
+                    setTemplates(current => current.filter(template => template.id !== formData.exam_template_id));
+                    setFormData(current => ({ ...current, exam_template_id: exam.exam_template_id }));
+                    alert("The selected template has been archived. Your other changes are preserved. Keep the current template or select an active replacement.");
+                  } else if (axios.isAxiosError(err)) {
                     alert(
                       err.response?.data?.message ||
                       "Failed to save exam"
@@ -520,6 +525,11 @@ ExamDetailsPage() {
                   Select a template
                 </option>
 
+                {exam.exam_template_id !== null && !templates.some(template => template.id === exam.exam_template_id) && (
+                  <option value={exam.exam_template_id}>
+                    {exam.exam_template?.title ?? `Template #${exam.exam_template_id}`} {exam.exam_template?.is_archived ? "(Archived - current template)" : "(Current template)"}
+                  </option>
+                )}
                 {templates.map((template) => (
                   <option
                     key={template.id}
@@ -529,9 +539,10 @@ ExamDetailsPage() {
                   </option>
                 ))}
               </select>
+              {exam.exam_template?.is_archived && <p style={{ color: "#64748B", fontSize: "14px" }}>The current template is archived. You can keep it while editing this exam, or choose an active replacement.</p>}
             </div>
           ) : (
-            exam.exam_template?.title ?? "No template assigned"
+            `${exam.exam_template?.title ?? "No template assigned"}${exam.exam_template?.is_archived ? " (Archived)" : ""}`
           )}
         </div>
 

@@ -21,6 +21,7 @@ export interface ExamClass {
 }
 
 export interface ExamDetailsTemplate {
+  is_archived: boolean;
   id: number;
   title: string;
   description: string | null;

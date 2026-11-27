@@ -59,7 +59,7 @@ function importLayoutFixture() {
   const page = load('src/pages/ExamTemplateImportPage.tsx', imports);
   const templatePage = load('src/pages/ExamTemplatesPage.tsx', {
     ...imports, './ExamTemplatesPage.css': {},
-    react: { ...React, useEffect() {}, useState: value => [value === true ? false : value, () => {}] },
+    react: { ...React, useRef: value => ({ current: value }), useEffect() {}, useState: value => [value === true ? false : value, () => {}] },
   });
   function findActions(node) {
     if (!node || typeof node !== 'object') return null;
